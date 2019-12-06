@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/subtle"
 	"database/sql"
 	"encoding/json"
 	"fmt"
@@ -11,8 +12,8 @@ import (
 	"strconv"
 	"time"
 
+	"bf.go/blog"
 	"github.com/Ullaakut/nmap"
-	"github.com/flosch/pongo2"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	_ "github.com/mattn/go-sqlite3"
@@ -47,14 +48,17 @@ func main() {
 
 	r := mux.NewRouter()
 
-	//r.HandleFunc("/", homeHandler)
-	r.Handle("/", handlers.LoggingHandler(os.Stdout, http.HandlerFunc(homeHandler)))
-	r.Handle("/about", handlers.LoggingHandler(os.Stdout, http.HandlerFunc(aboutHandler)))
-	r.Handle("/api/v1/putnmap/{id}", handlers.LoggingHandler(os.Stdout, http.HandlerFunc(putNmapHandler)))
-	r.Handle("/api/v1/putimage", handlers.LoggingHandler(os.Stdout, http.HandlerFunc(putImage)))
-	r.Handle("/api/v1/get_nmap_sessions", handlers.LoggingHandler(os.Stdout, http.HandlerFunc(getNmapSessions)))
-	r.Handle("/api/v1/get_host_by_session_id/{id}", handlers.LoggingHandler(os.Stdout, http.HandlerFunc(getHostsBySessionID)))
-	r.Handle("/api/v1/get_results_by_host_id/{id}", handlers.LoggingHandler(os.Stdout, http.HandlerFunc(getResultsByHostID)))
+	r.HandleFunc("/", blog.HomeHandler)
+	r.Handle("/", handlers.LoggingHandler(os.Stdout, http.HandlerFunc(blog.HomeHandler)))
+	r.Handle("/about", handlers.LoggingHandler(os.Stdout, blog.AuthHandler(http.HandlerFunc(blog.AboutHandler)))).Methods("GET")
+	// "Signin" and "Welcome" are the handlers that we will implement
+	r.Handle("/signin", handlers.LoggingHandler(os.Stdout, http.HandlerFunc(blog.Signin))).Methods("GET", "POST")
+	r.Handle("/welcome", handlers.LoggingHandler(os.Stdout, http.HandlerFunc(blog.Welcome))).Methods("GET", "POST")
+	//r.Handle("/api/v1/putnmap/{id}", handlers.LoggingHandler(os.Stdout, blog.AuthHandler(pool, http.HandlerFunc(putNmapHandler))))
+	//r.Handle("/api/v1/putimage/{id}", handlers.LoggingHandler(os.Stdout, http.HandlerFunc(putImage)))
+	//r.Handle("/api/v1/get_nmap_sessions", handlers.LoggingHandler(os.Stdout, http.HandlerFunc(getNmapSessions)))
+	//r.Handle("/api/v1/get_host_by_session_id/{id}", handlers.LoggingHandler(os.Stdout, http.HandlerFunc(getHostsBySessionID)))
+	//r.Handle("/api/v1/get_results_by_host_id/{id}", handlers.LoggingHandler(os.Stdout, http.HandlerFunc(getResultsByHostID)))
 	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./static/"))))
 	http.Handle("/", r)
 
@@ -66,34 +70,9 @@ func main() {
 		ReadTimeout:  15 * time.Second,
 	}
 
+	//log.Fatal(http.ListenAndServe("0.0.0.0:5000", n))
+
 	log.Fatal(srv.ListenAndServe())
-}
-
-func homeHandler(w http.ResponseWriter, r *http.Request) {
-	//vars := mux.Vars(r)
-	template := "templates/index.html"
-	tmpl := pongo2.Must(pongo2.FromFile(template))
-
-	out, err := tmpl.Execute(pongo2.Context{"title": "Index", "greating": "Hello"})
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		fmt.Println(err)
-	}
-	w.WriteHeader(http.StatusOK)
-	fmt.Fprintf(w, out)
-}
-
-func aboutHandler(w http.ResponseWriter, r *http.Request) {
-	template := "templates/about.html"
-	tmpl := pongo2.Must(pongo2.FromFile(template))
-
-	out, err := tmpl.Execute(pongo2.Context{"title": "Index", "greating": "Hello"})
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		fmt.Println(err)
-	}
-	w.WriteHeader(http.StatusOK)
-	fmt.Fprintf(w, out)
 }
 
 func getNmapSessions(w http.ResponseWriter, r *http.Request) {
@@ -186,17 +165,25 @@ func getResultsByHostID(w http.ResponseWriter, r *http.Request) {
 
 func putImage(w http.ResponseWriter, r *http.Request) {
 
-	// 10 * 2 @ 40 times
-	r.ParseMultipartForm(10 << 40)
-	r.Request.MultipartReader()
+	vars := mux.Vars(r)
 
-	file, _, err := r.FormFile("data")
+	r.ParseMultipartForm(10 << 20)
+
+	file, header, err := r.FormFile("data")
 	if err != nil {
 		jsonError(err, w)
 		return
 	}
 
+	fileName := header.Filename
+
 	defer file.Close()
+
+	tempFile, err := ioutil.TempFile("temp", fileName)
+	if err != nil {
+		fmt.Println(err)
+	}
+	defer tempFile.Close()
 
 	// read all of the contents of our uploaded file into a
 	// byte array
@@ -206,12 +193,15 @@ func putImage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	permissions := os.FileMode(0644)
-	//permissions := 0644 // or whatever you need
-	err = ioutil.WriteFile("temp/file.jpg", fileBytes, permissions)
-	if err != nil {
-		// handle error
-	}
+	tempFile.Write(fileBytes)
+
+	w.WriteHeader(http.StatusOK)
+
+	w.Header().Set("Content-Type", "application/json")
+
+	fmt.Fprintf(w, "{\"status\":\"success\", \"message\": \"added image to %s\"}\n", vars["id"])
+
+	return
 
 }
 
@@ -345,6 +335,20 @@ func loadNmapSession(scanid string, fileBytes []byte) error {
 	return nil
 }
 
+func basicAuth(w http.ResponseWriter, r *http.Request, username, password, realm string) bool {
+
+	user, pass, ok := r.BasicAuth()
+
+	if !ok || subtle.ConstantTimeCompare([]byte(user), []byte(username)) != 1 || subtle.ConstantTimeCompare([]byte(pass), []byte(password)) != 1 {
+		w.Header().Set("WWW-Authenticate", `Basic realm="`+realm+`"`)
+		w.WriteHeader(401)
+		w.Write([]byte("Unauthorised.\n"))
+		return false
+	}
+
+	return true
+}
+
 func getDatabaseConnection() (*sql.DB, error) {
 
 	if _, err := os.Stat("./nmap.db"); os.IsNotExist(err) {
@@ -454,9 +458,9 @@ func insertHost(db *sql.DB, host *nmapHost) error {
 	return nil
 }
 
-func getAllHostBySessionID(db *sql.DB, session_id int64) ([]nmapHost, error) {
+func getAllHostBySessionID(db *sql.DB, sessionID int64) ([]nmapHost, error) {
 
-	rows, err := db.Query("SELECT id, session_id, host_addr FROM hosts WHERE session_id=?", session_id)
+	rows, err := db.Query("SELECT id, session_id, host_addr FROM hosts WHERE session_id=?", sessionID)
 	if err != nil {
 		return nil, err
 	}

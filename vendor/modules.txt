@@ -1,0 +1,14 @@
+# github.com/Ullaakut/nmap v0.0.0-20191020025340-830f10551944
+github.com/Ullaakut/nmap
+github.com/Ullaakut/nmap/internal/slices
+github.com/Ullaakut/nmap/pkg/osfamilies
+# github.com/flosch/pongo2 v0.0.0-20190707114632-bbf5a6c351f4
+github.com/flosch/pongo2
+# github.com/gorilla/handlers v1.4.2
+github.com/gorilla/handlers
+# github.com/gorilla/mux v1.7.3
+github.com/gorilla/mux
+# github.com/juju/errors v0.0.0-20181118221551-089d3ea4e4d5
+github.com/juju/errors
+# github.com/mattn/go-sqlite3 v1.11.0
+github.com/mattn/go-sqlite3

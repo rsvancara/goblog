@@ -1,0 +1,11 @@
+# Web Application
+
+https://astaxie.gitbooks.io/build-web-application-with-golang/en/08.3.html
+
+# Using CURL to upload file
+
+https://medium.com/@petehouston/upload-files-with-curl-93064dcccc76
+
+#SQLITE
+
+https://astaxie.gitbooks.io/build-web-application-with-golang/en/05.3.html
