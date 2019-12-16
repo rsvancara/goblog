@@ -79,7 +79,7 @@ func (s *Session) Create(creds Credentials) error {
 
 	// Set the token in the cache, along with the user whom it represents
 	// The token has an expiry time of 120 seconds
-	_, err = cache.Do("SETEX", s.SessionToken, "120", string(byteResult))
+	_, err = cache.Do("SETEX", s.SessionToken, "1800", string(byteResult))
 	if err != nil {
 		return fmt.Errorf("Error saving session to redis: %s", err)
 	}

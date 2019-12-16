@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+ 
+{% block title  %}Posts{% endblock %}
+
+{% block headertitle %}Posts{% endblock %}
+ 
+{% block body %}
+<div class="row">
+    <a href="/admin/post/add">Add Post</a>
+</div>
+<table>
+<tr><th>Title</th><th>Status</th><th>Date</th><th></th></tr>
+{% for p in posts %}
+<tr>
+    <td>{{ p.Title }}</td>
+    <td></td>
+    <td>{{ p.CreatedAt }}</td>
+    <td><a href="/admin/post/edit/{{ p.PostID }}" class="btn btn-primary">Edit</a></td>
+</tr>
+
+{% endfor %}
+{% endblock %}
+</table>
+{{posts|length}}
+

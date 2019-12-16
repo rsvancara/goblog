@@ -31,14 +31,14 @@
             <div id="navbar" class="collapse navbar-collapse">
             <ul class="nav navbar-nav">
                 <li><a href="/">Home</a></li>
-
-                <li><a href="/about">About</a></li>
-
                 {% if user %}
                 <li><a href="/admin">Admin</a></li>
+                <li><a href="/admin/post">Posts</a></li>
+                <li><a href="/admin/media">Media</a></li>
                 {% else %}
                 <li><a href="/signin">Sign In</a></li>
                 {% endif %}
+                <li><a href="/about">About</a></li>
 
             </ul>
             </div><!--/.nav-collapse -->
@@ -46,13 +46,10 @@
         </nav>
     
         <div class="container">
-    
-        <div class="starter-template">
-            <h1>{% block headertitle %}Page Title{% endblock %}</h1>
-            
-            {% block body %}Body Default{% endblock %}        
-        </div>
-    
+
+        <h1>{% block headertitle %}Page Title{% endblock %}</h1>
+
+        {% block body %}Body Default{% endblock %} 
         </div><!-- /.container -->
          
     </body>

@@ -21,6 +21,11 @@ func main() {
 	r.Handle("/about", handlers.LoggingHandler(os.Stdout, blog.AuthHandler(http.HandlerFunc(blog.AboutHandler)))).Methods("GET")
 	r.Handle("/signin", handlers.LoggingHandler(os.Stdout, http.HandlerFunc(blog.Signin))).Methods("GET", "POST")
 	r.Handle("/admin", handlers.LoggingHandler(os.Stdout, blog.AuthHandler(http.HandlerFunc(blog.AdminHome)))).Methods("GET", "POST")
+	r.Handle("/admin/media", handlers.LoggingHandler(os.Stdout, blog.AuthHandler(http.HandlerFunc(blog.Media)))).Methods("GET")
+	r.Handle("/admin/media/add", handlers.LoggingHandler(os.Stdout, blog.AuthHandler(http.HandlerFunc(blog.MediaAdd)))).Methods("GET")
+	r.Handle("/admin/post", handlers.LoggingHandler(os.Stdout, blog.AuthHandler(http.HandlerFunc(blog.Post)))).Methods("GET")
+	r.Handle("/admin/post/add", handlers.LoggingHandler(os.Stdout, blog.AuthHandler(http.HandlerFunc(blog.PostAdd)))).Methods("GET", "POST")
+	r.Handle("/admin/post/edit/{id}", handlers.LoggingHandler(os.Stdout, blog.AuthHandler(http.HandlerFunc(blog.PostEdit)))).Methods("GET", "POST")
 	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./static/"))))
 	http.Handle("/", r)
 
