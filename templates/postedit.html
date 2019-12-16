@@ -5,7 +5,7 @@
 {% block headertitle %}Add Post{% endblock %}
  
 {% block body %}
-<form method="post" action="/admin/post/add">
+<form method="post" action="/admin/post/edit/{{post.PostID}}">
 
 <div class="form-group">
     <label for="inputTitle">Title</label>
@@ -19,8 +19,8 @@
 <div class="form-group">
     <label for="inputStatus">Status</label>
     <select class="form-control" id="inputStatus" name="inputStatus" value="{{ post.Status }}">
-    <option value="enabled">Enabled</option>
-    <option vlaue="disabled">Disabled</option>
+    <option value="Enabled">Enabled</option>
+    <option vlaue="Disabled">Disabled</option>
     </select>
 </div>
 {% if statusError == true %}

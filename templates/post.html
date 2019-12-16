@@ -6,14 +6,16 @@
  
 {% block body %}
 <div class="row">
-    <a href="/admin/post/add">Add Post</a>
+    <div class="col-md-12">
+            <a href="/admin/post/add" class="btn btn-primary">Add Post</a>
+    </div>
 </div>
-<table>
+<table class="table">
 <tr><th>Title</th><th>Status</th><th>Date</th><th></th></tr>
 {% for p in posts %}
 <tr>
     <td>{{ p.Title }}</td>
-    <td></td>
+    <td>{{ p.Status }}</td>
     <td>{{ p.CreatedAt }}</td>
     <td><a href="/admin/post/edit/{{ p.PostID }}" class="btn btn-primary">Edit</a></td>
 </tr>

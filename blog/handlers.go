@@ -1,14 +1,13 @@
 package blog
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 	"time"
 
 	//"bf.go/blog/mongo"
 	//"bf.go/blog/models"
-	"bf.go/blog/db"
+
 	"bf.go/blog/models"
 	"bf.go/blog/session"
 	"github.com/flosch/pongo2"
@@ -217,6 +216,8 @@ func PostEdit(w http.ResponseWriter, r *http.Request) {
 	titleMessageError := false
 	postMessage := ""
 	postMessageError := false
+	statusMessage := ""
+	statusMessageError := false
 
 	//http Session
 	var sess session.Session
@@ -232,41 +233,76 @@ func PostEdit(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(val)
 	}
 
-	// Database
-	var ms db.Session
-	var dbconfig db.Config
-	dbconfig.DBUri = "mongodb://host.docker.internal:27017"
-	err = ms.NewSession(&dbconfig)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		fmt.Println(err)
-	}
-	defer ms.Close()
-
-	err = ms.Client.Ping(context.TODO(), nil)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		fmt.Println(err)
-	}
-
 	// Model
 	var pm models.PostModel
 
 	// Load Model
 	pm.GetPost(vars["id"])
 
+	// Test if we are a POST to capture form submission
+	if r.Method == http.MethodPost {
+		if err := r.ParseForm(); err != nil {
+			fmt.Fprintf(w, "ParseForm() err: %v", err)
+			return
+		}
+		pm.Post = r.FormValue("inputPost")
+		pm.Title = r.FormValue("inputTitle")
+		pm.Status = r.FormValue("inputStatus")
+		if err != nil {
+			fmt.Printf("Error converting status to integer in post form: %s\n", err)
+		}
+		//pm.Keywords = r.FormValue("")
+
+		// Do validation here
+		validate := true
+		if pm.Title == "" {
+			validate = false
+			titleMessage = "Please provide a title"
+			titleMessageError = true
+		}
+
+		if pm.Post == "" {
+			validate = false
+			postMessage = "Please provide post content"
+			postMessageError = true
+		}
+
+		if pm.Status == "enabled" || pm.Status == "disabled" {
+
+		} else {
+			statusMessage = "Invalid status code"
+			statusMessageError = true
+		}
+
+		if validate == true {
+
+			// Create Record
+			err = pm.UpdatePost()
+			if err != nil {
+				fmt.Println(err)
+			}
+
+			// Redirect on success otherwise fall through the form
+			// and display any errors
+			http.Redirect(w, r, "/admin/post", http.StatusSeeOther)
+			return
+		}
+	}
+
 	// HTTP Template
-	template := "templates/postadd.html"
+	template := "templates/postedit.html"
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
 	out, err := tmpl.Execute(pongo2.Context{
-		"title":             "Add Post",
-		"post":              pm,
-		"user":              sess.User.Username,
-		"postMessage":       postMessage,
-		"postMessageError":  postMessageError,
-		"titleMessage":      titleMessage,
-		"titleMessageError": titleMessageError,
+		"title":              "Edit Post",
+		"post":               pm,
+		"user":               sess.User.Username,
+		"postMessage":        postMessage,
+		"postMessageError":   postMessageError,
+		"titleMessage":       titleMessage,
+		"titleMessageError":  titleMessageError,
+		"statusMessage":      statusMessage,
+		"statusMessageError": statusMessageError,
 	})
 
 	if err != nil {
@@ -286,6 +322,8 @@ func PostAdd(w http.ResponseWriter, r *http.Request) {
 	titleMessageError := false
 	postMessage := ""
 	postMessageError := false
+	statusMessage := ""
+	statusMessageError := false
 
 	// HTTP Session
 	var sess session.Session
@@ -302,6 +340,10 @@ func PostAdd(w http.ResponseWriter, r *http.Request) {
 		}
 		pm.Post = r.FormValue("inputPost")
 		pm.Title = r.FormValue("inputTitle")
+		pm.Status = r.FormValue("inputStatus")
+		if err != nil {
+			fmt.Printf("Error converting status to integer in post form: %s\n", err)
+		}
 		//pm.Keywords = r.FormValue("")
 
 		// Do validation here
@@ -316,6 +358,13 @@ func PostAdd(w http.ResponseWriter, r *http.Request) {
 			validate = false
 			postMessage = "Please provide post content"
 			postMessageError = true
+		}
+
+		if pm.Status == "enabled" || pm.Status == "disabled" {
+
+		} else {
+			statusMessage = "Invalid status code"
+			statusMessageError = true
 		}
 
 		if validate == true {
@@ -337,13 +386,15 @@ func PostAdd(w http.ResponseWriter, r *http.Request) {
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
 	out, err := tmpl.Execute(pongo2.Context{
-		"title":             "Add Post",
-		"post":              pm,
-		"user":              sess.User.Username,
-		"postMessage":       postMessage,
-		"postMessageError":  postMessageError,
-		"titleMessage":      titleMessage,
-		"titleMessageError": titleMessageError,
+		"title":              "Add Post",
+		"post":               pm,
+		"user":               sess.User.Username,
+		"postMessage":        postMessage,
+		"postMessageError":   postMessageError,
+		"titleMessage":       titleMessage,
+		"titleMessageError":  titleMessageError,
+		"statusMessage":      statusMessage,
+		"statusMessageError": statusMessageError,
 	})
 
 	if err != nil {
