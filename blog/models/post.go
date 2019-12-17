@@ -123,17 +123,24 @@ func (p *PostModel) UpdatePost() error {
 }
 
 //DeletePost delete the post object base on ID
-func (p *PostModel) DeletePost(id string) error {
+func (p *PostModel) DeletePost() error {
 
 	var config db.Config
 	var db db.Session
 
-	config.DBUri = ""
+	config.DBUri = "mongodb://host.docker.internal:27017"
 	err := db.NewSession(&config)
 	if err != nil {
 		return err
 	}
 	defer db.Close()
+
+	c := db.Client.Database("blog").Collection("posts")
+	_, err = c.DeleteOne(context.TODO(), bson.M{"postid": p.PostID})
+
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

@@ -405,6 +405,34 @@ func PostAdd(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, out)
 }
 
+// PostDelete delete post
+func PostDelete(w http.ResponseWriter, r *http.Request) {
+
+	//http Session
+	var sess session.Session
+	err := sess.Session(r)
+	if err != nil {
+		fmt.Printf("Session not available %s", err)
+	}
+
+	// HTTP URL Parameters
+	vars := mux.Vars(r)
+	if val, ok := vars["id"]; ok {
+		//do something here
+		fmt.Println(val)
+	}
+
+	// Model
+	var pm models.PostModel
+
+	// Load Model
+	pm.GetPost(vars["id"])
+
+	pm.DeletePost()
+
+	http.Redirect(w, r, "/admin/post", http.StatusSeeOther)
+}
+
 // MediaAdd add media
 func MediaAdd(w http.ResponseWriter, r *http.Request) {
 	var sess session.Session

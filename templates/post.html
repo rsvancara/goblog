@@ -17,7 +17,10 @@
     <td>{{ p.Title }}</td>
     <td>{{ p.Status }}</td>
     <td>{{ p.CreatedAt }}</td>
-    <td><a href="/admin/post/edit/{{ p.PostID }}" class="btn btn-primary">Edit</a></td>
+    <td>
+        <a href="/admin/post/edit/{{ p.PostID }}" class="btn btn-primary">Edit</a>
+        <a href="/admin/post/delete/{{ p.PostID }}" class="btn btn-primary">delete</a>
+    </td>
 </tr>
 
 {% endfor %}
