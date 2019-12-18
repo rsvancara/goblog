@@ -205,7 +205,5 @@ func AllPostsSortedByDate() ([]PostModel, error) {
 		return nil, err
 	}
 
-	fmt.Println(postModels)
-
 	return postModels, nil
 }

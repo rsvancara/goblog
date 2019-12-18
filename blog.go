@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -14,6 +15,8 @@ import (
 
 func main() {
 
+	fmt.Println("initializing service")
+
 	r := mux.NewRouter()
 
 	r.HandleFunc("/", blog.HomeHandler)
@@ -25,10 +28,13 @@ func main() {
 	r.Handle("/admin/media/add", handlers.LoggingHandler(os.Stdout, blog.AuthHandler(http.HandlerFunc(blog.MediaAdd)))).Methods("GET")
 	r.Handle("/admin/post", handlers.LoggingHandler(os.Stdout, blog.AuthHandler(http.HandlerFunc(blog.Post)))).Methods("GET")
 	r.Handle("/admin/post/add", handlers.LoggingHandler(os.Stdout, blog.AuthHandler(http.HandlerFunc(blog.PostAdd)))).Methods("GET", "POST")
+	r.Handle("/admin/post/view/{id}", handlers.LoggingHandler(os.Stdout, blog.AuthHandler(http.HandlerFunc(blog.PostView)))).Methods("GET")
 	r.Handle("/admin/post/edit/{id}", handlers.LoggingHandler(os.Stdout, blog.AuthHandler(http.HandlerFunc(blog.PostEdit)))).Methods("GET", "POST")
 	r.Handle("/admin/post/delete/{id}", handlers.LoggingHandler(os.Stdout, blog.AuthHandler(http.HandlerFunc(blog.PostDelete)))).Methods("GET")
 	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./static/"))))
 	http.Handle("/", r)
+
+	fmt.Println("Now serving requests")
 
 	srv := &http.Server{
 		Handler: r,

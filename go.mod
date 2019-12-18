@@ -10,6 +10,7 @@ require (
 	github.com/flosch/pongo2 v0.0.0-20190707114632-bbf5a6c351f4
 	github.com/go-stack/stack v1.8.0 // indirect
 	github.com/golang/snappy v0.0.1 // indirect
+	github.com/gomarkdown/markdown v0.0.0-20191207194928-fbea82c4bb03
 	github.com/gomodule/redigo v2.0.0+incompatible
 	github.com/google/go-cmp v0.3.1 // indirect
 	github.com/gorilla/handlers v1.4.2

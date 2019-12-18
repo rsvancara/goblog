@@ -1,12 +1,16 @@
 package blog
 
 import (
+	"bytes"
 	"fmt"
 	"net/http"
 	"time"
 
 	//"bf.go/blog/mongo"
 	//"bf.go/blog/models"
+	"github.com/gomarkdown/markdown"
+	"github.com/gomarkdown/markdown/html"
+	"github.com/gomarkdown/markdown/parser"
 
 	"bf.go/blog/models"
 	"bf.go/blog/session"
@@ -128,7 +132,7 @@ func AdminHome(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/signin", http.StatusSeeOther)
 		return
 	}
-	template := "templates/admin.html"
+	template := "templates/admin/admin.html"
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
 	out, err := tmpl.Execute(pongo2.Context{"title": "Index", "greating": "Hello", "user": sess.User.Username})
@@ -176,7 +180,7 @@ func Post(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 	}
 
-	template := "templates/post.html"
+	template := "templates/admin/post.html"
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
 	out, err := tmpl.Execute(pongo2.Context{"title": "Index", "posts": posts, "user": sess.User.Username})
@@ -196,7 +200,7 @@ func Media(w http.ResponseWriter, r *http.Request) {
 		fmt.Printf("Session not available %s\n", err)
 	}
 
-	template := "templates/media.html"
+	template := "templates/admin/media.html"
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
 	out, err := tmpl.Execute(pongo2.Context{"title": "Index", "greating": "Hello", "user": sess.User.Username})
@@ -290,7 +294,7 @@ func PostEdit(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// HTTP Template
-	template := "templates/postedit.html"
+	template := "templates/admin/postedit.html"
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
 	out, err := tmpl.Execute(pongo2.Context{
@@ -308,6 +312,59 @@ func PostEdit(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		fmt.Println(err)
+	}
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintf(w, out)
+}
+
+// PostView edit the post
+func PostView(w http.ResponseWriter, r *http.Request) {
+
+	//http Session
+	var sess session.Session
+	err := sess.Session(r)
+	if err != nil {
+		fmt.Printf("Session not available %s", err)
+	}
+
+	// HTTP URL Parameters
+	vars := mux.Vars(r)
+	if val, ok := vars["id"]; ok {
+		fmt.Printf("Error no id was found for post: %s", val)
+	}
+
+	// Model
+	var pm models.PostModel
+
+	// Load Model
+	pm.GetPost(vars["id"])
+
+	htmlFlags := html.CommonFlags | html.HrefTargetBlank | html.TOC
+	opts := html.RendererOptions{Flags: htmlFlags}
+	renderer := html.NewRenderer(opts)
+
+	extensions := parser.CommonExtensions | parser.Tables | parser.SpaceHeadings
+	parser := parser.NewWithExtensions(extensions)
+	// This library does not deal well with \r\n that most browswers use, r
+	// replace the \r\n with \n
+	md := []byte(pm.Post)
+	md = NormalizeNewlines(md)
+	content := string(markdown.ToHTML(md, parser, renderer))
+
+	// HTTP Template
+	template := "templates/admin/postview.html"
+	tmpl := pongo2.Must(pongo2.FromFile(template))
+
+	out, err := tmpl.Execute(pongo2.Context{
+		"title":   "Edit Post",
+		"post":    pm,
+		"content": content,
+		"user":    sess.User.Username,
+	})
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		fmt.Printf("error rendering template: %s", err)
 	}
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprintf(w, out)
@@ -382,7 +439,7 @@ func PostAdd(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	template := "templates/postadd.html"
+	template := "templates/admin/postadd.html"
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
 	out, err := tmpl.Execute(pongo2.Context{
@@ -451,4 +508,14 @@ func MediaAdd(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprintf(w, out)
+}
+
+// NormalizeNewlines normalizes \r\n (windows) and \r (mac)
+// into \n (unix)
+func NormalizeNewlines(d []byte) []byte {
+	// replace CR LF \r\n (windows) with LF \n (unix)
+	d = bytes.Replace(d, []byte{13, 10}, []byte{10}, -1)
+	// replace CF \r (mac) with LF \n (unix)
+	d = bytes.Replace(d, []byte{13}, []byte{10}, -1)
+	return d
 }
