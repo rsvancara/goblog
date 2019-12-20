@@ -2,7 +2,6 @@ package db
 
 import (
 	"context"
-	"fmt"
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -40,8 +39,7 @@ func (s *Session) Close() error {
 	err := s.Client.Disconnect(context.TODO())
 	if err != nil {
 		return err
-	} else {
-		fmt.Println("Connection to MongoDB closed.")
 	}
+
 	return nil
 }

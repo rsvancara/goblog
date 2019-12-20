@@ -1,14 +1,79 @@
 {% extends "base.html" %}
  
-{% block title %}Dashboard{% endblock %}
+{% block title %}Blog{% endblock %}
 
-{% block headertitle %}Dashboard{% endblock %}
- 
+{% block headertitle %}Da' Bloooog{% endblock %}
+
+{% block stylesheet %}
+<style>
+.blog-item-box {
+    width: 100%;
+}
+
+.blog-item-date {
+    width: 1000%;
+}
+
+.blog-item-date-day {
+    width: 65px;
+    height: 65px;
+    display: block;
+    float: left;
+    font-size: 45px;
+    line-height: 65px;
+    color: #fff;
+    font-weight: 500;
+    text-align: center;
+    background-color: #cccccc;
+}
+
+.blog-item-date-full-month-year {
+    background: #eeeeee;
+    height: 65px;
+    overflow: hidden;
+    margin: 0 0 10px 0;
+    font-size: 22px;
+    padding: 10px 0 0 10px;
+    font-weight: 400;
+    color: #6b6b6b;
+}
+
+.blog-item-title-title {
+    padding: 0 0 0 10px;
+    margin: 0 0 0 0;
+}
+
+.blog-item-content {
+    padding: 10px 0 20px 10px;
+    margin: 10px 0 10px 0;   
+}
+
+</style>
+{% endblock %}
+
 {% block body %}
-{{ title }}
-<div id="app">
-                
+{% for p in posts %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="blog-item-box">
+            <div class="blog-item-date">
+                <div class="blog-item-date-day">
+                    {{ p.CreatedAt | date:"02 January 2006"|slice:":2" }}
+                </div>
+                <div class="blog-item-date-full-month-year">
+                    {{ p.CreatedAt | date:"02 January 2006"|slice:"2:" }}, {{ p.CreatedAt | date:"Monday" }}
+                </div>
+            </div>
+            <div class="blog-item-title-title">
+                <h2><a href="/post/{{ p.PostID }}">{{ p.Title }}</a></h2>
+            </div>
+            <div class="blog-item-content">
+                {{ p.PostTeaser }} ... <a href="/post/{{ p.PostID }}">Read More</a>
+            </div>  
+        </div>
+    </div>
 </div>
+{% endfor %}
 {% endblock %}
 
 {% block script %}

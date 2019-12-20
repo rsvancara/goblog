@@ -8,9 +8,11 @@ import (
 
 	//"bf.go/blog/mongo"
 	//"bf.go/blog/models"
-	"github.com/gomarkdown/markdown"
-	"github.com/gomarkdown/markdown/html"
-	"github.com/gomarkdown/markdown/parser"
+
+	"github.com/yuin/goldmark"
+	"github.com/yuin/goldmark/extension"
+	"github.com/yuin/goldmark/parser"
+	"github.com/yuin/goldmark/renderer/html"
 
 	"bf.go/blog/models"
 	"bf.go/blog/session"
@@ -48,15 +50,83 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	var sess session.Session
 	err := sess.Session(r)
 	if err != nil {
-		fmt.Printf("No session cookie found: %s \n", err)
-		//http.Redirect(w, r, "/signin", http.StatusSeeOther)
-		//return
+		fmt.Printf("Session not available %s\n", err)
+	}
+
+	// Get List
+	posts, err := models.AllPostsSortedByDate()
+	if err != nil {
+		fmt.Println(err)
 	}
 
 	template := "templates/index.html"
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
-	out, err := tmpl.Execute(pongo2.Context{"title": "Index", "greating": "Hello", "user": sess.User.Username})
+	out, err := tmpl.Execute(pongo2.Context{
+		"title": "Index",
+		"posts": posts,
+		"user":  sess.User.Username,
+	})
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		fmt.Println(err)
+	}
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintf(w, out)
+}
+
+// PostView Home page
+func PostView(w http.ResponseWriter, r *http.Request) {
+	var sess session.Session
+	err := sess.Session(r)
+	if err != nil {
+		fmt.Printf("Session not available %s\n", err)
+	}
+
+	// HTTP URL Parameters
+	vars := mux.Vars(r)
+	if val, ok := vars["id"]; ok {
+
+	} else {
+		fmt.Printf("Error getting url variable, id: %s", val)
+	}
+
+	// Model
+	var pm models.PostModel
+
+	// Load Model
+	pm.GetPost(vars["id"])
+
+	md := []byte(pm.Post)
+	var buf bytes.Buffer
+
+	gm := goldmark.New(
+		goldmark.WithExtensions(extension.GFM),
+		goldmark.WithParserOptions(
+			parser.WithAutoHeadingID(),
+		),
+		goldmark.WithRendererOptions(
+			html.WithHardWraps(),
+			html.WithUnsafe(),
+		),
+	)
+
+	err = gm.Convert(md, &buf)
+	if err != nil {
+		fmt.Printf("Error rendering markdown: %s", err)
+	}
+
+	template := "templates/post.html"
+	tmpl := pongo2.Must(pongo2.FromFile(template))
+
+	out, err := tmpl.Execute(pongo2.Context{
+		"title":   "Index",
+		"post":    pm,
+		"content": buf.String(),
+		"user":    sess.User.Username,
+	})
+
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		fmt.Println(err)
@@ -222,6 +292,10 @@ func PostEdit(w http.ResponseWriter, r *http.Request) {
 	postMessageError := false
 	statusMessage := ""
 	statusMessageError := false
+	featuredMessage := ""
+	featuredMessageError := false
+	postTeaserMessage := ""
+	postTeaserMessageError := false
 
 	//http Session
 	var sess session.Session
@@ -252,11 +326,11 @@ func PostEdit(w http.ResponseWriter, r *http.Request) {
 		pm.Post = r.FormValue("inputPost")
 		pm.Title = r.FormValue("inputTitle")
 		pm.Status = r.FormValue("inputStatus")
-		if err != nil {
-			fmt.Printf("Error converting status to integer in post form: %s\n", err)
-		}
+		pm.Featured = r.FormValue("inputFeatured")
+		pm.PostTeaser = r.FormValue("inputPostTeaser")
 		//pm.Keywords = r.FormValue("")
 
+		fmt.Println(pm)
 		// Do validation here
 		validate := true
 		if pm.Title == "" {
@@ -271,11 +345,24 @@ func PostEdit(w http.ResponseWriter, r *http.Request) {
 			postMessageError = true
 		}
 
+		if pm.PostTeaser == "" {
+			validate = false
+			postTeaserMessage = "Please provide post teaser"
+			postTeaserMessageError = true
+		}
+
 		if pm.Status == "enabled" || pm.Status == "disabled" {
 
 		} else {
 			statusMessage = "Invalid status code"
 			statusMessageError = true
+		}
+
+		if pm.Featured == "yes" || pm.Featured == "no" {
+
+		} else {
+			featuredMessage = "Invalid status code"
+			featuredMessageError = true
 		}
 
 		if validate == true {
@@ -298,15 +385,19 @@ func PostEdit(w http.ResponseWriter, r *http.Request) {
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
 	out, err := tmpl.Execute(pongo2.Context{
-		"title":              "Edit Post",
-		"post":               pm,
-		"user":               sess.User.Username,
-		"postMessage":        postMessage,
-		"postMessageError":   postMessageError,
-		"titleMessage":       titleMessage,
-		"titleMessageError":  titleMessageError,
-		"statusMessage":      statusMessage,
-		"statusMessageError": statusMessageError,
+		"title":                  "Edit Post",
+		"post":                   pm,
+		"user":                   sess.User.Username,
+		"postMessage":            postMessage,
+		"postMessageError":       postMessageError,
+		"titleMessage":           titleMessage,
+		"titleMessageError":      titleMessageError,
+		"statusMessage":          statusMessage,
+		"statusMessageError":     statusMessageError,
+		"featuredMessage":        featuredMessage,
+		"featuredMessageError":   featuredMessageError,
+		"postTeaserMessage":      postTeaserMessage,
+		"postTeaserMessageError": postTeaserMessageError,
 	})
 
 	if err != nil {
@@ -317,8 +408,8 @@ func PostEdit(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, out)
 }
 
-// PostView edit the post
-func PostView(w http.ResponseWriter, r *http.Request) {
+// PostAdminView view the post
+func PostAdminView(w http.ResponseWriter, r *http.Request) {
 
 	//http Session
 	var sess session.Session
@@ -339,17 +430,24 @@ func PostView(w http.ResponseWriter, r *http.Request) {
 	// Load Model
 	pm.GetPost(vars["id"])
 
-	htmlFlags := html.CommonFlags | html.HrefTargetBlank | html.TOC
-	opts := html.RendererOptions{Flags: htmlFlags}
-	renderer := html.NewRenderer(opts)
-
-	extensions := parser.CommonExtensions | parser.Tables | parser.SpaceHeadings
-	parser := parser.NewWithExtensions(extensions)
-	// This library does not deal well with \r\n that most browswers use, r
-	// replace the \r\n with \n
 	md := []byte(pm.Post)
-	md = NormalizeNewlines(md)
-	content := string(markdown.ToHTML(md, parser, renderer))
+	var buf bytes.Buffer
+
+	gm := goldmark.New(
+		goldmark.WithExtensions(extension.GFM),
+		goldmark.WithParserOptions(
+			parser.WithAutoHeadingID(),
+		),
+		goldmark.WithRendererOptions(
+			html.WithHardWraps(),
+			html.WithUnsafe(),
+		),
+	)
+
+	err = gm.Convert(md, &buf)
+	if err != nil {
+		fmt.Printf("Error rendering markdown: %s", err)
+	}
 
 	// HTTP Template
 	template := "templates/admin/postview.html"
@@ -358,7 +456,7 @@ func PostView(w http.ResponseWriter, r *http.Request) {
 	out, err := tmpl.Execute(pongo2.Context{
 		"title":   "Edit Post",
 		"post":    pm,
-		"content": content,
+		"content": buf.String,
 		"user":    sess.User.Username,
 	})
 
@@ -381,6 +479,10 @@ func PostAdd(w http.ResponseWriter, r *http.Request) {
 	postMessageError := false
 	statusMessage := ""
 	statusMessageError := false
+	featuredMessage := ""
+	featuredMessageError := false
+	postTeaserMessage := ""
+	postTeaserMessageError := false
 
 	// HTTP Session
 	var sess session.Session
@@ -398,6 +500,8 @@ func PostAdd(w http.ResponseWriter, r *http.Request) {
 		pm.Post = r.FormValue("inputPost")
 		pm.Title = r.FormValue("inputTitle")
 		pm.Status = r.FormValue("inputStatus")
+		pm.Featured = r.FormValue("inputFeatured")
+		pm.PostTeaser = r.FormValue("inputPostTeaser")
 		if err != nil {
 			fmt.Printf("Error converting status to integer in post form: %s\n", err)
 		}
@@ -417,11 +521,24 @@ func PostAdd(w http.ResponseWriter, r *http.Request) {
 			postMessageError = true
 		}
 
+		if pm.PostTeaser == "" {
+			validate = false
+			postTeaserMessage = "Please provide post teaser"
+			postTeaserMessageError = true
+		}
+
 		if pm.Status == "enabled" || pm.Status == "disabled" {
 
 		} else {
 			statusMessage = "Invalid status code"
 			statusMessageError = true
+		}
+
+		if pm.Featured == "yes" || pm.Featured == "no" {
+
+		} else {
+			featuredMessage = "Invalid status code"
+			featuredMessageError = true
 		}
 
 		if validate == true {
@@ -443,15 +560,19 @@ func PostAdd(w http.ResponseWriter, r *http.Request) {
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
 	out, err := tmpl.Execute(pongo2.Context{
-		"title":              "Add Post",
-		"post":               pm,
-		"user":               sess.User.Username,
-		"postMessage":        postMessage,
-		"postMessageError":   postMessageError,
-		"titleMessage":       titleMessage,
-		"titleMessageError":  titleMessageError,
-		"statusMessage":      statusMessage,
-		"statusMessageError": statusMessageError,
+		"title":                  "Add Post",
+		"post":                   pm,
+		"user":                   sess.User.Username,
+		"postMessage":            postMessage,
+		"postMessageError":       postMessageError,
+		"titleMessage":           titleMessage,
+		"titleMessageError":      titleMessageError,
+		"statusMessage":          statusMessage,
+		"statusMessageError":     statusMessageError,
+		"featuredMessage":        featuredMessage,
+		"featuredMessageError":   featuredMessageError,
+		"postTeaserMessage":      postTeaserMessage,
+		"postTeaserMessageError": postTeaserMessageError,
 	})
 
 	if err != nil {
