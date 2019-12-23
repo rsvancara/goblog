@@ -1,28 +1,28 @@
 FROM golang:1.13.4-stretch
 
-RUN mkdir /build
+RUN mkdir BUILD
+WORKDIR /BUILD
 
-WORKDIR /build
+COPY blog.go /BUILD/blog.go
+COPY go.sum  /BUILD.go.sum
+COPY go.mod /BUILD/go.mod
+COPY vendor /BUILD/vendor
+COPY blog /BUILD/blog
 
-COPY blog.go .
-COPY go.sum  .
-COPY go.mod .
-COPY vendor .
+#RUN go mod download && CGO_ENABLED=1 GOOS=linux go build blog.go 
 
-RUN go mod download && CGO_ENABLED=1 GOOS=linux go build blog.go 
+RUN CGO_ENABLED=1 GOOS=linux go build blog.go 
 
 FROM ubuntu:18.04
 
 RUN apt-get update &&  \
     apt-get clean && \
     mkdir app
-    
+
 WORKDIR /app
 
-COPY --from=0 /build/blog .
+COPY --from=0 /BUILD/blog .
 
 COPY templates templates
-
-COPY nmap.db .
-
+    
 CMD ["./blog"] 

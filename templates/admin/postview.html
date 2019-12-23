@@ -1,0 +1,11 @@
+{% extends "../base.html" %}
+ 
+{% block title  %}Admin{% endblock %}
+
+{% block headertitle %}{{ post.Title }}{% endblock %}
+ 
+{% block body %}
+<p>
+    {{ content |safe }}
+</p>
+{% endblock %}

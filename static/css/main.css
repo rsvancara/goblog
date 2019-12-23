@@ -1,0 +1,11 @@
+body {
+    padding-top: 50px;
+}
+
+image {
+    width: 100%;
+}
+
+.image > img {
+    width: 100%;
+}

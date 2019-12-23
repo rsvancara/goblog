@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"bf.go/blog/db"
+	"blog/blog/db"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/options"

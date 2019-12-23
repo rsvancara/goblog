@@ -1,7 +1,8 @@
 package cache
 
 import (
-	"bf.go/blog/config"
+	"blog/blog/config"
+
 	"github.com/gomodule/redigo/redis"
 )
 

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"bf.go/blog/cache"
+	"blog/blog/cache"
 	"github.com/gomodule/redigo/redis"
 	uuid "github.com/satori/go.uuid"
 )

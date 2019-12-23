@@ -7,11 +7,10 @@ import (
 	"os"
 	"time"
 
-	"bf.go/blog"
-	"bf.go/blog/config"
+	"blog/blog"
+	"blog/blog/config"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
-	_ "github.com/mattn/go-sqlite3"
 )
 
 func main() {

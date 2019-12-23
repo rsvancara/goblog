@@ -14,8 +14,9 @@ import (
 	"github.com/yuin/goldmark/parser"
 	"github.com/yuin/goldmark/renderer/html"
 
-	"bf.go/blog/models"
-	"bf.go/blog/session"
+	"blog/blog/models"
+	"blog/blog/session"
+
 	"github.com/flosch/pongo2"
 	"github.com/gorilla/mux"
 )

@@ -3,7 +3,8 @@ package db
 import (
 	"context"
 
-	"bf.go/blog/config"
+	"blog/blog/config"
+
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )

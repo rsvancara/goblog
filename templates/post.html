@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title  %}Admin{% endblock %}
+
+{% block stylesheet %}
+<style>
+
+
+</style>
+
+{% endblock %}
+
+{% block headertitle %}{{ post.Title }}{% endblock %}
+ 
+{% block body %}
+<p>
+    {{ content |safe }}
+</p>
+{% endblock %}
+
+{% block script %}
+<script>
+
+var data = new Map([
+        ["x123" , "https://live.staticflickr.com/65535/49251947808_b3b6f00c47_b.jpg"], 
+        ["x124" , "https://live.staticflickr.com/65535/49251947808_b3b6f00c47_b.jpg" ] ,
+        ["x125", "https://live.staticflickr.com/65535/49251947808_b3b6f00c47_b.jpg"]]); 
+
+$( document ).ready(function() {
+    console.log( "document loaded" );
+
+    $('.image').each(function() {
+        console.log($(this).data('id'));
+        console.log(data.get($(this).data('id')));
+        $(this).html("<img src=" + data.get($(this).data('id')) +"/>");  
+
+    });
+
+
+});
+
+
+
+</script>
+{% endblock %}
+
