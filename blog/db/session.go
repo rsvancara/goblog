@@ -3,15 +3,10 @@ package db
 import (
 	"context"
 
+	"bf.go/blog/config"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
-
-// Config mongo config
-type Config struct {
-	DBUri  string `json:"dburi"`
-	Secret string `json:"secret"`
-}
 
 // Session mongodb session
 type Session struct {
@@ -19,11 +14,13 @@ type Session struct {
 }
 
 // NewSession create new session
-func (s *Session) NewSession(config *Config) error {
+func (s *Session) NewSession() error {
 
 	var err error
 
-	clientOptions := options.Client().ApplyURI(config.DBUri)
+	cfg, err := config.GetConfig()
+
+	clientOptions := options.Client().ApplyURI(cfg.Dburi)
 	s.Client, err = mongo.Connect(context.TODO(), clientOptions)
 	if err != nil {
 		return err

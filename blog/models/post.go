@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"bf.go/blog/db"
+
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"gopkg.in/mgo.v2/bson"
@@ -28,11 +29,10 @@ type PostModel struct {
 // GetPost populate the post object based on ID
 func (p *PostModel) GetPost(id string) error {
 
-	var config db.Config
 	var db db.Session
 
-	config.DBUri = "mongodb://host.docker.internal:27017"
-	err := db.NewSession(&config)
+	//config.DBUri = "mongodb://host.docker.internal:27017"
+	err := db.NewSession()
 
 	c := db.Client.Database("blog").Collection("posts")
 
@@ -48,12 +48,9 @@ func (p *PostModel) GetPost(id string) error {
 //InsertPost insert post
 func (p *PostModel) InsertPost() error {
 
-	var config db.Config
-	config.DBUri = "mongodb://host.docker.internal:27017"
-
 	var db db.Session
 
-	err := db.NewSession(&config)
+	err := db.NewSession()
 	if err != nil {
 		return err
 	}
@@ -81,12 +78,12 @@ func (p *PostModel) InsertPost() error {
 //UpdatePost update existing post
 func (p *PostModel) UpdatePost() error {
 
-	var config db.Config
-	config.DBUri = "mongodb://host.docker.internal:27017"
+	//var config db.Config
+	//config.DBUri = "mongodb://host.docker.internal:27017"
 
 	var db db.Session
 
-	err := db.NewSession(&config)
+	err := db.NewSession()
 	if err != nil {
 		return err
 	}
@@ -129,11 +126,11 @@ func (p *PostModel) UpdatePost() error {
 //DeletePost delete the post object base on ID
 func (p *PostModel) DeletePost() error {
 
-	var config db.Config
+	//var config db.Config
 	var db db.Session
 
-	config.DBUri = "mongodb://host.docker.internal:27017"
-	err := db.NewSession(&config)
+	//config.DBUri = "mongodb://host.docker.internal:27017"
+	err := db.NewSession()
 	if err != nil {
 		return err
 	}
@@ -152,11 +149,11 @@ func (p *PostModel) DeletePost() error {
 //FindPostsByKeyWords find posts that match keywords. Variadic function that can take multiple values
 func FindPostsByKeyWords(keywords ...string) ([]PostModel, error) {
 
-	var config db.Config
+	//var config db.Config
 	var db db.Session
 
-	config.DBUri = "mongodb://host.docker.internal:27017"
-	err := db.NewSession(&config)
+	//config.DBUri = "mongodb://host.docker.internal:27017"
+	err := db.NewSession()
 	if err != nil {
 		return nil, err
 	}
@@ -168,13 +165,13 @@ func FindPostsByKeyWords(keywords ...string) ([]PostModel, error) {
 //AllPostsSortedByDate retrieve all posts sorted by creation date
 func AllPostsSortedByDate() ([]PostModel, error) {
 
-	var config db.Config
+	//var config db.Config
 	var db db.Session
 
 	var postModels []PostModel
-	config.DBUri = "mongodb://host.docker.internal:27017"
+	//config.DBUri = "mongodb://host.docker.internal:27017"
 
-	err := db.NewSession(&config)
+	err := db.NewSession()
 	if err != nil {
 		return nil, err
 	}

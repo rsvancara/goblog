@@ -1,6 +1,7 @@
 package cache
 
 import (
+	"bf.go/blog/config"
 	"github.com/gomodule/redigo/redis"
 )
 
@@ -10,7 +11,8 @@ func GetRedisConn() (redis.Conn, error) {
 	// 6379 of the local machine. 6379 is the default port, so unless
 	// you've already changed the Redis configuration file this should
 	// work.
-	conn, err := redis.Dial("tcp", "host.docker.internal:6379")
+	cfg, err := config.GetConfig()
+	conn, err := redis.Dial("tcp", cfg.Cacheuri)
 	if err != nil {
 		return conn, err
 	}

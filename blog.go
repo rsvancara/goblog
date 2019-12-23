@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"bf.go/blog"
+	"bf.go/blog/config"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	_ "github.com/mattn/go-sqlite3"
@@ -15,7 +16,16 @@ import (
 
 func main() {
 
-	fmt.Println("initializing service")
+	fmt.Println("== Starting Service ==")
+
+	cfg, err := config.GetConfig()
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	fmt.Println("== Initializing Configuration ==")
+	fmt.Printf("Database URI: %s\n", cfg.Dburi)
+	fmt.Printf("Cache URI: %s\n", cfg.Cacheuri)
 
 	r := mux.NewRouter()
 

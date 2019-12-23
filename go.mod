@@ -15,6 +15,7 @@ require (
 	github.com/google/go-cmp v0.3.1 // indirect
 	github.com/gorilla/handlers v1.4.2
 	github.com/gorilla/mux v1.7.3
+	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/mattn/go-sqlite3 v1.13.0
 	github.com/mongodb/mongo-go-driver v1.2.0
 	github.com/satori/go.uuid v1.2.0
