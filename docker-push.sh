@@ -1,4 +1,4 @@
-!/bin/sh
+#!/bin/sh
 # Push a docker image only if it does not exist in the repository
 
 IMAGE="$1"
