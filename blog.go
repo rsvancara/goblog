@@ -9,6 +9,8 @@ import (
 
 	"blog/blog"
 	"blog/blog/config"
+	"blog/blog/views"
+
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 )
@@ -34,8 +36,9 @@ func main() {
 	r.Handle("/about", handlers.LoggingHandler(os.Stdout, blog.AuthHandler(http.HandlerFunc(blog.AboutHandler)))).Methods("GET")
 	r.Handle("/signin", handlers.LoggingHandler(os.Stdout, http.HandlerFunc(blog.Signin))).Methods("GET", "POST")
 	r.Handle("/admin", handlers.LoggingHandler(os.Stdout, blog.AuthHandler(http.HandlerFunc(blog.AdminHome)))).Methods("GET", "POST")
-	r.Handle("/admin/media", handlers.LoggingHandler(os.Stdout, blog.AuthHandler(http.HandlerFunc(blog.Media)))).Methods("GET")
-	r.Handle("/admin/media/add", handlers.LoggingHandler(os.Stdout, blog.AuthHandler(http.HandlerFunc(blog.MediaAdd)))).Methods("GET")
+	r.Handle("/admin/media", handlers.LoggingHandler(os.Stdout, blog.AuthHandler(http.HandlerFunc(views.Media)))).Methods("GET")
+	r.Handle("/api/v1/putmedia/{id}", handlers.LoggingHandler(os.Stdout, http.HandlerFunc(views.PutMedia)))
+	r.Handle("/admin/media/add", handlers.LoggingHandler(os.Stdout, blog.AuthHandler(http.HandlerFunc(views.MediaAdd)))).Methods("GET")
 	r.Handle("/admin/post", handlers.LoggingHandler(os.Stdout, blog.AuthHandler(http.HandlerFunc(blog.Post)))).Methods("GET")
 	r.Handle("/admin/post/add", handlers.LoggingHandler(os.Stdout, blog.AuthHandler(http.HandlerFunc(blog.PostAdd)))).Methods("GET", "POST")
 	r.Handle("/admin/post/view/{id}", handlers.LoggingHandler(os.Stdout, blog.AuthHandler(http.HandlerFunc(blog.PostAdminView)))).Methods("GET")

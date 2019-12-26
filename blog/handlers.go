@@ -41,7 +41,6 @@ func AuthHandler(h http.Handler) http.Handler {
 			http.Redirect(w, r, "/signin", http.StatusSeeOther)
 			return
 		}
-
 		h.ServeHTTP(w, r)
 	})
 }
@@ -255,26 +254,6 @@ func Post(w http.ResponseWriter, r *http.Request) {
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
 	out, err := tmpl.Execute(pongo2.Context{"title": "Index", "posts": posts, "user": sess.User.Username})
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		fmt.Println(err)
-	}
-	w.WriteHeader(http.StatusOK)
-	fmt.Fprintf(w, out)
-}
-
-// Media media
-func Media(w http.ResponseWriter, r *http.Request) {
-	var sess session.Session
-	err := sess.Session(r)
-	if err != nil {
-		fmt.Printf("Session not available %s\n", err)
-	}
-
-	template := "templates/admin/media.html"
-	tmpl := pongo2.Must(pongo2.FromFile(template))
-
-	out, err := tmpl.Execute(pongo2.Context{"title": "Index", "greating": "Hello", "user": sess.User.Username})
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		fmt.Println(err)
@@ -610,26 +589,6 @@ func PostDelete(w http.ResponseWriter, r *http.Request) {
 	pm.DeletePost()
 
 	http.Redirect(w, r, "/admin/post", http.StatusSeeOther)
-}
-
-// MediaAdd add media
-func MediaAdd(w http.ResponseWriter, r *http.Request) {
-	var sess session.Session
-	err := sess.Session(r)
-	if err != nil {
-		fmt.Printf("Session not available %s", err)
-	}
-
-	template := "templates/about.html"
-	tmpl := pongo2.Must(pongo2.FromFile(template))
-
-	out, err := tmpl.Execute(pongo2.Context{"title": "Index", "greating": "Hello", "user": sess.User.Username})
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		fmt.Println(err)
-	}
-	w.WriteHeader(http.StatusOK)
-	fmt.Fprintf(w, out)
 }
 
 // NormalizeNewlines normalizes \r\n (windows) and \r (mac)
