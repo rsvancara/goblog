@@ -7,17 +7,19 @@ pipeline {
         ansiColor(colorMapName: 'XTerm')
         timestamps()
     }
-
     stages {
         stage('Build') {
             steps {
-                sh 'docker build .'
+                sh 'docker build -t ${TAG_NAME}'
             }
         }
         stage('Publish') {
             when { buildingTag() }
             steps {
-                sh "./build-and-push.sh docker.util.pages/inf/dabloog ${TAG_NAME}"
+                withDockerRegistry([ credentialsId: "jenkins-inf", url: "https://docker.util.pages" ]) {
+                    sh 'docker push docker.util.pages/inf/dabloog:${TAG_NAME}'
+                }
+                //sh "./build-and-push.sh docker.util.pages/inf/dabloog ${TAG_NAME}"
             }
         }
     }
