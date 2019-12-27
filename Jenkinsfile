@@ -19,7 +19,6 @@ pipeline {
                 withDockerRegistry([ credentialsId: "jenkins-inf", url: "https://docker.util.pages/" ]) {
                     sh 'docker push docker.util.pages/inf/dabloog:${TAG_NAME}'
                 }
-                //sh "./build-and-push.sh docker.util.pages/inf/dabloog ${TAG_NAME}"
             }
         }
     }
