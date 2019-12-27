@@ -10,7 +10,7 @@ pipeline {
     stages {
         stage('Build') {
             steps {
-                sh 'docker build -t ${TAG_NAME} .'
+                sh 'docker build -t docker.util.pages/inf/dabloog:${TAG_NAME} .'
             }
         }
         stage('Publish') {
