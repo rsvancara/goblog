@@ -45,7 +45,7 @@ func MediaAdd(w http.ResponseWriter, r *http.Request) {
 		fmt.Printf("Session not available %s", err)
 	}
 
-	template := "templates/about.html"
+	template := "templates/admin/mediaadd.html"
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
 	out, err := tmpl.Execute(pongo2.Context{"title": "Index", "greating": "Hello", "user": sess.User.Username})
@@ -60,11 +60,24 @@ func MediaAdd(w http.ResponseWriter, r *http.Request) {
 // PutMedia Upload file to server
 func PutMedia(w http.ResponseWriter, r *http.Request) {
 
+	errorMessage := "{\"status\":\"error\", \"message\": \"error: %s\"}\n"
+
 	vars := mux.Vars(r)
+
+	var sess session.Session
+	err := sess.Session(r)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Header().Set("Content-Type", "application/json")
+		fmt.Fprintf(w, errorMessage, err)
+		return
+	}
 
 	file, handler, err := r.FormFile("file") // Retrieve the file from form data
 	if err != nil {
-		fmt.Printf("error getting file from form: %s\n", err)
+		w.WriteHeader(http.StatusOK)
+		w.Header().Set("Content-Type", "application/json")
+		fmt.Fprintf(w, errorMessage, err)
 		return
 	}
 	defer file.Close() // Close the file when we finish
@@ -73,7 +86,9 @@ func PutMedia(w http.ResponseWriter, r *http.Request) {
 	f, err := os.OpenFile("temp/"+handler.Filename, os.O_WRONLY|os.O_CREATE, 0666)
 
 	if err != nil {
-		fmt.Printf("error getting file from form: %s\n", err)
+		w.WriteHeader(http.StatusOK)
+		w.Header().Set("Content-Type", "application/json")
+		fmt.Fprintf(w, errorMessage, err)
 		return
 	}
 
