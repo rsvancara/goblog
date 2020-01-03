@@ -67,11 +67,26 @@ func PutMedia(w http.ResponseWriter, r *http.Request) {
 	var sess session.Session
 	err := sess.Session(r)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json")
 		fmt.Fprintf(w, errorMessage, err)
 		return
 	}
+
+	//err = r.ParseForm()
+	err = r.ParseMultipartForm(128 << 20)
+	if err != nil {
+		w.WriteHeader(http.StatusOK)
+		w.Header().Set("Content-Type", "application/json")
+		//fmt.Fprintf(w, errorMessage, err)
+
+		fmt.Println(err)
+		return
+	}
+
+	keywords := r.FormValue("keywords")
+	fmt.Printf("keywords: %s\n", keywords)
+	//fmt.Println(r.Form)
 
 	file, handler, err := r.FormFile("file") // Retrieve the file from form data
 	if err != nil {
@@ -80,11 +95,11 @@ func PutMedia(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, errorMessage, err)
 		return
 	}
+
 	defer file.Close() // Close the file when we finish
 
 	// This is path which we want to store the file
 	f, err := os.OpenFile("temp/"+handler.Filename, os.O_WRONLY|os.O_CREATE, 0666)
-
 	if err != nil {
 		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json")
@@ -93,14 +108,17 @@ func PutMedia(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Copy the file to the destination path
-	io.Copy(f, file)
+	_, err = io.Copy(f, file)
+	if err != nil {
+		w.WriteHeader(http.StatusOK)
+		w.Header().Set("Content-Type", "application/json")
+		fmt.Fprintf(w, errorMessage, err)
+		return
+	}
 
 	w.WriteHeader(http.StatusOK)
-
 	w.Header().Set("Content-Type", "application/json")
-
-	fmt.Fprintf(w, "{\"status\":\"success\", \"message\": \"file %s uploaded\"}\n", vars["id"])
-
+	fmt.Fprintf(w, "{\"status\":\"success\", \"message\": \"file %s uploaded\",\"file\":\"%s\"}\n", vars["id"], handler.Filename)
 	return
 }
 
