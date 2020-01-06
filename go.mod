@@ -4,6 +4,9 @@ go 1.13
 
 require (
 	github.com/DataDog/zstd v1.4.4 // indirect
+	github.com/aws/aws-sdk-go v1.27.0
+	github.com/dsoprea/go-exif v0.0.0-20200102120628-74567945ac68
+	github.com/dsoprea/go-logging v0.0.0-20190624164917-c4f10aab7696
 	github.com/flosch/pongo2 v0.0.0-20190707114632-bbf5a6c351f4
 	github.com/go-stack/stack v1.8.0 // indirect
 	github.com/golang/snappy v0.0.1 // indirect

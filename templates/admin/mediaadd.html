@@ -12,6 +12,13 @@
     <input type="input" class="form-control" id="keywords" name="keywords"/>
 </div>
 
+<div class="form-group">
+    <label for="description">Description</label>
+    <textarea class="form-control" id="description" name="description">
+
+    </textarea>
+</div>
+
 <div class="form-group row">
     <div class="col-sm-5">
         <button id="fileup" type="button" class="btn btn-primary">Add Files</button>
@@ -106,12 +113,12 @@ $(document).ready(function() {
         });
     };
 
-    $("#form").on('submit',(function(e) {
+    $("#but_upload").click((function(e) {
         e.preventDefault();
         $('#file-list-status').empty();
         fileList.forEach(function (file) {
             base = base.then(getAjaxDeferred(file));
-            console.log("Upload completed....")
+            //console.log("Upload completed....")
         });
 
         //window.location.replace("/admin/media");
@@ -122,12 +129,12 @@ $(document).ready(function() {
         return function(){
             // wrap with a deferred
             var defer = $.Deferred();
-
             var fd = new FormData(); 
 
             fd.append('file', file); 
             console.log($('#keywords').val());
             fd.append('keywords',$('#keywords').val());
+            fd.append('description',$('#description').val());
 
             $.ajax({ 
                 url: '/api/v1/putmedia/1', 
@@ -137,19 +144,32 @@ $(document).ready(function() {
                 cache: false,
                 processData: false, 
                 dataType: 'json',
+                timeout: 120000,
+                error: function() {
+                    $('#file-list-status').append('<div class="alert alert-error" role="alert">File upload failed with error: ' + error + '</div>');
+                },
                 success: function(response){ 
                     if(response != 0){ 
                         console.log(response['file'] + 'file uploaded'); 
-                        $('#file-list-status').append('<div class="alert alert-success" role="alert">Uploaded file:' + response['file'] + '</div>');
-                        //window.location.replace("/admin/media");
-                        uploadCount = uploadCount + 1
-                        $('#status').html('<span>' + uploadCount + ' - files uploaded</span>')
-                    }else{ 
+                        if(response) {
+                            console.log(response)
+                            uploadCount = uploadCount + 1
+                            if(response['status'] == 'error') {
+                                $('#file-list-status').append('<div class="alert alert-error" role="alert">File upload for:' + response['file'] + ' failed with error: ' + response['error'] + '</div>');
+                            }
+                            else {
+                                $('#file-list-status').append('<div class="alert alert-success" role="alert">Uploaded file:' + response['file'] + '</div>');
+
+                            }
+                        }
+                        
+                        $('#status').html('<span>' + uploadCount + ' - files uploaded </span>')
+                    }else{
                         console.log('file could not be uploaded'); 
                     } 
                 }, 
                 complete: function(jqXHR, status) {
-                    
+
                     if (uploadCount == fileList.length) {
                         console.log("end is near!");
                     }
@@ -157,7 +177,6 @@ $(document).ready(function() {
                     defer.resolve();
                 }
             }); 
-
 
             // return a promise so that we can chain properly in the each 
             return defer.promise();
