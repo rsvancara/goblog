@@ -372,7 +372,7 @@ func addFileToS3(key string, filepath string, media models.MediaModel) {
 	_, err = s3.New(s).PutObject(&s3.PutObjectInput{
 		Bucket:               aws.String("vi-goblog"),
 		Key:                  aws.String(key),
-		ACL:                  aws.String("public"),
+		ACL:                  aws.String("public-read"),
 		Body:                 bytes.NewReader(buffer),
 		ContentLength:        aws.Int64(size),
 		ContentType:          aws.String(http.DetectContentType(buffer)),
