@@ -105,3 +105,22 @@ func (m *MediaModel) SetS3Uploaded(status string, s3_location string) error {
 
 	return nil
 }
+
+// GetMedia populate the post object based on ID
+func (m *MediaModel) GetMedia(id string) error {
+
+	var db db.Session
+
+	//config.DBUri = "mongodb://host.docker.internal:27017"
+	err := db.NewSession()
+
+	c := db.Client.Database("blog").Collection("media")
+
+	err = c.FindOne(context.TODO(), bson.M{"postid": id}).Decode(m)
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+
+	return nil
+}

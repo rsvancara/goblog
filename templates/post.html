@@ -2,14 +2,6 @@
 
 {% block title  %}Admin{% endblock %}
 
-{% block stylesheet %}
-<style>
-
-
-</style>
-
-{% endblock %}
-
 {% block headertitle %}{{ post.Title }}{% endblock %}
  
 {% block body %}
@@ -22,24 +14,29 @@
 <script>
 
 var data = new Map([
-        ["x123" , "https://live.staticflickr.com/65535/49251947808_b3b6f00c47_b.jpg"], 
+        ["x123" , "https://cdn.visualintrigue.com/a8ca1126-6e7a-461d-b7a8-df01c1f46ebc_lowrez_1600px.jpeg"], 
         ["x124" , "https://live.staticflickr.com/65535/49251947808_b3b6f00c47_b.jpg" ] ,
         ["x125", "https://live.staticflickr.com/65535/49251947808_b3b6f00c47_b.jpg"]]); 
 
 $( document ).ready(function() {
     console.log( "document loaded" );
 
-    $('.image').each(function() {
+    $('.load-image').each(function() {
         console.log($(this).data('id'));
-        console.log(data.get($(this).data('id')));
-        $(this).html("<img src=" + data.get($(this).data('id')) +"/>");  
-
+        $(this).html('<img src="' + data.get($(this).data('id')) + '"/>');
     });
 
+    $('.load-image').mouseover(function(e){
+        console.log("load image details");
+        console.log($(this).data('id'));
+        console.log(data.get($(this).data('id')));
+    });
 
+    $('.load-image').mouseleave(function(e){
+        console.log("leave image details");
+        console.log($(this).data('id'));
+    });
 });
-
-
 
 </script>
 {% endblock %}
