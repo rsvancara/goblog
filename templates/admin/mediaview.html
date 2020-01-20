@@ -1,0 +1,78 @@
+{% extends "../base.html" %}
+ 
+{% block title  %}View Media{% endblock %}
+
+{% block stylesheet %}
+<style>
+.container-fluid {
+    padding-left: 0px;
+    padding-right: 0px;
+}
+</style>
+
+{% endblock %}
+
+{% block body %}
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="image-container">
+            <div class="image-box">
+                <img src="https://vi-goblog.s3-us-west-2.amazonaws.com{{ media.S3LargeView }}" />
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+</div>
+<div class="container">
+<div class="row">
+    <div class="col-md-12">
+        <h2>{{ media.Title }}</h2>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-6">
+        <h4><span class="icon-h4"><img src="/static/camera.svg" /></span>Photo Details</h4>
+        <div><span class="photo-details">Make: </span>{{ media.Make }}</div>
+        <div><span class="photo-details">Model: </span>{{ media.Model }}</div>
+        <div><span class="photo-details">Date Taken: </span>{{ media.DateTime }}</div>
+        <div><span class="photo-details">FStop: </span>{{ media.FStop }}</div>
+        <div><span class="photo-details">Exposure: </span>{{ media.ExposureTime }}</div>
+        <div><span class="photo-details">ISO: </span>{{ media.ISOSpeedRatings }}</div>
+        <div><span class="photo-details">Exposure Program: </span>{{ exposureprogram }}</div>
+        <div><span class="photo-details">Focal Length: </span>{{ media.FocalLengthIn35mmFilm }}</div>
+        <div><span class="photo-details">Lens: </span>{{ media.LensModel }}</div>
+        {% if media.LightSource == "0" %}
+        <div><span class="photo-details">Flash: </span>Did Not Fire</div>
+        {% else %}
+        <div><span class="photo-details">Flash: </span>Fired</div>
+        {% endif %}
+    </div>
+    <div class="col-md-6">
+        <h4><span class="icon-h4"><img src="/static/blog.svg" />Description</h4>
+        <p>{{ media.Description }}</p>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-12">
+        <a href="/admin/media/edit/{{ media.MediaID  }}" class="btn btn-primary">Edit</a>
+    </div>
+</div>
+
+
+
+
+{% endblock %}
+
+{% block script %}
+<script>
+$(document).ready(function() { 
+
+
+});
+</script>
+
+{% endblock %}

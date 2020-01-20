@@ -1,7 +1,7 @@
 <html>
     <head>
         <title>
-             {% block title %}Website Title Default{% endblock %}
+             {% block title %}Blog{% endblock %}
         </title>
         <!-- Latest compiled and minified CSS -->
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
@@ -9,9 +9,9 @@
         {% block stylesheet %}
         {% endblock %}
     </head>
-    <body>
+    <body class="page {{ bodyclass }}">
         <nav class="navbar navbar-expand-lg navbar-light bg-light bd-navbar">
-            <a class="navbar-brand" href="/">Da' bloog</a>
+            <a class="navbar-brand" href="/">Visual Intrigue</a>
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
               <span class="navbar-toggler-icon"></span>
             </button>
@@ -19,7 +19,7 @@
 
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
                 <ul class="navbar-nav mr-auto">
-                  <li class="nav-item active">
+                  <li class="nav-item">
                     <a class="nav-link" href="/">Home</a>
                   </li>
                   {% if user %}
@@ -30,7 +30,7 @@
                     <a class="nav-link" href="/admin/post">Posts</a>
                   </li>
                   <li class="nav-item">
-                    <a class="nav-link" href="/admin/media">media</a>
+                    <a class="nav-link" href="/admin/media">Media</a>
                   </li>
                   {% else %}
                   <li class="nav-item">
@@ -43,10 +43,16 @@
                 </ul>
             </div>
         </nav>
-    
-        <div class="container">
 
-        <h1>{% block headertitle %}Page Title{% endblock %}</h1>
+
+        {% if fluid %}
+        <div class="container-fluid">
+        {% else %}
+        <div class="container">
+        {% endif %}
+        {% block headertitle %}
+        
+        {% endblock %}
 
         {% block body %}Body Default{% endblock %} 
         </div><!-- /.container -->

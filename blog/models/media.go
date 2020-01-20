@@ -4,9 +4,15 @@ import (
 	"blog/blog/db"
 	"context"
 	"fmt"
+	"io/ioutil"
+	"os"
+	"strconv"
+	"strings"
 	"time"
 
+	"github.com/dsoprea/go-exif"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"gopkg.in/mgo.v2/bson"
 )
 
@@ -15,8 +21,11 @@ type MediaModel struct {
 	ID                    primitive.ObjectID `json:"_id" bson:"_id,omitempty"`
 	MediaID               string             `json:"media_id" bson:"media_id,omitempty"`
 	Keywords              string             `json:"keywords" bson:"keywords,omitempty"`
+	Title                 string             `json:"title" bson:"title,omitempty"`
 	FileName              string             `json:"file_name" bson:"file_name,omitempty"`
 	S3Location            string             `json:"s3_location" bson:"s3_location,omitempty"`
+	S3Thumbnail           string             `json:"s3_thumbnail" bson:"s3_thumbnail,omitempty"`
+	S3LargeView           string             `json:"s3_largeview" bson:"s3_largeview,omitempty"`
 	S3Uploaded            string             `json:"s3_uploaded" bson:"s3_uploaded,omitempty"`
 	Description           string             `json:"description" bson:"description,omitempty"`
 	Checksum              string             `json:"checksum" bson:"checksum,omitempty"`
@@ -37,6 +46,8 @@ type MediaModel struct {
 	PixelYDimension       string             `json:"pixel_y_dimension" bson:"pixel_y_dimension,omitempty"` //5320
 	FocalLengthIn35mmFilm string             `json:"focal_length35" bson:"focal_length35,omitempty"`       //23
 	LensModel             string             `json:"lens_model" bson:"lens_model,omitempty"`               //FE 16-35mm F2.8 GM
+	ExposureProgram       string             `json:"exposure_program" bson:"exposure_program,omitempty"`
+	FStop                 string             `json:"fstop" bson:"fstop,omitempty"`
 }
 
 //InsertMedia insert media
@@ -69,8 +80,8 @@ func (m *MediaModel) InsertMedia() error {
 	return nil
 }
 
-//SetS3Uploaded sets the status of the s3upload
-func (m *MediaModel) SetS3Uploaded(status string, s3_location string) error {
+//UpdateMedia Update the title, keywords and description for media
+func (m *MediaModel) UpdateMedia() error {
 
 	var db db.Session
 
@@ -91,8 +102,9 @@ func (m *MediaModel) SetS3Uploaded(status string, s3_location string) error {
 
 	update := bson.M{
 		"$set": bson.M{
-			"s3_uploaded": status,
-			"s3_location": s3_location,
+			"keywords":    m.Keywords,
+			"title":       m.Title,
+			"description": m.Description,
 		},
 	}
 
@@ -101,12 +113,51 @@ func (m *MediaModel) SetS3Uploaded(status string, s3_location string) error {
 		return err
 	}
 
-	fmt.Println(result)
+	fmt.Printf("updated %v record for media id  %s \n", result.ModifiedCount, m.MediaID)
 
 	return nil
 }
 
-// GetMedia populate the post object based on ID
+//SetS3Uploaded sets the status of the s3upload
+func (m *MediaModel) SetS3Uploaded() error {
+
+	var db db.Session
+
+	err := db.NewSession()
+	if err != nil {
+		return err
+	}
+
+	defer db.Close()
+
+	c := db.Client.Database("blog").Collection("media")
+
+	filter := bson.M{
+		"media_id": bson.M{
+			"$eq": m.MediaID, // check if bool field has value of 'false'
+		},
+	}
+
+	update := bson.M{
+		"$set": bson.M{
+			"s3_uploaded":  m.S3Uploaded,
+			"s3_location":  m.S3Location,
+			"s3_thumbnail": m.S3Thumbnail,
+			"s3_largeview": m.S3LargeView,
+		},
+	}
+
+	result, err := c.UpdateOne(context.TODO(), filter, update)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("updated s3 status for %v record for media id  %s \n", result.ModifiedCount, m.MediaID)
+
+	return nil
+}
+
+// GetMedia populate the media object based on ID
 func (m *MediaModel) GetMedia(id string) error {
 
 	var db db.Session
@@ -116,11 +167,253 @@ func (m *MediaModel) GetMedia(id string) error {
 
 	c := db.Client.Database("blog").Collection("media")
 
-	err = c.FindOne(context.TODO(), bson.M{"postid": id}).Decode(m)
+	err = c.FindOne(context.TODO(), bson.M{"media_id": id}).Decode(m)
 	if err != nil {
 		return err
 	}
 	defer db.Close()
 
 	return nil
+}
+
+// GetExposureProgramTranslated translates numeric value to Exposure Mode
+func (m *MediaModel) GetExposureProgramTranslated() string {
+	exposureProgramMap := map[string]string{
+		"0": "Not Defined",
+		"1": "Manual",
+		"2": "Program AE",
+		"3": "Aperture-priority AE",
+		"4": "Shutter speed priority AE",
+		"5": "Creative (Slow speed)",
+		"6": "Action (High speed)",
+		"7": "Portrait",
+		"8": "Landscape",
+		"9": "Bulb",
+	}
+
+	if val, ok := exposureProgramMap[m.ExposureProgram]; ok {
+		return val
+	}
+
+	return "Unknown"
+}
+
+// CalculateFSTOP Calculates the FSTOP Value for display purposes
+func (m *MediaModel) CalculateFSTOP() string {
+
+	vals := strings.Split(m.FNumber, "/")
+
+	if len(vals) == 2 {
+
+		num, err := strconv.ParseFloat(vals[0], 64)
+		if err != nil {
+			return "Unknown"
+		}
+
+		den, err := strconv.ParseFloat(vals[1], 64)
+		if err != nil {
+			return "Unknown"
+		}
+
+		fstop := fmt.Sprintf("%.1f", num/den)
+
+		return fstop
+	}
+
+	return "Unknown"
+}
+
+// ExifExtractor Extract EXIF Information from image
+func (m *MediaModel) ExifExtractor(f *os.File) error {
+
+	data, err := ioutil.ReadAll(f)
+	if err != nil {
+		return err
+	}
+	//log.PanicIf(err)
+
+	exifData, err := exif.SearchAndExtractExif(data)
+	if err != nil {
+		if err == exif.ErrNoExif {
+			return err
+		}
+		return err
+	}
+
+	// parse exif information
+	im := exif.NewIfdMappingWithStandard()
+	ti := exif.NewTagIndex()
+
+	visitor := func(fqIfdPath string, ifdIndex int, tagId uint16, tagType exif.TagType, valueContext exif.ValueContext) (err error) {
+		ifdPath, err := im.StripPathPhraseIndices(fqIfdPath)
+		if err != nil {
+			return err
+		}
+
+		it, err := ti.Get(ifdPath, tagId)
+		if err != nil {
+			return err
+		}
+
+		valueString := ""
+		if tagType.Type() == exif.TypeUndefined {
+			value, err := exif.UndefinedValue(ifdPath, tagId, valueContext, tagType.ByteOrder())
+			if err == exif.ErrUnhandledUnknownTypedTag {
+				valueString = "!UNDEFINED!"
+			} else {
+				return err
+			}
+			valueString = fmt.Sprintf("%v", value)
+		} else {
+			valueString, err = tagType.ResolveAsString(valueContext, true)
+			if err != nil {
+				return err
+			}
+		}
+
+		// Obtain the various components and add exif information
+		if it.Name == "Make" {
+			m.Make = valueString
+		}
+
+		if it.Name == "Model" {
+			m.Model = valueString
+		}
+
+		if it.Name == "Software" {
+			m.Software = valueString
+		}
+
+		if it.Name == "DateTime" {
+			layOut := "2006:01:02 15:04:05 MST"
+			//"2019:12:23 18:46:27"
+			timeStamp, _ := time.Parse(layOut, fmt.Sprintf("%s PST", valueString))
+			m.DateTime = timeStamp
+		}
+
+		if it.Name == "Artist" {
+			m.Artist = valueString
+		}
+
+		if it.Name == "ExposureTime" {
+			m.ExposureTime = valueString
+		}
+
+		if it.Name == "FNumber" {
+			m.FNumber = valueString
+			m.FStop = m.CalculateFSTOP()
+		}
+
+		if it.Name == "ISOSpeedRatings" {
+			m.ISOSpeedRatings = valueString
+		}
+
+		if it.Name == "LightSource" {
+			m.LightSource = valueString
+		}
+
+		if it.Name == "FocalLength" {
+			m.FocalLength = valueString
+		}
+
+		if it.Name == "PixelXDimension" {
+			m.PixelXDimension = valueString
+		}
+
+		if it.Name == "PixelYDimension" {
+			m.PixelYDimension = valueString
+		}
+
+		if it.Name == "FocalLengthIn35mmFilm" {
+			m.FocalLengthIn35mmFilm = valueString
+		}
+
+		if it.Name == "LensModel" {
+			m.LensModel = valueString
+		}
+
+		if it.Name == "ExposureProgram" {
+			m.ExposureProgram = valueString
+		}
+
+		//fmt.Printf("FQ-IFD-PATH=[%s] ID=(0x%04x) NAME=[%s] COUNT=(%d) TYPE=[%s] VALUE=[%s]\n", fqIfdPath, tagId, it.Name, valueContext.UnitCount, tagType.Name(), valueString)
+		return nil
+	}
+
+	_, err = exif.Visit(exif.IfdStandard, im, ti, exifData, visitor)
+
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+//DeleteMedia delete the media object base on ID
+func (m *MediaModel) DeleteMedia() error {
+
+	//var config db.Config
+	var db db.Session
+
+	//config.DBUri = "mongodb://host.docker.internal:27017"
+	err := db.NewSession()
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+
+	c := db.Client.Database("blog").Collection("media")
+	_, err = c.DeleteOne(context.TODO(), bson.M{"media_id": m.MediaID})
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+//AllMediaSortedByDate retrieve all posts sorted by creation date
+func AllMediaSortedByDate() ([]MediaModel, error) {
+
+	//var config db.Config
+	var db db.Session
+
+	var mediaModels []MediaModel
+	//config.DBUri = "mongodb://host.docker.internal:27017"
+
+	err := db.NewSession()
+	if err != nil {
+		return nil, err
+	}
+	defer db.Close()
+
+	filter := bson.M{}
+
+	options := options.Find()
+
+	// Sort by `_id` field descending
+	options.SetSort(map[string]int{"created_at": -1})
+
+	cur, err := db.Client.Database("blog").Collection("media").Find(context.TODO(), filter, options)
+	if err != nil {
+		return nil, err
+	}
+
+	defer cur.Close(context.TODO())
+
+	for cur.Next(context.TODO()) {
+		var m MediaModel
+		// To decode into a struct, use cursor.Decode()
+		err := cur.Decode(&m)
+		if err != nil {
+			return nil, err
+		}
+
+		mediaModels = append(mediaModels, m)
+
+	}
+	if err := cur.Err(); err != nil {
+		return nil, err
+	}
+
+	return mediaModels, nil
 }

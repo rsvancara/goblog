@@ -1,11 +1,16 @@
 {% extends "../base.html" %}
  
-{% block title  %}Add Post{% endblock %}
+{% block title  %}Add Images{% endblock %}
 
-{% block headertitle %}Add Post{% endblock %}
+{% block headertitle %}<h1>Add Images</h1>{% endblock %}
  
 {% block body %}
 <form id="form" method="post" action="/admin/media/add" enctype="multipart/form-data">
+
+<div class="form-group">
+    <label for="title">Title</label>
+    <input type="input" class="form-control" id="title" name="title"/>
+</div>
 
 <div class="form-group">
     <label for="keywords">Keywords</label>
@@ -83,8 +88,8 @@ $(document).ready(function() {
 
     validateFile = function(file) {
 
-        if (file.size > 60000000) {
-            console.log('max upload size is 60mb');
+        if (file.size > 75000000) {
+            console.log('max upload size is 75mb');
             return false;
         }
 
@@ -120,9 +125,6 @@ $(document).ready(function() {
             base = base.then(getAjaxDeferred(file));
             //console.log("Upload completed....")
         });
-
-        //window.location.replace("/admin/media");
-
     }));
 
     function getAjaxDeferred(file){
@@ -132,8 +134,8 @@ $(document).ready(function() {
             var fd = new FormData(); 
 
             fd.append('file', file); 
-            console.log($('#keywords').val());
             fd.append('keywords',$('#keywords').val());
+            fd.append('title',$('#title').val());
             fd.append('description',$('#description').val());
 
             $.ajax({ 
@@ -172,7 +174,17 @@ $(document).ready(function() {
 
                     if (uploadCount == fileList.length) {
                         console.log("end is near!");
+                        $('#file-list-status').append('<div class="alert alert-success" role="alert">' +  uploadCount + ' - file(s) uploaded</div>');
+                        $('#file-list-status').append('<div class="alert alert-success" role="alert">Upload Complete!</div>');
+                        var i = 0;
+                        setInterval(function () {
+                            i++;
+                            if(i == 3){
+                                window.location.replace("/admin/media");
+                            }
+                        }, 1000);
                     }
+
 
                     defer.resolve();
                 }

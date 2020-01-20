@@ -2,7 +2,7 @@
  
 {% block title  %}Media{% endblock %}
 
-{% block headertitle %}Media{% endblock %}
+{% block headertitle %}<h1>Media</h1>{% endblock %}
  
 {% block body %}
 <div class="row">
@@ -10,8 +10,28 @@
             <a href="/admin/media/add" class="btn btn-primary">Add Media</a>
     </div>
 </div>
-<p>
-    Media
-</p>
-{% endblock %}
+<table class="table">
+    <tr><th></th><th>Title</th><th>Date</th><th></th></tr>
+    {% for m in media %}
+    <tr>
+        <td>
+            {% if m.S3Uploaded == "true" %}
+            <img src="https://vi-goblog.s3-us-west-2.amazonaws.com{{ m.S3Thumbnail }}" style="width: 50px; height: 50px;"/>
+            {% else %}
+              Loading..
+
+            {% endif %}
+        </td>
+        <td><a href="/admin/media/view/{{ m.MediaID }}">{{ m.Title }}</a></td>
+        <td>{{ m.CreatedAt }}</td>
+        <td>
+            <a href="/admin/media/view/{{ m.MediaID }}" class="btn btn-primary">view</a>
+            <a href="/admin/media/delete/{{ m.MediaID }}" class="btn btn-primary">delete</a>
+        </td>
+    </tr>
+    
+    {% endfor %}
+    {% endblock %}
+</table>
+    {{posts|length}}
 

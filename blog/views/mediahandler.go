@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"time"
@@ -18,9 +17,10 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	awsSession "github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
-	"github.com/dsoprea/go-exif"
 	"github.com/flosch/pongo2"
 	"github.com/gorilla/mux"
+
+	"github.com/disintegration/imaging"
 )
 
 type jsonErrorMessage struct {
@@ -36,10 +36,71 @@ func Media(w http.ResponseWriter, r *http.Request) {
 		fmt.Printf("Session not available %s\n", err)
 	}
 
+	fmt.Println("Getting Models")
+	// Get List
+	media, err := models.AllMediaSortedByDate()
+	if err != nil {
+		fmt.Println(err)
+	}
+
 	template := "templates/admin/media.html"
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
-	out, err := tmpl.Execute(pongo2.Context{"title": "Index", "greating": "Hello", "user": sess.User.Username})
+	out, err := tmpl.Execute(pongo2.Context{
+		"title":     "Index",
+		"media":     media,
+		"user":      sess.User.Username,
+		"bodyclass": "frontpage",
+		"hidetitle": true,
+	})
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		fmt.Println(err)
+	}
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintf(w, out)
+}
+
+// ViewMedia View the media
+func ViewMedia(w http.ResponseWriter, r *http.Request) {
+
+	var media models.MediaModel
+
+	var sess session.Session
+	err := sess.Session(r)
+	if err != nil {
+		fmt.Printf("Session not available %s", err)
+	}
+
+	// HTTP URL Parameters
+	vars := mux.Vars(r)
+	if val, ok := vars["id"]; ok {
+
+	} else {
+		fmt.Printf("Error getting url variable, id: %s", val)
+	}
+
+	// Load Media
+	err = media.GetMedia(vars["id"])
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	template := "templates/admin/mediaview.html"
+	tmpl := pongo2.Must(pongo2.FromFile(template))
+
+	out, err := tmpl.Execute(pongo2.Context{
+		"title":           "View Media",
+		"media":           media,
+		"user":            sess.User.Username,
+		"bodyclass":       "frontpage",
+		"fluid":           true,
+		"hidetitle":       true,
+		"exposureprogram": media.GetExposureProgramTranslated(),
+	})
+
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		fmt.Println(err)
@@ -98,8 +159,9 @@ func PutMedia(w http.ResponseWriter, r *http.Request) {
 
 	keywords := r.FormValue("keywords")
 	description := r.FormValue("description")
+	title := r.FormValue("title")
 
-	fmt.Printf("keywords: %s\n", keywords)
+	//fmt.Printf("keywords: %s\n", keywords)
 	//fmt.Println(r.Form)
 
 	file, handler, err := r.FormFile("file") // Retrieve the file from form data
@@ -142,7 +204,7 @@ func PutMedia(w http.ResponseWriter, r *http.Request) {
 	defer rf.Close()
 
 	// Get exif
-	err = exifExtractor(rf, &media)
+	err = media.ExifExtractor(rf)
 	if err != nil {
 		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json")
@@ -163,6 +225,7 @@ func PutMedia(w http.ResponseWriter, r *http.Request) {
 	media.Checksum = string(sha256)
 	media.Description = description
 	media.FileName = handler.Filename
+	media.Title = title
 	media.S3Uploaded = "false"
 
 	err = media.InsertMedia()
@@ -177,13 +240,184 @@ func PutMedia(w http.ResponseWriter, r *http.Request) {
 	// Get s3 key
 	s3KeyGenerator(&media)
 
-	go addFileToS3(media.S3Location, "temp/"+handler.Filename, media)
+	go addFileToS3("temp/"+handler.Filename, media)
 	//fmt.Println("File uploaded")
 
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
 	fmt.Fprintf(w, "{\"status\":\"success\", \"message\": \"file %s uploaded\",\"file\":\"%s\"}\n", vars["id"], handler.Filename)
 	fmt.Printf("{\"status\":\"success\", \"message\": \"file %s uploaded\",\"file\":\"%s\"}\n", vars["id"], handler.Filename)
+	return
+}
+
+// MediaEdit Delete media from the database and s3
+func MediaEdit(w http.ResponseWriter, r *http.Request) {
+
+	// Media Object
+	var media models.MediaModel
+
+	// Form Management Variables
+	formTitle := ""
+	formTitleError := false
+	formDescription := ""
+	formDescriptionError := false
+	formKeywords := ""
+	formKeywordsError := false
+
+	//http Session
+	var sess session.Session
+	err := sess.Session(r)
+	if err != nil {
+		fmt.Printf("Session not available %s", err)
+	}
+
+	// HTTP URL Parameters
+	vars := mux.Vars(r)
+	if val, ok := vars["id"]; ok {
+
+	} else {
+		fmt.Printf("Error getting url variable, id: %s", val)
+	}
+
+	// Load Media
+	err = media.GetMedia(vars["id"])
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	// Test if we are a POST to capture form submission
+	if r.Method == http.MethodPost {
+		if err := r.ParseForm(); err != nil {
+			fmt.Fprintf(w, "ParseForm() err: %v", err)
+			return
+		}
+
+		// Loading form
+		media.Title = r.FormValue("title")
+		media.Keywords = r.FormValue("keywords")
+		media.Description = r.FormValue("description")
+
+		// Do validation here
+		validate := true
+		if media.Title == "" {
+			validate = false
+			formTitle = "Please provide a title"
+			formTitleError = true
+		}
+
+		if media.Keywords == "" {
+			validate = false
+			formKeywords = "Please provide keywords"
+			formKeywordsError = true
+		}
+
+		if media.Description == "" {
+			validate = false
+			formDescription = "Please provide a description"
+			formDescriptionError = true
+		}
+		if validate == true {
+
+			// Create Record
+			err = media.UpdateMedia()
+			if err != nil {
+				fmt.Println(err)
+			}
+
+			// Redirect on success otherwise fall through the form
+			// and display any errors
+			http.Redirect(w, r, fmt.Sprintf("/admin/media/view/%s", vars["id"]), http.StatusSeeOther)
+			return
+		}
+	}
+
+	// HTTP Template
+	template := "templates/admin/mediaedit.html"
+	tmpl := pongo2.Must(pongo2.FromFile(template))
+
+	out, err := tmpl.Execute(pongo2.Context{
+		"title":                "Edit Media",
+		"media":                media,
+		"user":                 sess.User.Username,
+		"formTitle":            formTitle,
+		"formTitleError":       formTitleError,
+		"formKeywords":         formKeywords,
+		"formKeywordsError":    formKeywordsError,
+		"formDescription":      formDescription,
+		"formDescriptionError": formDescriptionError,
+	})
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		fmt.Println(err)
+	}
+
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintf(w, out)
+}
+
+// MediaDelete Delete media from the database and s3
+func MediaDelete(w http.ResponseWriter, r *http.Request) {
+
+	// HTTP URL Parameters
+	vars := mux.Vars(r)
+	if val, ok := vars["id"]; ok {
+
+	} else {
+		fmt.Printf("Error getting url variable, id: %s", val)
+	}
+
+	var media models.MediaModel
+
+	err := media.GetMedia(vars["id"])
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	deleteS3Object("vi-goblog", media.S3Location)
+
+	deleteS3Object("vi-goblog", media.S3Thumbnail)
+
+	deleteS3Object("vi-goblog", media.S3LargeView)
+
+	err = media.DeleteMedia()
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	http.Redirect(w, r, "/admin/media", http.StatusSeeOther)
+
+}
+
+func deleteS3Object(bucket string, key string) {
+
+	// Create a single AWS session (we can re use this if we're uploading many files)
+	s, err := awsSession.NewSession(&aws.Config{Region: aws.String("us-west-2")})
+	if err != nil {
+		fmt.Printf("Error creating session to s3 with error %s\n", err)
+		return
+	}
+
+	svc := s3.New(s)
+
+	_, err = svc.DeleteObject(&s3.DeleteObjectInput{Bucket: aws.String(bucket), Key: aws.String(key)})
+	if err != nil {
+		fmt.Printf("Unable to delete object %q from bucket %q, %v", key, bucket, err)
+		return
+	}
+
+	err = svc.WaitUntilObjectNotExists(&s3.HeadObjectInput{
+		Bucket: aws.String(bucket),
+		Key:    aws.String(key),
+	})
+
+	if err != nil {
+		fmt.Printf("Unable to wait on delete of object %q from bucket %q, %v", key, bucket, err)
+		return
+	}
+
 	return
 }
 
@@ -210,149 +444,20 @@ func jsonError(err error, w http.ResponseWriter) {
 	return
 }
 
-// Extract EXIF Information from image
-func exifExtractor(f *os.File, media *models.MediaModel) error {
-
-	data, err := ioutil.ReadAll(f)
-	if err != nil {
-		return err
-	}
-	//log.PanicIf(err)
-
-	exifData, err := exif.SearchAndExtractExif(data)
-	if err != nil {
-		if err == exif.ErrNoExif {
-			return err
-		}
-		return err
-	}
-
-	// parse exif information
-	im := exif.NewIfdMappingWithStandard()
-	ti := exif.NewTagIndex()
-
-	visitor := func(fqIfdPath string, ifdIndex int, tagId uint16, tagType exif.TagType, valueContext exif.ValueContext) (err error) {
-		ifdPath, err := im.StripPathPhraseIndices(fqIfdPath)
-		if err != nil {
-			return err
-		}
-
-		it, err := ti.Get(ifdPath, tagId)
-		if err != nil {
-			return err
-		}
-
-		valueString := ""
-		if tagType.Type() == exif.TypeUndefined {
-			value, err := exif.UndefinedValue(ifdPath, tagId, valueContext, tagType.ByteOrder())
-			if err == exif.ErrUnhandledUnknownTypedTag {
-				valueString = "!UNDEFINED!"
-			} else {
-				return err
-			}
-			valueString = fmt.Sprintf("%v", value)
-		} else {
-			valueString, err = tagType.ResolveAsString(valueContext, true)
-			if err != nil {
-				return err
-			}
-		}
-
-		// Obtain the various components and add exif information
-		if it.Name == "Make" {
-			media.Make = valueString
-		}
-
-		if it.Name == "Model" {
-			media.Model = valueString
-		}
-
-		if it.Name == "Software" {
-			media.Software = valueString
-		}
-
-		if it.Name == "DateTime" {
-			layOut := "2006:01:02 15:04:05 MST"
-			//"2019:12:23 18:46:27"
-			timeStamp, _ := time.Parse(layOut, fmt.Sprintf("%s PST", valueString))
-			media.DateTime = timeStamp
-		}
-
-		if it.Name == "Artist" {
-			media.Artist = valueString
-		}
-
-		if it.Name == "ExposureTime" {
-			media.ExposureTime = valueString
-		}
-
-		if it.Name == "FNumber" {
-			media.FNumber = valueString
-		}
-
-		if it.Name == "ISOSpeedRatings" {
-			media.ISOSpeedRatings = valueString
-		}
-
-		if it.Name == "LightSource" {
-			media.LightSource = valueString
-		}
-
-		if it.Name == "FocalLength" {
-			media.FocalLength = valueString
-		}
-
-		if it.Name == "PixelXDimension" {
-			media.PixelXDimension = valueString
-		}
-
-		if it.Name == "PixelYDimension" {
-			media.PixelYDimension = valueString
-		}
-
-		if it.Name == "FocalLengthIn35mmFilm" {
-			media.FocalLengthIn35mmFilm = valueString
-		}
-
-		if it.Name == "LensModel" {
-			media.LensModel = valueString
-		}
-
-		//fmt.Printf("FQ-IFD-PATH=[%s] ID=(0x%04x) NAME=[%s] COUNT=(%d) TYPE=[%s] VALUE=[%s]\n", fqIfdPath, tagId, it.Name, valueContext.UnitCount, tagType.Name(), valueString)
-		return nil
-	}
-
-	_, err = exif.Visit(exif.IfdStandard, im, ti, exifData, visitor)
-
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
 func s3KeyGenerator(media *models.MediaModel) {
 
 	year, month, day := media.DateTime.Date()
 	minute := media.DateTime.Minute()
 	second := media.DateTime.Second()
 	hour := media.DateTime.Hour()
-	media.S3Location = fmt.Sprintf("/%d/%d/%d/%d/%d/%d/%s/%s", year, month, day, hour, minute, second, media.MediaID, media.FileName)
+	media.S3Location = fmt.Sprintf("/media/%d/%d/%d/%d/%d/%d/%s/%s", year, month, day, hour, minute, second, media.MediaID, media.FileName)
+	media.S3Thumbnail = fmt.Sprintf("/media/%d/%d/%d/%d/%d/%d/%s/thumb.jpeg", year, month, day, hour, minute, second, media.MediaID)
+	media.S3LargeView = fmt.Sprintf("/media/%d/%d/%d/%d/%d/%d/%s/largeview.jpeg", year, month, day, hour, minute, second, media.MediaID)
 }
 
 // AddFileToS3 will upload a single file to S3, it will require a pre-built aws session
 // and will set file info like content type and encryption on the uploaded file.
-func addFileToS3(key string, filepath string, media models.MediaModel) {
-
-	fmt.Printf("uploading file %s to path %s for media %s\n", filepath, key, media.MediaID)
-
-	start := time.Now()
-
-	file, err := os.OpenFile(filepath, os.O_RDONLY, 0666)
-	if err != nil {
-		fmt.Printf("Error uploading file %s to s3 with error %s\n", filepath, err)
-		return
-	}
-	defer file.Close()
+func addFileToS3(filepath string, media models.MediaModel) {
 
 	// Create a single AWS session (we can re use this if we're uploading many files)
 	s, err := awsSession.NewSession(&aws.Config{Region: aws.String("us-west-2")})
@@ -360,6 +465,21 @@ func addFileToS3(key string, filepath string, media models.MediaModel) {
 		fmt.Printf("Error creating session to s3 with error %s\n", err)
 		return
 	}
+
+	start := time.Now()
+
+	// Create thumbnail
+	err = getThumbnail(filepath, "temp/thumbnail.jpeg")
+	if err != nil {
+		fmt.Printf("Error creating thumbnail %s with error %s\n", filepath, err)
+	}
+
+	file, err := os.OpenFile("temp/thumbnail.jpeg", os.O_RDONLY, 0666)
+	if err != nil {
+		fmt.Printf("Error uploading file %s to s3 with error %s\n", filepath, err)
+		return
+	}
+	defer file.Close()
 
 	// Get file size and read the file content into a buffer
 	fileInfo, _ := file.Stat()
@@ -371,7 +491,7 @@ func addFileToS3(key string, filepath string, media models.MediaModel) {
 	// of the file you're uploading.
 	_, err = s3.New(s).PutObject(&s3.PutObjectInput{
 		Bucket:               aws.String("vi-goblog"),
-		Key:                  aws.String(key),
+		Key:                  aws.String(media.S3Thumbnail),
 		ACL:                  aws.String("public-read"),
 		Body:                 bytes.NewReader(buffer),
 		ContentLength:        aws.Int64(size),
@@ -385,16 +505,148 @@ func addFileToS3(key string, filepath string, media models.MediaModel) {
 		return
 	}
 
-	err = media.SetS3Uploaded("true", key)
-	if err != nil {
-		fmt.Printf("Failed to set media s3 status for id %s with error: %s\n", media.MediaID, err)
-	}
-
 	end := time.Now()
 
 	elapsed := end.Sub(start)
 
-	fmt.Printf("Upload of media %s to s3 was completed in %f seconds\n", media.MediaID, elapsed.Seconds())
+	fmt.Printf("Upload of thumb %s to s3 was completed in %f seconds\n", media.S3Thumbnail, elapsed.Seconds())
+
+	start = time.Now()
+
+	// Create Viewer Image
+	err = getViewerImage(filepath, "temp/view.jpeg")
+	if err != nil {
+		fmt.Printf("Error creating view image %s with error %s\n", filepath, err)
+	}
+
+	file, err = os.OpenFile("temp/view.jpeg", os.O_RDONLY, 0666)
+	if err != nil {
+		fmt.Printf("Error uploading file %s to s3 with error %s\n", filepath, err)
+		return
+	}
+	defer file.Close()
+
+	// Get file size and read the file content into a buffer
+	fileInfo, _ = file.Stat()
+	size = fileInfo.Size()
+	buffer = make([]byte, size)
+	file.Read(buffer)
+
+	// Config settings: this is where you choose the bucket, filename, content-type etc.
+	// of the file you're uploading.
+	_, err = s3.New(s).PutObject(&s3.PutObjectInput{
+		Bucket:               aws.String("vi-goblog"),
+		Key:                  aws.String(media.S3LargeView),
+		ACL:                  aws.String("public-read"),
+		Body:                 bytes.NewReader(buffer),
+		ContentLength:        aws.Int64(size),
+		ContentType:          aws.String(http.DetectContentType(buffer)),
+		ContentDisposition:   aws.String("attachment"),
+		ServerSideEncryption: aws.String("AES256"),
+	})
+
+	if err != nil {
+		fmt.Printf("Error uploading file %s to s3 with error %s\n", filepath, err)
+		return
+	}
+
+	end = time.Now()
+
+	elapsed = end.Sub(start)
+
+	fmt.Printf("Upload of view image %s to s3 was completed in %f seconds\n", media.S3LargeView, elapsed.Seconds())
+
+	// Full Size
+	fmt.Printf("uploading full size image file %s to path %s for media %s\n", filepath, media.S3Location, media.MediaID)
+
+	start = time.Now()
+
+	file, err = os.OpenFile(filepath, os.O_RDONLY, 0666)
+	if err != nil {
+		fmt.Printf("Error uploading file %s to s3 with error %s\n", filepath, err)
+		return
+	}
+	defer file.Close()
+
+	// Get file size and read the file content into a buffer
+	fileInfo, _ = file.Stat()
+	size = fileInfo.Size()
+	buffer = make([]byte, size)
+	file.Read(buffer)
+
+	// Config settings: this is where you choose the bucket, filename, content-type etc.
+	// of the file you're uploading.
+	_, err = s3.New(s).PutObject(&s3.PutObjectInput{
+		Bucket:               aws.String("vi-goblog"),
+		Key:                  aws.String(media.S3Location),
+		ACL:                  aws.String("public-read"),
+		Body:                 bytes.NewReader(buffer),
+		ContentLength:        aws.Int64(size),
+		ContentType:          aws.String(http.DetectContentType(buffer)),
+		ContentDisposition:   aws.String("attachment"),
+		ServerSideEncryption: aws.String("AES256"),
+	})
+
+	if err != nil {
+		fmt.Printf("Error uploading file %s to s3 with error %s\n", filepath, err)
+		return
+	}
+
+	media.S3Uploaded = "true"
+	err = media.SetS3Uploaded()
+	if err != nil {
+		fmt.Printf("Failed to set media s3 status for id %s with error: %s\n", media.MediaID, err)
+	}
+
+	end = time.Now()
+
+	elapsed = end.Sub(start)
+
+	fmt.Printf("Upload of full size image %s to s3 was completed in %f seconds\n", media.S3Location, elapsed.Seconds())
 
 	return
+}
+
+func getViewerImage(srcFilePath string, dstFilePath string) error {
+	// Open a test image.
+	src, err := imaging.Open(srcFilePath)
+	if err != nil {
+		return err
+	}
+
+	// Resize the cropped image to width = 200px preserving the aspect ratio.
+	src = imaging.Resize(src, 1440, 0, imaging.Lanczos)
+
+	// Crop the original image to 300x300px size using the center anchor.
+	//src = imaging.CropAnchor(src, 300, 300, imaging.Center)
+
+	// Save the resulting image as JPEG.
+	err = imaging.Save(src, dstFilePath)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func getThumbnail(srcFilePath string, dstFilePath string) error {
+	// Open a test image.
+	src, err := imaging.Open(srcFilePath)
+	if err != nil {
+		return err
+	}
+
+	// Resize the cropped image to width = 200px preserving the aspect ratio.
+	src = imaging.Resize(src, 300, 0, imaging.Lanczos)
+
+	// Crop the original image to 300x300px size using the center anchor.
+	src = imaging.CropAnchor(src, 300, 300, imaging.Center)
+
+	// Save the resulting image as JPEG.
+	err = imaging.Save(src, dstFilePath)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

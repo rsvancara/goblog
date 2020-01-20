@@ -63,9 +63,11 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
 	out, err := tmpl.Execute(pongo2.Context{
-		"title": "Index",
-		"posts": posts,
-		"user":  sess.User.Username,
+		"title":     "Index",
+		"posts":     posts,
+		"user":      sess.User.Username,
+		"bodyclass": "frontpage",
+		"hidetitle": true,
 	})
 
 	if err != nil {

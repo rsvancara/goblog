@@ -13,12 +13,22 @@ image {
 }
 
 /** Front Page ***/
+
+/* Set a background image by replacing the URL below */
+body.frontpage {
+    background: url('https://vi-goblog.s3-us-west-2.amazonaws.com/2015/8/9/17/30/0/1WESvt6LIMLog2QySDmM5EAgzFk/diamond-lake.jpeg') no-repeat center center fixed;
+    -webkit-background-size: cover;
+    -moz-background-size: cover;
+    background-size: cover;
+    -o-background-size: cover;
+  }
+
 .blog-item-box {
     width: 100%;
 }
 
 .blog-item-date {
-    width: 1000%;
+    width: 100%;
 }
 
 .blog-item-date-day {
@@ -40,7 +50,7 @@ image {
     overflow: hidden;
     margin: 0 0 10px 0;
     font-size: 22px;
-    padding: 10px 0 0 10px;
+    padding: 17px 0 0 10px;
     font-weight: 400;
     color: #6b6b6b;
 }
@@ -88,4 +98,39 @@ image {
 .load-image > img{
       height: auto;
       width: 100%;
+}
+
+/* Image Viewer */
+div.image-container {
+    background-color: rgb(34, 34, 34);
+    width: 100%;
+}
+
+div.image-box  {
+    width: 1024px;
+    height: auto;
+    margin-left: auto;
+    margin-right: auto;
+
+}
+
+div.image-box > img {
+    width: 100%;
+}
+
+.photo-details {
+    display: inline-block;
+    width: 180px;
+    font-weight: bold;
+}
+
+.icon-h4{
+    display: inline-block;
+    padding-right: 5px;
+
+}
+
+.icon-h4 > img {
+    width: 30px;
+    height: 30px;
 }
