@@ -50,7 +50,7 @@ func Media(w http.ResponseWriter, r *http.Request) {
 		"title":     "Index",
 		"media":     media,
 		"user":      sess.User.Username,
-		"bodyclass": "frontpage",
+		"bodyclass": "",
 		"hidetitle": true,
 	})
 
@@ -95,7 +95,7 @@ func ViewMedia(w http.ResponseWriter, r *http.Request) {
 		"title":           "View Media",
 		"media":           media,
 		"user":            sess.User.Username,
-		"bodyclass":       "frontpage",
+		"bodyclass":       "",
 		"fluid":           true,
 		"hidetitle":       true,
 		"exposureprogram": media.GetExposureProgramTranslated(),
@@ -132,7 +132,7 @@ func MediaAdd(w http.ResponseWriter, r *http.Request) {
 // PutMedia Upload file to server
 func PutMedia(w http.ResponseWriter, r *http.Request) {
 
-	errorMessage := "{\"status\":\"error\", \"message\": \"error: %s\",\"file\":\"error\"}\n"
+	errorMessage := "{\"status\":\"error\", \"message\": \"error: %s in %s\",\"file\":\"error\"}\n"
 
 	vars := mux.Vars(r)
 	var media models.MediaModel
@@ -142,7 +142,7 @@ func PutMedia(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json")
-		fmt.Fprintf(w, errorMessage, err)
+		fmt.Fprintf(w, errorMessage, err, "getting session")
 		return
 	}
 
@@ -151,7 +151,7 @@ func PutMedia(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json")
-		//fmt.Fprintf(w, errorMessage, err)
+		fmt.Fprintf(w, errorMessage, err, "parsing multipart form")
 
 		fmt.Println(err)
 		return
@@ -168,7 +168,7 @@ func PutMedia(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json")
-		fmt.Fprintf(w, errorMessage, err)
+		fmt.Fprintf(w, errorMessage, err, "opening file")
 		return
 	}
 
@@ -179,7 +179,7 @@ func PutMedia(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json")
-		fmt.Fprintf(w, errorMessage, err)
+		fmt.Fprintf(w, errorMessage, err, "error storing file")
 		return
 	}
 
@@ -190,7 +190,7 @@ func PutMedia(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json")
-		fmt.Fprintf(w, errorMessage, err)
+		fmt.Fprintf(w, errorMessage, err, "copying file to destination path")
 		return
 	}
 
@@ -198,7 +198,7 @@ func PutMedia(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json")
-		fmt.Fprintf(w, errorMessage, err)
+		fmt.Fprintf(w, errorMessage, err, "opening file")
 		return
 	}
 	defer rf.Close()
@@ -208,7 +208,7 @@ func PutMedia(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json")
-		fmt.Fprintf(w, errorMessage, err)
+		fmt.Fprintf(w, errorMessage, err, "extracting exif")
 		return
 	}
 
@@ -216,7 +216,7 @@ func PutMedia(w http.ResponseWriter, r *http.Request) {
 	if _, err := io.Copy(h, rf); err != nil {
 		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json")
-		fmt.Fprintf(w, errorMessage, err)
+		fmt.Fprintf(w, errorMessage, err, "creating sha265")
 		return
 	}
 	sha256 := hex.EncodeToString(h.Sum(nil))
@@ -233,7 +233,7 @@ func PutMedia(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json")
-		fmt.Fprintf(w, errorMessage, err)
+		fmt.Fprintf(w, errorMessage, err, "Inserting media into database")
 		return
 	}
 

@@ -226,11 +226,19 @@ func (m *MediaModel) CalculateFSTOP() string {
 // ExifExtractor Extract EXIF Information from image
 func (m *MediaModel) ExifExtractor(f *os.File) error {
 
+	m.Make = "Unknown"
+	m.Model = "Unknown"
+	m.DateTime = time.Now()
+	m.Artist = "Unknown"
+	m.LensModel = "Uknown"
+	m.FocalLength = "Unknown"
+	m.LightSource = "Unknown"
+	m.ExposureProgram = "Uknown"
+
 	data, err := ioutil.ReadAll(f)
 	if err != nil {
 		return err
 	}
-	//log.PanicIf(err)
 
 	exifData, err := exif.SearchAndExtractExif(data)
 	if err != nil {
@@ -247,27 +255,28 @@ func (m *MediaModel) ExifExtractor(f *os.File) error {
 	visitor := func(fqIfdPath string, ifdIndex int, tagId uint16, tagType exif.TagType, valueContext exif.ValueContext) (err error) {
 		ifdPath, err := im.StripPathPhraseIndices(fqIfdPath)
 		if err != nil {
-			return err
+			fmt.Printf("Error stripping phrase indices: %s\n", err)
+			return nil
 		}
 
 		it, err := ti.Get(ifdPath, tagId)
 		if err != nil {
-			return err
+			fmt.Printf("Warning: getting information about non-IFD tags: %s\n", err)
+			return nil
 		}
 
 		valueString := ""
+
 		if tagType.Type() == exif.TypeUndefined {
 			value, err := exif.UndefinedValue(ifdPath, tagId, valueContext, tagType.ByteOrder())
-			if err == exif.ErrUnhandledUnknownTypedTag {
+			if err != nil {
 				valueString = "!UNDEFINED!"
-			} else {
-				return err
 			}
 			valueString = fmt.Sprintf("%v", value)
 		} else {
 			valueString, err = tagType.ResolveAsString(valueContext, true)
 			if err != nil {
-				return err
+				fmt.Printf("error resolving tag: %s\n", err)
 			}
 		}
 
