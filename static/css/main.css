@@ -1,3 +1,7 @@
+.container {
+    min-height: 400px;
+    margin-bottom: 50px;
+}
 image {
     width: 100%;
 }
@@ -95,7 +99,7 @@ body.frontpage {
     }  
 }
   
-.load-image > img{
+.load-image > a > img{
       height: auto;
       width: 100%;
 }
@@ -146,4 +150,27 @@ div.title-md {
     margin-top: 10px;
     margin-bottom: 15px;
     border-bottom: 1px solid rgb(215, 216, 219);
+}
+
+div.image-view-md {
+    margin-top: 10px;
+    padding-top: 10px;
+    margin-bottom: 15px;
+    border-top: 1px solid rgb(215, 216, 219);
+}
+
+div.category-view {
+    margin-top: 10px;
+    
+}
+
+.m-link-textarea {
+    width: 80%;
+    height: 40px; 
+}
+
+.footer {
+    margin: 0px;
+    padding: 15px;
+    background-color: rgb(215, 216, 219);
 }

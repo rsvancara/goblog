@@ -31,6 +31,11 @@
     </div>
 </div>
 <div class="row">
+    <div class="col-md-12" style="margin-bottom: 10px;">
+        <span style="width: 20px;height:20px;padding-right: 5px;"><img src="/static/clock.svg" style="width: 20px;height:20px;"/></span> {{ media.CreatedAt |timesince }}
+    </div>
+</div>
+<div class="row">
     <div class="col-md-6">
         <h4><span class="icon-h4"><img src="/static/camera.svg" /></span>Photo Details</h4>
         <div><span class="photo-details">Make: </span>{{ media.Make }}</div>
@@ -58,24 +63,46 @@
                 <div class="tag">{{ t.Keyword }}</div>
             {% endfor %}
         </div>
+        <div class="category-view">
+            {% if media.Category %}
+            <span>Category: </span> {{ media.Category}}
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% if user %}
+<div class="row">
+    <div class="col-md-12 image-view-md">
+        <a href="/admin/media/edit/{{ media.MediaID  }}" class="btn btn-primary">Edit</a>
+        <a href="#" id="media-link" class="btn btn-primary"  data-id="{{ media.MediaID }}">Media Link</a>
     </div>
 </div>
 <div class="row">
-    <div class="col-md-12">
-        <a href="/admin/media/edit/{{ media.MediaID  }}" class="btn btn-primary">Edit</a>
+    <div id="media-link-display" class="col-md-12" style="display: none;">
+
     </div>
 </div>
+{% endif %}
+<div class="row">
+    <div class="col-md-12">
 
-
-
-
+    </div>
+</div>
 {% endblock %}
 
 {% block script %}
 <script>
 $(document).ready(function() { 
 
+    $("#media-link").click((function(e) {
+        e.preventDefault();
+        $('media-link-display').empty();
+        console.log($(this).data('id'));
+        $('#media-link-display').html("<textarea class=\"m-link-textarea\"><div class=\"load-image\" data-id=\"" + $(this).data('id') +  "\">Image goes here</div></textarea>")
+        $('#media-link-display').css('display','block')
+    }));    
 
+//<div class="load-image" data-id="x123">Image goes here</div>
 });
 </script>
 

@@ -17,6 +17,16 @@
 </div>
 {% endif %}
 <div class="form-group">
+    <label for="category">Category</label>
+    <input type="input" class="form-control" id="category" name="category" value="{{ media.Category }}" placeholder="Category"/>
+</div>
+{% if formCategory == true %}
+<div class="alert alert-warning" role="alert">
+    {{ formCategoryError }}
+</div>
+{% endif %}
+
+<div class="form-group">
     <label for="keywords">Keywords</label>
     <input type="input" class="form-control" id="keywords" name="keywords" value="{{ media.Keywords }}" placeholder="Keywords"/>
 </div>

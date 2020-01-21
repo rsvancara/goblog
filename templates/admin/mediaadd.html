@@ -13,7 +13,12 @@
 </div>
 
 <div class="form-group">
-    <label for="keywords">Keywords</label>
+    <label for="keywords">Category</label>
+    <input type="input" class="form-control" id="category" name="category"/>
+</div>
+
+<div class="form-group">
+    <label for="keywords">Keywords (Comma Separated) </label>
     <input type="input" class="form-control" id="keywords" name="keywords"/>
 </div>
 
@@ -100,8 +105,7 @@ $(document).ready(function() {
                 blnValid = true;
                 break;
             }
-        }
-                
+        }       
         if (!blnValid) {
             console.log("Sorry, " + file.name + " is invalid, allowed extensions are: " + _validFileExtensions.join(", "));
             return false;
@@ -137,6 +141,7 @@ $(document).ready(function() {
             fd.append('keywords',$('#keywords').val());
             fd.append('title',$('#title').val());
             fd.append('description',$('#description').val());
+            fd.append('category',$('#category').val());
 
             $.ajax({ 
                 url: '/api/v1/putmedia/1', 
@@ -147,7 +152,7 @@ $(document).ready(function() {
                 processData: false, 
                 dataType: 'json',
                 timeout: 120000,
-                error: function() {
+                error: function(error) {
                     $('#file-list-status').append('<div class="alert alert-error" role="alert">File upload failed with error: ' + error + '</div>');
                 },
                 success: function(response){ 
@@ -179,13 +184,11 @@ $(document).ready(function() {
                         var i = 0;
                         setInterval(function () {
                             i++;
-                            if(i == 12){
+                            if(i == 3){
                                 window.location.replace("/admin/media");
                             }
                         }, 1000);
                     }
-
-
                     defer.resolve();
                 }
             }); 

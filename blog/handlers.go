@@ -36,11 +36,16 @@ func AuthHandler(h http.Handler) http.Handler {
 		var sess session.Session
 
 		err := sess.Session(r)
-
 		if err != nil {
 			http.Redirect(w, r, "/signin", http.StatusSeeOther)
 			return
 		}
+
+		if sess.IsAuth == false {
+			http.Redirect(w, r, "/signin", http.StatusSeeOther)
+			return
+		}
+
 		h.ServeHTTP(w, r)
 	})
 }

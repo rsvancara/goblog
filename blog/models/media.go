@@ -21,6 +21,7 @@ type MediaModel struct {
 	ID                    primitive.ObjectID `json:"_id" bson:"_id,omitempty"`
 	MediaID               string             `json:"media_id" bson:"media_id,omitempty"`
 	Keywords              string             `json:"keywords" bson:"keywords,omitempty"`
+	Category              string             `json:"category" bson:"category,omitempty"`
 	Title                 string             `json:"title" bson:"title,omitempty"`
 	FileName              string             `json:"file_name" bson:"file_name,omitempty"`
 	S3Location            string             `json:"s3_location" bson:"s3_location,omitempty"`
@@ -132,6 +133,7 @@ func (m *MediaModel) UpdateMedia() error {
 			"title":       m.Title,
 			"description": m.Description,
 			"tags":        m.Tags,
+			"category":    m.Category,
 		},
 	}
 

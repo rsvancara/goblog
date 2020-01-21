@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"blog/blog/cache"
+
 	"github.com/gomodule/redigo/redis"
 	uuid "github.com/satori/go.uuid"
 )
@@ -177,7 +178,7 @@ func (s *Session) Session(r *http.Request) error {
 		if err == http.ErrNoCookie {
 			return err
 		}
-		return err
+		return nil
 	}
 
 	s.SessionToken = c.Value
@@ -209,6 +210,7 @@ func (s *Session) Session(r *http.Request) error {
 		return fmt.Errorf("Error decoding json object: %s", err)
 	}
 	s.User = *user
+	s.IsAuth = true
 
 	return nil
 }

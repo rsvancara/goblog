@@ -23,7 +23,7 @@
             {% endif %}
         </td>
         <td><a href="/admin/media/view/{{ m.MediaID }}">{{ m.Title }}</a></td>
-        <td>{{ m.CreatedAt }}</td>
+        <td>{{ m.CreatedAt |date:"January 02, 2006 at 15:04"}}</td>
         <td>
             <a href="/admin/media/view/{{ m.MediaID }}" class="btn btn-primary">view</a>
             <a href="/admin/media/delete/{{ m.MediaID }}" class="btn btn-primary">delete</a>
@@ -31,7 +31,8 @@
     </tr>
     
     {% endfor %}
-    {% endblock %}
+
 </table>
+{% endblock %}
     {{posts|length}}
 

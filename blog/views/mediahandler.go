@@ -14,6 +14,8 @@ import (
 
 	"crypto/sha256"
 
+	_ "blog/blog/filters" //import pongo  plugins
+
 	"github.com/aws/aws-sdk-go/aws"
 	awsSession "github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
@@ -160,9 +162,7 @@ func PutMedia(w http.ResponseWriter, r *http.Request) {
 	keywords := r.FormValue("keywords")
 	description := r.FormValue("description")
 	title := r.FormValue("title")
-
-	//fmt.Printf("keywords: %s\n", keywords)
-	//fmt.Println(r.Form)
+	category := r.FormValue("category")
 
 	file, handler, err := r.FormFile("file") // Retrieve the file from form data
 	if err != nil {
@@ -224,6 +224,7 @@ func PutMedia(w http.ResponseWriter, r *http.Request) {
 	media.Keywords = keywords
 	media.Checksum = string(sha256)
 	media.Description = description
+	media.Category = category
 	media.FileName = handler.Filename
 	media.Title = title
 	media.S3Uploaded = "false"
@@ -246,7 +247,6 @@ func PutMedia(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
 	fmt.Fprintf(w, "{\"status\":\"success\", \"message\": \"file %s uploaded\",\"file\":\"%s\"}\n", vars["id"], handler.Filename)
-	fmt.Printf("{\"status\":\"success\", \"message\": \"file %s uploaded\",\"file\":\"%s\"}\n", vars["id"], handler.Filename)
 	return
 }
 
@@ -263,6 +263,8 @@ func MediaEdit(w http.ResponseWriter, r *http.Request) {
 	formDescriptionError := false
 	formKeywords := ""
 	formKeywordsError := false
+	formCategory := ""
+	formCategoryError := false
 
 	//http Session
 	var sess session.Session
@@ -297,6 +299,7 @@ func MediaEdit(w http.ResponseWriter, r *http.Request) {
 		media.Title = r.FormValue("title")
 		media.Keywords = r.FormValue("keywords")
 		media.Description = r.FormValue("description")
+		media.Category = r.FormValue("category")
 
 		// Do validation here
 		validate := true
@@ -317,6 +320,13 @@ func MediaEdit(w http.ResponseWriter, r *http.Request) {
 			formDescription = "Please provide a description"
 			formDescriptionError = true
 		}
+
+		if media.Category == "" {
+			validate = false
+			formCategory = "Please provide a category"
+			formCategoryError = true
+		}
+
 		if validate == true {
 
 			// Create Record
@@ -346,6 +356,8 @@ func MediaEdit(w http.ResponseWriter, r *http.Request) {
 		"formKeywordsError":    formKeywordsError,
 		"formDescription":      formDescription,
 		"formDescriptionError": formDescriptionError,
+		"formCategory":         formCategory,
+		"formCategoryError":    formCategoryError,
 	})
 
 	if err != nil {
