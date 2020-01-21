@@ -23,13 +23,10 @@
         </div>
     </div>
 </div>
-
-
-
 </div>
 <div class="container">
 <div class="row">
-    <div class="col-md-12">
+    <div class="col-md-12 title-md">
         <h2>{{ media.Title }}</h2>
     </div>
 </div>
@@ -45,6 +42,7 @@
         <div><span class="photo-details">Exposure Program: </span>{{ exposureprogram }}</div>
         <div><span class="photo-details">Focal Length: </span>{{ media.FocalLengthIn35mmFilm }}</div>
         <div><span class="photo-details">Lens: </span>{{ media.LensModel }}</div>
+        <div><span class="photo-details">Software: </span>{{ media.Software }}</div>
         {% if media.LightSource == "0" %}
         <div><span class="photo-details">Flash: </span>Did Not Fire</div>
         {% else %}
@@ -54,6 +52,12 @@
     <div class="col-md-6">
         <h4><span class="icon-h4"><img src="/static/blog.svg" />Description</h4>
         <p>{{ media.Description }}</p>
+
+        <div class="tagview">
+            {% for t in media.Tags %}
+                <div class="tag">{{ t.Keyword }}</div>
+            {% endfor %}
+        </div>
     </div>
 </div>
 <div class="row">

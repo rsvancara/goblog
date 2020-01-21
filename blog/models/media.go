@@ -48,6 +48,12 @@ type MediaModel struct {
 	LensModel             string             `json:"lens_model" bson:"lens_model,omitempty"`               //FE 16-35mm F2.8 GM
 	ExposureProgram       string             `json:"exposure_program" bson:"exposure_program,omitempty"`
 	FStop                 string             `json:"fstop" bson:"fstop,omitempty"`
+	Tags                  []Tag              `json:"tags" bson:"tags"`
+}
+
+// Tag stores tag objects
+type Tag struct {
+	Keyword string `json:"tag" bson:"tag,omitempty"`
 }
 
 //InsertMedia insert media
@@ -67,6 +73,8 @@ func (m *MediaModel) InsertMedia() error {
 	m.UpdatedAt = time.Now()
 	m.MediaID = genUUID()
 
+	m.Tags = TagExtractor(m.Keywords)
+
 	c := db.Client.Database("blog").Collection("media")
 
 	insertResult, err := c.InsertOne(context.TODO(), m)
@@ -78,6 +86,22 @@ func (m *MediaModel) InsertMedia() error {
 	m.ID = insertResult.InsertedID.(primitive.ObjectID)
 
 	return nil
+}
+
+// TagExtractor Extract tags from keywords
+func TagExtractor(keywords string) []Tag {
+
+	var tagArray []Tag
+	tokens := strings.Split(keywords, ",")
+
+	for t := range tokens {
+
+		var tg Tag
+		tg.Keyword = strings.ToLower(strings.Trim(tokens[t], " "))
+		tagArray = append(tagArray, tg)
+	}
+
+	return tagArray
 }
 
 //UpdateMedia Update the title, keywords and description for media
@@ -100,11 +124,14 @@ func (m *MediaModel) UpdateMedia() error {
 		},
 	}
 
+	m.Tags = TagExtractor(m.Keywords)
+
 	update := bson.M{
 		"$set": bson.M{
 			"keywords":    m.Keywords,
 			"title":       m.Title,
 			"description": m.Description,
+			"tags":        m.Tags,
 		},
 	}
 
