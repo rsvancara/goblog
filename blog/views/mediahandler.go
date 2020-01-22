@@ -38,7 +38,6 @@ func Media(w http.ResponseWriter, r *http.Request) {
 		fmt.Printf("Session not available %s\n", err)
 	}
 
-	fmt.Println("Getting Models")
 	// Get List
 	media, err := models.AllMediaSortedByDate()
 	if err != nil {

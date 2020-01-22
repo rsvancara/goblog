@@ -50,6 +50,17 @@ func AuthHandler(h http.Handler) http.Handler {
 	})
 }
 
+// GeoFilterMiddleware Middleware that matches paths to filter rules.
+func GeoFilterMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+		// Do stuff here
+		//log.Println(r.RequestURI)
+		// Call the next handler, which can be another middleware in the chain, or the final handler.
+		next.ServeHTTP(w, r)
+	})
+}
+
 // HomeHandler Home page
 func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	var sess session.Session
@@ -103,7 +114,10 @@ func PostView(w http.ResponseWriter, r *http.Request) {
 	var pm models.PostModel
 
 	// Load Model
-	pm.GetPost(vars["id"])
+	err = pm.GetPostBySlug(vars["id"])
+	if err != nil {
+		fmt.Printf("Error getting object from database: %s", err)
+	}
 
 	md := []byte(pm.Post)
 	var buf bytes.Buffer

@@ -18,6 +18,7 @@ require (
 	github.com/google/go-cmp v0.3.1 // indirect
 	github.com/gorilla/handlers v1.4.2
 	github.com/gorilla/mux v1.7.3
+	github.com/gosimple/slug v1.9.0
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/pkg/errors v0.8.1 // indirect
 	github.com/russross/blackfriday v2.0.0+incompatible // indirect

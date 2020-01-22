@@ -29,7 +29,7 @@ func PhotoView(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Load Media
-	err = media.GetMedia(vars["id"])
+	err = media.GetMediaBySlug(vars["id"])
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -92,7 +92,7 @@ func GetMediaAPI(w http.ResponseWriter, r *http.Request) {
 	}
 
 	s3URL := "https://vi-goblog.s3-us-west-2.amazonaws.com" + media.S3LargeView
-	refURL := "/photo/" + media.MediaID
+	refURL := "/photo/" + media.Slug
 
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")

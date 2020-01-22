@@ -7,6 +7,7 @@ import (
 
 	"blog/blog/db"
 
+	"github.com/gosimple/slug"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"gopkg.in/mgo.v2/bson"
@@ -16,6 +17,7 @@ import (
 type PostModel struct {
 	ID         primitive.ObjectID `json:"_id" bson:"_id,omitempty"`
 	PostID     string             `json:"postid" bson:"postid,omitempty"`
+	Slug       string             `json:"slug" bson:"slug,omitempty"`
 	Post       string             `json:"post" bson:"post,omitempty"`
 	PostTeaser string             `json:"post_teaser" bson:"post_teaser,omitempty"`
 	Title      string             `json:"title" bson:"title,omitempty"`
@@ -31,12 +33,29 @@ func (p *PostModel) GetPost(id string) error {
 
 	var db db.Session
 
-	//config.DBUri = "mongodb://host.docker.internal:27017"
 	err := db.NewSession()
 
 	c := db.Client.Database("blog").Collection("posts")
 
 	err = c.FindOne(context.TODO(), bson.M{"postid": id}).Decode(p)
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+
+	return nil
+}
+
+// GetPostBySlug populate the post object based on slug
+func (p *PostModel) GetPostBySlug(id string) error {
+
+	var db db.Session
+
+	err := db.NewSession()
+
+	c := db.Client.Database("blog").Collection("posts")
+
+	err = c.FindOne(context.TODO(), bson.M{"slug": id}).Decode(p)
 	if err != nil {
 		return err
 	}
@@ -61,6 +80,7 @@ func (p *PostModel) InsertPost() error {
 	p.CreatedAt = time.Now()
 	p.UpdatedAt = time.Now()
 	p.PostID = genUUID()
+	p.Slug = slug.Make(p.Title)
 
 	c := db.Client.Database("blog").Collection("posts")
 
@@ -101,6 +121,8 @@ func (p *PostModel) UpdatePost() error {
 		},
 	}
 
+	p.Slug = slug.Make(p.Title)
+
 	update := bson.M{
 		"$set": bson.M{
 			"title":       p.Title,
@@ -109,6 +131,7 @@ func (p *PostModel) UpdatePost() error {
 			"status":      p.Status,
 			"post_teaser": p.PostTeaser,
 			"featured":    p.Featured,
+			"slug":        p.Slug,
 		},
 	}
 

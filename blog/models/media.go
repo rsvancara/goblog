@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/dsoprea/go-exif"
+	"github.com/gosimple/slug"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"gopkg.in/mgo.v2/bson"
@@ -20,6 +21,7 @@ import (
 type MediaModel struct {
 	ID                    primitive.ObjectID `json:"_id" bson:"_id,omitempty"`
 	MediaID               string             `json:"media_id" bson:"media_id,omitempty"`
+	Slug                  string             `json:"slug" bson:"slug,omitempty"`
 	Keywords              string             `json:"keywords" bson:"keywords,omitempty"`
 	Category              string             `json:"category" bson:"category,omitempty"`
 	Title                 string             `json:"title" bson:"title,omitempty"`
@@ -73,6 +75,7 @@ func (m *MediaModel) InsertMedia() error {
 	m.CreatedAt = time.Now()
 	m.UpdatedAt = time.Now()
 	m.MediaID = genUUID()
+	m.Slug = slug.Make(m.Title)
 
 	m.Tags = TagExtractor(m.Keywords)
 
@@ -126,6 +129,7 @@ func (m *MediaModel) UpdateMedia() error {
 	}
 
 	m.Tags = TagExtractor(m.Keywords)
+	m.Slug = slug.Make(m.Title)
 
 	update := bson.M{
 		"$set": bson.M{
@@ -134,6 +138,7 @@ func (m *MediaModel) UpdateMedia() error {
 			"description": m.Description,
 			"tags":        m.Tags,
 			"category":    m.Category,
+			"slug":        m.Slug,
 		},
 	}
 
@@ -197,6 +202,25 @@ func (m *MediaModel) GetMedia(id string) error {
 	c := db.Client.Database("blog").Collection("media")
 
 	err = c.FindOne(context.TODO(), bson.M{"media_id": id}).Decode(m)
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+
+	return nil
+}
+
+// GetMediaBySlug populate the media object based on ID
+func (m *MediaModel) GetMediaBySlug(slug string) error {
+
+	var db db.Session
+
+	//config.DBUri = "mongodb://host.docker.internal:27017"
+	err := db.NewSession()
+
+	c := db.Client.Database("blog").Collection("media")
+
+	err = c.FindOne(context.TODO(), bson.M{"slug": slug}).Decode(m)
 	if err != nil {
 		return err
 	}
