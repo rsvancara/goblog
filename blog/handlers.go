@@ -15,6 +15,7 @@ import (
 	"github.com/yuin/goldmark/renderer/html"
 
 	"blog/blog/models"
+	"blog/blog/requestfilter"
 	"blog/blog/session"
 
 	"github.com/flosch/pongo2"
@@ -57,6 +58,25 @@ func GeoFilterMiddleware(next http.Handler) http.Handler {
 		// Do stuff here
 		//log.Println(r.RequestURI)
 		// Call the next handler, which can be another middleware in the chain, or the final handler.
+
+		ipaddress := requestfilter.GetIPAddress(r)
+		fmt.Printf("IP Address: %s | request: %s\n", ipaddress, r.RequestURI)
+
+		// for testing...we inject an IP Address
+		if ipaddress == "" {
+			ipaddress = "73.83.74.114"
+		}
+
+		if ipaddress != "" {
+
+			var geoIP requestfilter.GeoIP
+
+			geoIP.Search(ipaddress)
+
+			fmt.Println(geoIP)
+
+		}
+
 		next.ServeHTTP(w, r)
 	})
 }
@@ -193,7 +213,7 @@ func Signin(w http.ResponseWriter, r *http.Request) {
 		http.SetCookie(w, &http.Cookie{
 			Name:    "session_token",
 			Value:   sess.SessionToken,
-			Expires: time.Now().Add(1800 * time.Second),
+			Expires: time.Now().Add(86400 * time.Second),
 		})
 
 		http.Redirect(w, r, "/admin", http.StatusSeeOther)
