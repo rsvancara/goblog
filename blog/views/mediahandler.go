@@ -2,15 +2,19 @@ package views
 
 import (
 	"blog/blog/models"
+	"blog/blog/requestfilter"
 	"blog/blog/session"
 	"bytes"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"math/rand"
 	"net/http"
+	"net/url"
 	"os"
+	"strings"
 	"time"
 
 	"crypto/sha256"
@@ -692,4 +696,122 @@ func getThumbnail(srcFilePath string, dstFilePath string) error {
 	}
 
 	return nil
+}
+
+// Hop-by-hop headers. These are removed when sent to the backend.
+// http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html
+var hopHeaders = []string{
+	"Connection",
+	"Keep-Alive",
+	"Proxy-Authenticate",
+	"Proxy-Authorization",
+	"Te", // canonicalized version of "TE"
+	"Trailers",
+	"Transfer-Encoding",
+	"Upgrade",
+}
+
+func copyHeader(dst, src http.Header) {
+	for k, vv := range src {
+		for _, v := range vv {
+			dst.Add(k, v)
+		}
+	}
+}
+
+func delHopHeaders(header http.Header) {
+	for _, h := range hopHeaders {
+		header.Del(h)
+	}
+}
+
+func appendHostToXForwardHeader(header http.Header, host string) {
+	// If we aren't the first proxy retain prior
+	// X-Forwarded-For information as a comma+space
+	// separated list and fold multiple headers into one.
+	if prior, ok := header["X-Forwarded-For"]; ok {
+		host = strings.Join(prior, ", ") + ", " + host
+	}
+	header.Set("X-Forwarded-For", host)
+}
+
+// ServerImage proxy image requests through a handler to obfuscate
+// the s3 bucket location
+func ServerImage(wr http.ResponseWriter, req *http.Request) {
+	//log.Println(req.RemoteAddr, " ", req.Method, " ", req.URL)
+
+	slug := ""
+	mediaType := ""
+
+	// HTTP URL Parameters
+	vars := mux.Vars(req)
+	if val, ok := vars["slug"]; ok {
+		slug = vars["slug"]
+	} else {
+		fmt.Printf("Error getting url variable, slug: %s\n", val)
+	}
+
+	// HTTP URL Parameters
+	if val, ok := vars["type"]; ok {
+		mediaType = vars["type"]
+	} else {
+		fmt.Printf("Error getting url variable, type: %s\n", val)
+	}
+
+	var media models.MediaModel
+
+	err := media.GetMediaBySlug(slug)
+	if err != nil {
+		fmt.Printf("error getting media by slug: %s", err)
+	}
+
+	s3Path := ""
+
+	if mediaType == "thumb" {
+		s3Path = media.S3Thumbnail
+	}
+
+	if mediaType == "large" {
+		s3Path = media.S3LargeView
+	}
+
+	if mediaType == "original" {
+		s3Path = media.S3Location
+	}
+
+	// Generate S3 URL
+	var mediaRequest http.Request
+	mediaURL, err := url.Parse("https://vi-goblog.s3-us-west-2.amazonaws.com" + s3Path)
+	if err != nil {
+		log.Printf("ServeHTTP: %s", err)
+	}
+
+	mediaRequest.URL = mediaURL
+
+	// Create client
+	client := &http.Client{}
+
+	//delHopHeaders(req.Header)
+
+	if clientIP, err := requestfilter.GetIPAddress(req); err == nil {
+		appendHostToXForwardHeader(req.Header, clientIP)
+	}
+
+	resp, err := client.Do(&mediaRequest)
+	if err != nil {
+
+		http.Error(wr, "Server Error", http.StatusInternalServerError)
+		log.Printf("ServeHTTP: %s", err)
+		return
+	}
+
+	defer resp.Body.Close()
+
+	log.Println(req.RemoteAddr, " ", resp.Status)
+
+	delHopHeaders(resp.Header)
+
+	copyHeader(wr.Header(), resp.Header)
+	wr.WriteHeader(resp.StatusCode)
+	io.Copy(wr, resp.Body)
 }

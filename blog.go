@@ -34,6 +34,7 @@ func main() {
 	r.Handle("/", handlers.LoggingHandler(os.Stdout, http.HandlerFunc(blog.HomeHandler))).Methods("GET")
 	r.Handle("/stories/{id}", handlers.LoggingHandler(os.Stdout, blog.GeoFilterMiddleware(http.HandlerFunc(views.PostView))))
 	r.Handle("/photo/{id}", handlers.LoggingHandler(os.Stdout, http.HandlerFunc(views.PhotoView))).Methods("GET")
+	r.Handle("/image/{slug}/{type}", handlers.LoggingHandler(os.Stdout, http.HandlerFunc(views.ServerImage))).Methods("GET")
 	r.Handle("/about", handlers.LoggingHandler(os.Stdout, blog.AuthHandler(http.HandlerFunc(blog.AboutHandler)))).Methods("GET")
 	r.Handle("/signin", handlers.LoggingHandler(os.Stdout, http.HandlerFunc(blog.Signin))).Methods("GET", "POST")
 	r.Handle("/admin", handlers.LoggingHandler(os.Stdout, blog.AuthHandler(http.HandlerFunc(blog.AdminHome)))).Methods("GET", "POST")

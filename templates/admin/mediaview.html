@@ -18,7 +18,7 @@
     <div class="col-md-12">
         <div class="image-container">
             <div class="image-box">
-                <img src="https://vi-goblog.s3-us-west-2.amazonaws.com{{ media.S3LargeView }}" />
+                <img src="/image/{{ media.Slug }}/large" />
             </div>
         </div>
     </div>
@@ -101,8 +101,6 @@ $(document).ready(function() {
         $('#media-link-display').html("<textarea class=\"m-link-textarea\"><div class=\"load-image\" data-id=\"" + $(this).data('id') +  "\">" + $(this).data('title') + "</div></textarea>")
         $('#media-link-display').css('display','block')
     }));    
-
-//<div class="load-image" data-id="x123">Image goes here</div>
 });
 </script>
 

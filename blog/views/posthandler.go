@@ -96,7 +96,7 @@ func GetMediaAPI(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s3URL := "https://vi-goblog.s3-us-west-2.amazonaws.com" + media.S3LargeView
+	s3URL := "/image/" + media.Slug + "/large"
 	refURL := "/photo/" + media.Slug
 
 	w.WriteHeader(http.StatusOK)

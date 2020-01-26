@@ -22,6 +22,11 @@
                     <div class="blog-item-title-title">
                         <h2><a href="/stories/{{ p.Slug }}">{{ p.Title }}</a></h2>
                     </div>
+                    <div class="tagview">
+                        {% for tag in p.Tags %}
+                            <div class="tag">{{ tag.Keyword }}</div>
+                        {% endfor %}
+                    </div>
                     <div class="blog-item-content">
                         {{ p.PostTeaser }} ... <a href="/stories/{{ p.Slug }}">Read More</a>
                     </div>  

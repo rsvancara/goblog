@@ -43,7 +43,7 @@ func AuthHandler(h http.Handler) http.Handler {
 func GeoFilterMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
-		ipaddress := requestfilter.GetIPAddress(r)
+		ipaddress, _ := requestfilter.GetIPAddress(r)
 		fmt.Printf("IP Address: %s | request: %s\n", ipaddress, r.RequestURI)
 
 		// for testing...we inject an IP Address

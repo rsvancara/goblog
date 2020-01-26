@@ -2,7 +2,7 @@
  
 {% block title  %}Add Post{% endblock %}
 
-{% block headertitle %}Add Post{% endblock %}
+{% block headertitle %}<h1> Edit Post</h1>{% endblock %}
  
 {% block body %}
 <form method="post" action="/admin/post/edit/{{post.PostID}}">
@@ -18,7 +18,7 @@
 {% endif %}
 <div class="form-group">
     <label for="inputKeywords">Keywords (separated by commas)</label>
-    <input type="input" class="form-control" name="inputKeywords" id="inputKeywords" aria-describedby="keywordsHelp" value="{{ keywords.Title }}"placeholder="Keywords">
+    <input type="input" class="form-control" name="inputKeywords" id="inputKeywords" aria-describedby="keywordsHelp" value="{{ post.Keywords }}"placeholder="Keywords">
 </div>
 {% if postKeywordsMessageError == true %}
 <div class="alert alert-warning" role="alert">

@@ -2,6 +2,7 @@ package requestfilter
 
 import (
 	"bytes"
+	"fmt"
 	"net"
 	"net/http"
 	"strings"
@@ -68,7 +69,7 @@ func IsPrivateSubnet(ipAddress net.IP) bool {
 // GetIPAddress get the ipaddress of the client from the request
 // Why we can not have nice things!
 // https://husobee.github.io/golang/ip-address/2015/12/17/remote-ip-go.html
-func GetIPAddress(r *http.Request) string {
+func GetIPAddress(r *http.Request) (string, error) {
 	for _, h := range []string{"X-Forwarded-For", "X-Real-Ip"} {
 		addresses := strings.Split(r.Header.Get(h), ",")
 		// march from right to left until we get a public address
@@ -82,14 +83,14 @@ func GetIPAddress(r *http.Request) string {
 				// bad address, go to next
 				continue
 			}
-			return ip
+			return ip, nil
 		}
 	}
 	parts := strings.Split(r.RemoteAddr, ":")
 	if len(parts) > 0 {
 		ip := parts[0]
-		return ip
+		return ip, nil
 	}
 
-	return ""
+	return "8.8.8.8", fmt.Errorf("erorr could not determine ip address from header")
 }
