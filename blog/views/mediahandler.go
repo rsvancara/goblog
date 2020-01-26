@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"math/rand"
 	"net/http"
 	"os"
 	"time"
@@ -33,7 +34,7 @@ type jsonErrorMessage struct {
 // Media media
 func Media(w http.ResponseWriter, r *http.Request) {
 	var sess session.Session
-	err := sess.Session(r)
+	err := sess.Session(r, w)
 	if err != nil {
 		fmt.Printf("Session not available %s\n", err)
 	}
@@ -50,7 +51,7 @@ func Media(w http.ResponseWriter, r *http.Request) {
 	out, err := tmpl.Execute(pongo2.Context{
 		"title":     "Index",
 		"media":     media,
-		"user":      sess.User.Username,
+		"user":      sess.User,
 		"bodyclass": "",
 		"hidetitle": true,
 	})
@@ -69,7 +70,7 @@ func ViewMedia(w http.ResponseWriter, r *http.Request) {
 	var media models.MediaModel
 
 	var sess session.Session
-	err := sess.Session(r)
+	err := sess.Session(r, w)
 	if err != nil {
 		fmt.Printf("Session not available %s", err)
 	}
@@ -95,7 +96,7 @@ func ViewMedia(w http.ResponseWriter, r *http.Request) {
 	out, err := tmpl.Execute(pongo2.Context{
 		"title":           "View Media",
 		"media":           media,
-		"user":            sess.User.Username,
+		"user":            sess.User,
 		"bodyclass":       "",
 		"fluid":           true,
 		"hidetitle":       true,
@@ -113,7 +114,7 @@ func ViewMedia(w http.ResponseWriter, r *http.Request) {
 // MediaAdd add media
 func MediaAdd(w http.ResponseWriter, r *http.Request) {
 	var sess session.Session
-	err := sess.Session(r)
+	err := sess.Session(r, w)
 	if err != nil {
 		fmt.Printf("Session not available %s", err)
 	}
@@ -121,7 +122,7 @@ func MediaAdd(w http.ResponseWriter, r *http.Request) {
 	template := "templates/admin/mediaadd.html"
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
-	out, err := tmpl.Execute(pongo2.Context{"title": "Index", "greating": "Hello", "user": sess.User.Username})
+	out, err := tmpl.Execute(pongo2.Context{"title": "Index", "greating": "Hello", "user": sess.User})
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		fmt.Println(err)
@@ -139,7 +140,7 @@ func PutMedia(w http.ResponseWriter, r *http.Request) {
 	var media models.MediaModel
 
 	var sess session.Session
-	err := sess.Session(r)
+	err := sess.Session(r, w)
 	if err != nil {
 		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json")
@@ -267,7 +268,7 @@ func MediaEdit(w http.ResponseWriter, r *http.Request) {
 
 	//http Session
 	var sess session.Session
-	err := sess.Session(r)
+	err := sess.Session(r, w)
 	if err != nil {
 		fmt.Printf("Session not available %s", err)
 	}
@@ -348,7 +349,7 @@ func MediaEdit(w http.ResponseWriter, r *http.Request) {
 	out, err := tmpl.Execute(pongo2.Context{
 		"title":                "Edit Media",
 		"media":                media,
-		"user":                 sess.User.Username,
+		"user":                 sess.User,
 		"formTitle":            formTitle,
 		"formTitleError":       formTitleError,
 		"formKeywords":         formKeywords,
@@ -470,6 +471,18 @@ func s3KeyGenerator(media *models.MediaModel) {
 // and will set file info like content type and encryption on the uploaded file.
 func addFileToS3(filepath string, media models.MediaModel) {
 
+	// Generate a random 10 character string
+	letterBytes := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	b := make([]byte, 10)
+	for i := range b {
+		b[i] = letterBytes[rand.Intn(len(letterBytes))]
+	}
+
+	// Random string is appended to view and thumbnail
+	// images because if we do a multiple file upload,
+	// the files will be overwritten.
+	randString := string(b)
+
 	// Create a single AWS session (we can re use this if we're uploading many files)
 	s, err := awsSession.NewSession(&aws.Config{Region: aws.String("us-west-2")})
 	if err != nil {
@@ -479,15 +492,17 @@ func addFileToS3(filepath string, media models.MediaModel) {
 
 	start := time.Now()
 
+	dThumb := fmt.Sprintf("temp/thumbnail-%s.jpeg", randString)
+
 	// Create thumbnail
-	err = getThumbnail(filepath, "temp/thumbnail.jpeg")
+	err = getThumbnail(filepath, dThumb)
 	if err != nil {
-		fmt.Printf("Error creating thumbnail %s with error %s\n", filepath, err)
+		fmt.Printf("Error creating thumbnail %s with error %s\n", dThumb, err)
 	}
 
-	file, err := os.OpenFile("temp/thumbnail.jpeg", os.O_RDONLY, 0666)
+	file, err := os.OpenFile(dThumb, os.O_RDONLY, 0666)
 	if err != nil {
-		fmt.Printf("Error uploading file %s to s3 with error %s\n", filepath, err)
+		fmt.Printf("Error uploading file %s to s3 with error %s\n", dThumb, err)
 		return
 	}
 	defer file.Close()
@@ -525,12 +540,13 @@ func addFileToS3(filepath string, media models.MediaModel) {
 	start = time.Now()
 
 	// Create Viewer Image
-	err = getViewerImage(filepath, "temp/view.jpeg")
+	dView := fmt.Sprintf("temp/view-%s.jpeg", randString)
+	err = getViewerImage(filepath, dView)
 	if err != nil {
-		fmt.Printf("Error creating view image %s with error %s\n", filepath, err)
+		fmt.Printf("Error creating view image %s with error %s\n", dView, err)
 	}
 
-	file, err = os.OpenFile("temp/view.jpeg", os.O_RDONLY, 0666)
+	file, err = os.OpenFile(dView, os.O_RDONLY, 0666)
 	if err != nil {
 		fmt.Printf("Error uploading file %s to s3 with error %s\n", filepath, err)
 		return
@@ -567,9 +583,7 @@ func addFileToS3(filepath string, media models.MediaModel) {
 
 	fmt.Printf("Upload of view image %s to s3 was completed in %f seconds\n", media.S3LargeView, elapsed.Seconds())
 
-	// Full Size
-	fmt.Printf("uploading full size image file %s to path %s for media %s\n", filepath, media.S3Location, media.MediaID)
-
+	// Original Image
 	start = time.Now()
 
 	file, err = os.OpenFile(filepath, os.O_RDONLY, 0666)
@@ -614,6 +628,24 @@ func addFileToS3(filepath string, media models.MediaModel) {
 	elapsed = end.Sub(start)
 
 	fmt.Printf("Upload of full size image %s to s3 was completed in %f seconds\n", media.S3Location, elapsed.Seconds())
+
+	// Remove the images we do not need
+	err = os.Remove(filepath)
+	if err != nil {
+		fmt.Printf("Failed to delete file %s with error: %s\n", filepath, err)
+	}
+
+	// Remove the images we do not need
+	err = os.Remove(dThumb)
+	if err != nil {
+		fmt.Printf("Failed to delete file %s with error: %s\n", dThumb, err)
+	}
+
+	// Remove the images we do not need
+	err = os.Remove(dView)
+	if err != nil {
+		fmt.Printf("Failed to delete file %s with error: %s\n", dView, err)
+	}
 
 	return
 }

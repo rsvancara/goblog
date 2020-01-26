@@ -21,7 +21,8 @@ type PostModel struct {
 	Post       string             `json:"post" bson:"post,omitempty"`
 	PostTeaser string             `json:"post_teaser" bson:"post_teaser,omitempty"`
 	Title      string             `json:"title" bson:"title,omitempty"`
-	Tags       []string           `json:"tags" bson:"tags,omitempty"`
+	Keywords   string             `json:"keywords" bson:"keywords,omitempty"`
+	Tags       []Tag              `json:"tags" bson:"tags,omitempty"`
 	Status     string             `json:"status" bson:"status,omitempty"`
 	Featured   string             `json:"featured" bson:"featured,omitempty"`
 	CreatedAt  time.Time          `json:"created_at" bson:"created_at"`
@@ -81,6 +82,7 @@ func (p *PostModel) InsertPost() error {
 	p.UpdatedAt = time.Now()
 	p.PostID = genUUID()
 	p.Slug = slug.Make(p.Title)
+	p.Tags = TagExtractor(p.Keywords)
 
 	c := db.Client.Database("blog").Collection("posts")
 
@@ -122,6 +124,7 @@ func (p *PostModel) UpdatePost() error {
 	}
 
 	p.Slug = slug.Make(p.Title)
+	p.Tags = TagExtractor(p.Keywords)
 
 	update := bson.M{
 		"$set": bson.M{
@@ -132,6 +135,8 @@ func (p *PostModel) UpdatePost() error {
 			"post_teaser": p.PostTeaser,
 			"featured":    p.Featured,
 			"slug":        p.Slug,
+			"keywords":    p.Keywords,
+			"tags":        p.Tags,
 		},
 	}
 

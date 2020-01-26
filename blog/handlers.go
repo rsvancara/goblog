@@ -1,34 +1,21 @@
 package blog
 
 import (
-	"bytes"
 	"fmt"
 	"net/http"
-	"time"
 
 	//"bf.go/blog/mongo"
 	//"bf.go/blog/models"
-
-	"github.com/yuin/goldmark"
-	"github.com/yuin/goldmark/extension"
-	"github.com/yuin/goldmark/parser"
-	"github.com/yuin/goldmark/renderer/html"
 
 	"blog/blog/models"
 	"blog/blog/requestfilter"
 	"blog/blog/session"
 
 	"github.com/flosch/pongo2"
-	"github.com/gorilla/mux"
 )
 
 // ContextKey key used by contexts to uniquely identify attributes
 type ContextKey string
-
-var users = map[string]string{
-	"user1": "password1",
-	"user2": "password2",
-}
 
 // AuthHandler authorize user
 func AuthHandler(h http.Handler) http.Handler {
@@ -36,13 +23,14 @@ func AuthHandler(h http.Handler) http.Handler {
 
 		var sess session.Session
 
-		err := sess.Session(r)
+		err := sess.Session(r, w)
+
 		if err != nil {
 			http.Redirect(w, r, "/signin", http.StatusSeeOther)
 			return
 		}
 
-		if sess.IsAuth == false {
+		if sess.User.IsAuth == false {
 			http.Redirect(w, r, "/signin", http.StatusSeeOther)
 			return
 		}
@@ -55,26 +43,43 @@ func AuthHandler(h http.Handler) http.Handler {
 func GeoFilterMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
-		// Do stuff here
-		//log.Println(r.RequestURI)
-		// Call the next handler, which can be another middleware in the chain, or the final handler.
-
 		ipaddress := requestfilter.GetIPAddress(r)
 		fmt.Printf("IP Address: %s | request: %s\n", ipaddress, r.RequestURI)
 
 		// for testing...we inject an IP Address
-		if ipaddress == "" {
-			ipaddress = "73.83.74.114"
-		}
+		//if ipaddress == "" {
+		//	ipaddress = "73.83.74.114"
+		//}
 
 		if ipaddress != "" {
 
 			var geoIP requestfilter.GeoIP
 
-			geoIP.Search(ipaddress)
+			err := geoIP.Search(ipaddress)
+			if err != nil {
+				fmt.Printf("Error IP Address not found in the database for IP Address: %s with error %s\n", ipaddress, err)
+			}
 
-			fmt.Println(geoIP)
+			if requestfilter.IsPrivateSubnet(geoIP.IPAddress) {
+				// Handle situations where we have a private ip address
+				// 	1. In development this is ok
+				//  2. In production something should be considered wrong
+				//  3. Send to capta page?
+			}
+			if geoIP.IsFound == true {
+				// Apply filter rules
+				// Filter on IP
+				// Filter on City
+				// Filter on Country
+				// Filter on timezone
+				// Filter on EU
 
+				// Filters are based on request path,
+				// path is matched to a list of rules in a database
+				// and returned to be evaluated.
+				// Based on the match condition, action is taken, allow, deny, redirect
+
+			}
 		}
 
 		next.ServeHTTP(w, r)
@@ -84,7 +89,7 @@ func GeoFilterMiddleware(next http.Handler) http.Handler {
 // HomeHandler Home page
 func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	var sess session.Session
-	err := sess.Session(r)
+	err := sess.Session(r, w)
 	if err != nil {
 		fmt.Printf("Session not available %s\n", err)
 	}
@@ -101,71 +106,9 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	out, err := tmpl.Execute(pongo2.Context{
 		"title":     "Index",
 		"posts":     posts,
-		"user":      sess.User.Username,
+		"user":      sess.User,
 		"bodyclass": "frontpage",
 		"hidetitle": true,
-	})
-
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		fmt.Println(err)
-	}
-	w.WriteHeader(http.StatusOK)
-	fmt.Fprintf(w, out)
-}
-
-// PostView Home page
-func PostView(w http.ResponseWriter, r *http.Request) {
-	var sess session.Session
-	err := sess.Session(r)
-	if err != nil {
-		fmt.Printf("Session not available %s\n", err)
-	}
-
-	// HTTP URL Parameters
-	vars := mux.Vars(r)
-	if val, ok := vars["id"]; ok {
-
-	} else {
-		fmt.Printf("Error getting url variable, id: %s", val)
-	}
-
-	// Model
-	var pm models.PostModel
-
-	// Load Model
-	err = pm.GetPostBySlug(vars["id"])
-	if err != nil {
-		fmt.Printf("Error getting object from database: %s", err)
-	}
-
-	md := []byte(pm.Post)
-	var buf bytes.Buffer
-
-	gm := goldmark.New(
-		goldmark.WithExtensions(extension.GFM),
-		goldmark.WithParserOptions(
-			parser.WithAutoHeadingID(),
-		),
-		goldmark.WithRendererOptions(
-			html.WithHardWraps(),
-			html.WithUnsafe(),
-		),
-	)
-
-	err = gm.Convert(md, &buf)
-	if err != nil {
-		fmt.Printf("Error rendering markdown: %s", err)
-	}
-
-	template := "templates/post.html"
-	tmpl := pongo2.Must(pongo2.FromFile(template))
-
-	out, err := tmpl.Execute(pongo2.Context{
-		"title":   "Index",
-		"post":    pm,
-		"content": buf.String(),
-		"user":    sess.User.Username,
 	})
 
 	if err != nil {
@@ -179,6 +122,12 @@ func PostView(w http.ResponseWriter, r *http.Request) {
 // Signin Sign into the application
 func Signin(w http.ResponseWriter, r *http.Request) {
 
+	var sess session.Session
+	err := sess.Session(r, w)
+	if err != nil {
+		fmt.Printf("Session not available %s\n", err)
+	}
+
 	if r.Method == http.MethodPost {
 		if err := r.ParseForm(); err != nil {
 			fmt.Fprintf(w, "ParseForm() err: %v", err)
@@ -189,32 +138,25 @@ func Signin(w http.ResponseWriter, r *http.Request) {
 		creds.Username = r.FormValue("username")
 		creds.Password = r.FormValue("password")
 
-		// Get the expected password from our in memory map
-		expectedPassword, ok := users[creds.Username]
-
-		// If a password exists for the given user
-		// AND, if it is the same as the password we received, the we can move ahead
-		// if NOT, then we return an "Unauthorized" status
-		if !ok || expectedPassword != creds.Password {
-			w.WriteHeader(http.StatusUnauthorized)
-			return
-		}
-
-		var sess session.Session
-
-		err := sess.Create(creds)
+		isAuth, err := sess.Authenticate(creds, r, w)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			fmt.Println(err)
 		}
+		fmt.Printf("SIGNUP - User is authenticated %s %s\n", sess.SessionToken, sess.User)
+
+		if isAuth == false {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
 
 		// Finally, we set the client cookie for "session_token" as the session token we just generated
 		// we also set an expiry time of 120 seconds, the same as the cache
-		http.SetCookie(w, &http.Cookie{
-			Name:    "session_token",
-			Value:   sess.SessionToken,
-			Expires: time.Now().Add(86400 * time.Second),
-		})
+		//http.SetCookie(w, &http.Cookie{
+		//	Name:    "session_token",
+		//	Value:   sess.SessionToken,
+		//	Expires: time.Now().Add(86400 * time.Second),
+		//})
 
 		http.Redirect(w, r, "/admin", http.StatusSeeOther)
 		return
@@ -226,7 +168,7 @@ func Signin(w http.ResponseWriter, r *http.Request) {
 	out, err := tmpl.Execute(pongo2.Context{"title": "Index", "greating": "Hello"})
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		fmt.Println(err)
+		fmt.Printf("error loading template with error: \n", err)
 	}
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprintf(w, out)
@@ -237,7 +179,7 @@ func Signin(w http.ResponseWriter, r *http.Request) {
 func AdminHome(w http.ResponseWriter, r *http.Request) {
 
 	var sess session.Session
-	err := sess.Session(r)
+	err := sess.Session(r, w)
 	if err != nil {
 		fmt.Println(err)
 		http.Redirect(w, r, "/signin", http.StatusSeeOther)
@@ -246,21 +188,20 @@ func AdminHome(w http.ResponseWriter, r *http.Request) {
 	template := "templates/admin/admin.html"
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
-	out, err := tmpl.Execute(pongo2.Context{"title": "Index", "greating": "Hello", "user": sess.User.Username})
+	out, err := tmpl.Execute(pongo2.Context{"title": "Index", "greating": "Hello", "user": sess.User})
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		fmt.Println(err)
 	}
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprintf(w, out)
-	// w.Write([]byte(fmt.Sprintf("Welcome %s!", sess.User.Username)))
 }
 
 // AboutHandler about page
 func AboutHandler(w http.ResponseWriter, r *http.Request) {
 
 	var sess session.Session
-	err := sess.Session(r)
+	err := sess.Session(r, w)
 	if err != nil {
 		fmt.Printf("Session not available %s", err)
 	}
@@ -268,376 +209,11 @@ func AboutHandler(w http.ResponseWriter, r *http.Request) {
 	template := "templates/about.html"
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
-	out, err := tmpl.Execute(pongo2.Context{"title": "Index", "greating": "Hello", "user": sess.User.Username})
+	out, err := tmpl.Execute(pongo2.Context{"title": "Index", "greating": "Hello", "user": sess.User})
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		fmt.Println(err)
 	}
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprintf(w, out)
-}
-
-// Post post
-func Post(w http.ResponseWriter, r *http.Request) {
-	var sess session.Session
-	err := sess.Session(r)
-	if err != nil {
-		fmt.Printf("Session not availab le %s\n", err)
-	}
-
-	// Create Record
-	posts, err := models.AllPostsSortedByDate()
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	template := "templates/admin/post.html"
-	tmpl := pongo2.Must(pongo2.FromFile(template))
-
-	out, err := tmpl.Execute(pongo2.Context{"title": "Index", "posts": posts, "user": sess.User.Username})
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		fmt.Println(err)
-	}
-	w.WriteHeader(http.StatusOK)
-	fmt.Fprintf(w, out)
-}
-
-// PostEdit edit the post
-func PostEdit(w http.ResponseWriter, r *http.Request) {
-
-	// Form Management Variables
-	titleMessage := ""
-	titleMessageError := false
-	postMessage := ""
-	postMessageError := false
-	statusMessage := ""
-	statusMessageError := false
-	featuredMessage := ""
-	featuredMessageError := false
-	postTeaserMessage := ""
-	postTeaserMessageError := false
-
-	//http Session
-	var sess session.Session
-	err := sess.Session(r)
-	if err != nil {
-		fmt.Printf("Session not available %s", err)
-	}
-
-	// HTTP URL Parameters
-	vars := mux.Vars(r)
-	if val, ok := vars["id"]; ok {
-		//do something here
-		fmt.Println(val)
-	}
-
-	// Model
-	var pm models.PostModel
-
-	// Load Model
-	pm.GetPost(vars["id"])
-
-	// Test if we are a POST to capture form submission
-	if r.Method == http.MethodPost {
-		if err := r.ParseForm(); err != nil {
-			fmt.Fprintf(w, "ParseForm() err: %v", err)
-			return
-		}
-		pm.Post = r.FormValue("inputPost")
-		pm.Title = r.FormValue("inputTitle")
-		pm.Status = r.FormValue("inputStatus")
-		pm.Featured = r.FormValue("inputFeatured")
-		pm.PostTeaser = r.FormValue("inputPostTeaser")
-		//pm.Keywords = r.FormValue("")
-
-		fmt.Println(pm)
-		// Do validation here
-		validate := true
-		if pm.Title == "" {
-			validate = false
-			titleMessage = "Please provide a title"
-			titleMessageError = true
-		}
-
-		if pm.Post == "" {
-			validate = false
-			postMessage = "Please provide post content"
-			postMessageError = true
-		}
-
-		if pm.PostTeaser == "" {
-			validate = false
-			postTeaserMessage = "Please provide post teaser"
-			postTeaserMessageError = true
-		}
-
-		if pm.Status == "enabled" || pm.Status == "disabled" {
-
-		} else {
-			statusMessage = "Invalid status code"
-			statusMessageError = true
-		}
-
-		if pm.Featured == "yes" || pm.Featured == "no" {
-
-		} else {
-			featuredMessage = "Invalid status code"
-			featuredMessageError = true
-		}
-
-		if validate == true {
-
-			// Create Record
-			err = pm.UpdatePost()
-			if err != nil {
-				fmt.Println(err)
-			}
-
-			// Redirect on success otherwise fall through the form
-			// and display any errors
-			http.Redirect(w, r, "/admin/post", http.StatusSeeOther)
-			return
-		}
-	}
-
-	// HTTP Template
-	template := "templates/admin/postedit.html"
-	tmpl := pongo2.Must(pongo2.FromFile(template))
-
-	out, err := tmpl.Execute(pongo2.Context{
-		"title":                  "Edit Post",
-		"post":                   pm,
-		"user":                   sess.User.Username,
-		"postMessage":            postMessage,
-		"postMessageError":       postMessageError,
-		"titleMessage":           titleMessage,
-		"titleMessageError":      titleMessageError,
-		"statusMessage":          statusMessage,
-		"statusMessageError":     statusMessageError,
-		"featuredMessage":        featuredMessage,
-		"featuredMessageError":   featuredMessageError,
-		"postTeaserMessage":      postTeaserMessage,
-		"postTeaserMessageError": postTeaserMessageError,
-	})
-
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		fmt.Println(err)
-	}
-	w.WriteHeader(http.StatusOK)
-	fmt.Fprintf(w, out)
-}
-
-// PostAdminView view the post
-func PostAdminView(w http.ResponseWriter, r *http.Request) {
-
-	//http Session
-	var sess session.Session
-	err := sess.Session(r)
-	if err != nil {
-		fmt.Printf("Session not available %s", err)
-	}
-
-	// HTTP URL Parameters
-	vars := mux.Vars(r)
-	if val, ok := vars["id"]; ok {
-		fmt.Printf("Error no id was found for post: %s", val)
-	}
-
-	// Model
-	var pm models.PostModel
-
-	// Load Model
-	pm.GetPost(vars["id"])
-
-	md := []byte(pm.Post)
-	var buf bytes.Buffer
-
-	gm := goldmark.New(
-		goldmark.WithExtensions(extension.GFM),
-		goldmark.WithParserOptions(
-			parser.WithAutoHeadingID(),
-		),
-		goldmark.WithRendererOptions(
-			html.WithHardWraps(),
-			html.WithUnsafe(),
-		),
-	)
-
-	err = gm.Convert(md, &buf)
-	if err != nil {
-		fmt.Printf("Error rendering markdown: %s", err)
-	}
-
-	// HTTP Template
-	template := "templates/admin/postview.html"
-	tmpl := pongo2.Must(pongo2.FromFile(template))
-
-	out, err := tmpl.Execute(pongo2.Context{
-		"title":   "Edit Post",
-		"post":    pm,
-		"content": buf.String,
-		"user":    sess.User.Username,
-	})
-
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		fmt.Printf("error rendering template: %s", err)
-	}
-	w.WriteHeader(http.StatusOK)
-	fmt.Fprintf(w, out)
-}
-
-// PostAdd add post
-func PostAdd(w http.ResponseWriter, r *http.Request) {
-
-	var pm models.PostModel
-	// Form Variables
-	titleMessage := ""
-	titleMessageError := false
-	postMessage := ""
-	postMessageError := false
-	statusMessage := ""
-	statusMessageError := false
-	featuredMessage := ""
-	featuredMessageError := false
-	postTeaserMessage := ""
-	postTeaserMessageError := false
-
-	// HTTP Session
-	var sess session.Session
-	err := sess.Session(r)
-	if err != nil {
-		fmt.Printf("Session not available %s", err)
-	}
-
-	// Test if we are a POST to capture form submission
-	if r.Method == http.MethodPost {
-		if err := r.ParseForm(); err != nil {
-			fmt.Fprintf(w, "ParseForm() err: %v", err)
-			return
-		}
-		pm.Post = r.FormValue("inputPost")
-		pm.Title = r.FormValue("inputTitle")
-		pm.Status = r.FormValue("inputStatus")
-		pm.Featured = r.FormValue("inputFeatured")
-		pm.PostTeaser = r.FormValue("inputPostTeaser")
-		if err != nil {
-			fmt.Printf("Error converting status to integer in post form: %s\n", err)
-		}
-		//pm.Keywords = r.FormValue("")
-
-		// Do validation here
-		validate := true
-		if pm.Title == "" {
-			validate = false
-			titleMessage = "Please provide a title"
-			titleMessageError = true
-		}
-
-		if pm.Post == "" {
-			validate = false
-			postMessage = "Please provide post content"
-			postMessageError = true
-		}
-
-		if pm.PostTeaser == "" {
-			validate = false
-			postTeaserMessage = "Please provide post teaser"
-			postTeaserMessageError = true
-		}
-
-		if pm.Status == "enabled" || pm.Status == "disabled" {
-
-		} else {
-			statusMessage = "Invalid status code"
-			statusMessageError = true
-		}
-
-		if pm.Featured == "yes" || pm.Featured == "no" {
-
-		} else {
-			featuredMessage = "Invalid status code"
-			featuredMessageError = true
-		}
-
-		if validate == true {
-
-			// Create Record
-			err = pm.InsertPost()
-			if err != nil {
-				fmt.Println(err)
-			}
-
-			// Redirect on success otherwise fall through the form
-			// and display any errors
-			http.Redirect(w, r, "/admin/post", http.StatusSeeOther)
-			return
-		}
-	}
-
-	template := "templates/admin/postadd.html"
-	tmpl := pongo2.Must(pongo2.FromFile(template))
-
-	out, err := tmpl.Execute(pongo2.Context{
-		"title":                  "Add Post",
-		"post":                   pm,
-		"user":                   sess.User.Username,
-		"postMessage":            postMessage,
-		"postMessageError":       postMessageError,
-		"titleMessage":           titleMessage,
-		"titleMessageError":      titleMessageError,
-		"statusMessage":          statusMessage,
-		"statusMessageError":     statusMessageError,
-		"featuredMessage":        featuredMessage,
-		"featuredMessageError":   featuredMessageError,
-		"postTeaserMessage":      postTeaserMessage,
-		"postTeaserMessageError": postTeaserMessageError,
-	})
-
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		fmt.Println(err)
-	}
-	w.WriteHeader(http.StatusOK)
-	fmt.Fprintf(w, out)
-}
-
-// PostDelete delete post
-func PostDelete(w http.ResponseWriter, r *http.Request) {
-
-	//http Session
-	var sess session.Session
-	err := sess.Session(r)
-	if err != nil {
-		fmt.Printf("Session not available %s", err)
-	}
-
-	// HTTP URL Parameters
-	vars := mux.Vars(r)
-	if val, ok := vars["id"]; ok {
-		//do something here
-		fmt.Println(val)
-	}
-
-	// Model
-	var pm models.PostModel
-
-	// Load Model
-	pm.GetPost(vars["id"])
-
-	pm.DeletePost()
-
-	http.Redirect(w, r, "/admin/post", http.StatusSeeOther)
-}
-
-// NormalizeNewlines normalizes \r\n (windows) and \r (mac)
-// into \n (unix)
-func NormalizeNewlines(d []byte) []byte {
-	// replace CR LF \r\n (windows) with LF \n (unix)
-	d = bytes.Replace(d, []byte{13, 10}, []byte{10}, -1)
-	// replace CF \r (mac) with LF \n (unix)
-	d = bytes.Replace(d, []byte{13}, []byte{10}, -1)
-	return d
 }

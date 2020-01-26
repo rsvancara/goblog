@@ -47,10 +47,11 @@ var privateRanges = []ipRange{
 		start: net.ParseIP("198.18.0.0"),
 		end:   net.ParseIP("198.19.255.255"),
 	},
+	// TODO: Add IPV6 Ranges here
 }
 
-// isPrivateSubnet - check to see if this ip is in a private subnet
-func isPrivateSubnet(ipAddress net.IP) bool {
+// IsPrivateSubnet - check to see if this ip is in a private subnet
+func IsPrivateSubnet(ipAddress net.IP) bool {
 	// my use case is only concerned with ipv4 atm
 	if ipCheck := ipAddress.To4(); ipCheck != nil {
 		// iterate over all our ranges
@@ -76,12 +77,19 @@ func GetIPAddress(r *http.Request) string {
 			ip := strings.TrimSpace(addresses[i])
 			// header can contain spaces too, strip those out.
 			realIP := net.ParseIP(ip)
-			if !realIP.IsGlobalUnicast() || isPrivateSubnet(realIP) {
+			//if !realIP.IsGlobalUnicast() || IsPrivateSubnet(realIP) {
+			if !realIP.IsGlobalUnicast() {
 				// bad address, go to next
 				continue
 			}
 			return ip
 		}
 	}
+	parts := strings.Split(r.RemoteAddr, ":")
+	if len(parts) > 0 {
+		ip := parts[0]
+		return ip
+	}
+
 	return ""
 }

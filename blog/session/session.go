@@ -4,12 +4,18 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 
 	"blog/blog/cache"
 
 	"github.com/gomodule/redigo/redis"
 	uuid "github.com/satori/go.uuid"
 )
+
+var users = map[string]string{
+	"user1": "password1",
+	"user2": "password2",
+}
 
 // Credentials Create a struct that models the structure of a user, both in the request body, and in the DB
 type Credentials struct {
@@ -27,6 +33,7 @@ type Item struct {
 type User struct {
 	Username string `json:"username"`
 	Items    []Item `json:"items"`
+	IsAuth   bool   `json:"isauth"`
 }
 
 func (u *User) setItem(key string, value string) {
@@ -60,23 +67,25 @@ type Session struct {
 	User         User
 }
 
-// Create a session object
-func (s *Session) Create(creds Credentials) error {
-	cache, err := cache.GetRedisConn()
+// Create a session object in Redis
+func (s *Session) Create() error {
 
-	defer cache.Close()
-
-	// Create a new random session token
-	s.SessionToken = uuid.NewV4().String()
-
+	// Create the user object
 	var user User
+	user.Username = "anonymous"
+	user.IsAuth = false
 
-	user.Username = creds.Username
-
+	// Convert object to JSON
 	byteResult, err := json.Marshal(user)
 	if err != nil {
 		fmt.Printf("Error marshaling json object %s", err)
 	}
+
+	cache, err := cache.GetRedisConn()
+	if err != nil {
+		return fmt.Errorf("error connecting to redis during session creation: %s", err)
+	}
+	defer cache.Close()
 
 	// Set the token in the cache, along with the user whom it represents
 	// The token has an expiry time of 120 seconds
@@ -86,6 +95,67 @@ func (s *Session) Create(creds Credentials) error {
 	}
 
 	return nil
+}
+
+// Authenticate Authenticate a user
+func (s *Session) Authenticate(creds Credentials, r *http.Request, w http.ResponseWriter) (bool, error) {
+
+	// Get the existing cookie
+	c, err := r.Cookie("session_token")
+
+	s.SessionToken = c.Value
+
+	// Get the expected password from our in memory map
+	expectedPassword, ok := users[creds.Username]
+
+	// Authenticate the user here!!
+	if !ok || expectedPassword != creds.Password {
+		return false, nil
+	}
+
+	// Update the user object
+	var user User
+	user.Username = creds.Username
+	user.IsAuth = true
+	s.IsAuth = true
+	// Dont forget to update the session object with the new user information
+	s.User = user
+
+	// Convert to JSON
+	byteResult, err := json.Marshal(user)
+	if err != nil {
+		fmt.Printf("Error marshaling json object %s", err)
+	}
+
+	// Connect to Redis
+	cache, err := cache.GetRedisConn()
+	if err != nil {
+		return false, fmt.Errorf("error connecting to redis during authentication: %s", err)
+	}
+	defer cache.Close()
+
+	// Remove existing session
+	_, err = cache.Do("DEL", s.SessionToken)
+	if err != nil {
+		return false, fmt.Errorf("Error removing session in redis: %s", err)
+	}
+
+	// Set/Replace the token in the cache, along with the user whom it represents
+	// The token has an expiry time of 120 seconds
+	_, err = cache.Do("SETEX", s.SessionToken, "86400", string(byteResult))
+	if err != nil {
+		return false, fmt.Errorf("Error saving session to redis: %s", err)
+	}
+
+	// Update the cookie with the same exipiration so they are synchronized
+	http.SetCookie(w, &http.Cookie{
+		Name:    "session_token",
+		Value:   c.Value,
+		Path:    "/",
+		Expires: time.Now().Add(86400 * time.Second),
+	})
+
+	return true, nil
 }
 
 // SetValue get the session value for provided key
@@ -170,47 +240,69 @@ func (s *Session) GetValue(key string) (string, error) {
 	return val, nil
 }
 
-// Session Session Test if user is authenticated
-func (s *Session) Session(r *http.Request) error {
+// Session Session Test if user isauthenticated
+func (s *Session) Session(r *http.Request, w http.ResponseWriter) error {
+
 	// We can obtain the session token from the requests cookies, which come with every request
+	// This code ensures a session token is always created
+	s.SessionToken = uuid.NewV4().String()
+	var newCookie http.Cookie
+	newCookie.Name = "session_token"
+	newCookie.Value = s.SessionToken
+	newCookie.Path = "/"
+	newCookie.Expires = time.Now().Add(86400 * time.Second)
+
+	isCookieError := false
+
 	c, err := r.Cookie("session_token")
 	if err != nil {
 		if err == http.ErrNoCookie {
-			return err
+			//Create new cookie
+			http.SetCookie(w, &newCookie)
+			// Create redis object
+			s.Create()
+			isCookieError = true
+			fmt.Printf("Creating new session %s\n", s.SessionToken)
 		}
-		return nil
 	}
 
+	if isCookieError == true {
+		c = &newCookie
+	}
+
+	// Set the session token value to the cookie value so they match
 	s.SessionToken = c.Value
 
+	// Connect to Redis and get our user object
 	cache, err := cache.GetRedisConn()
-
 	defer cache.Close()
-
 	if err != nil {
 		return fmt.Errorf("Error getting cache object, empty object returned: %s", err)
 	}
 
+	// We should get a cache object, the above code should ensure this
 	if cache == nil {
 		return fmt.Errorf("Error getting cache object, empty object returned")
 	}
 
-	// We then get the name of the user from our cache, where we set the session token
+	// get the name of the user from cache, where the session token exists
 	response, err := redis.String(cache.Do("GET", s.SessionToken))
 	if err != nil {
 		// If there is an error fetching from cache, return an internal server error status
 		return fmt.Errorf("Error? No Response from Cache: %s", err)
 	}
 
+	// Unmarshal the user object from Redis
 	user := &User{}
-
 	err = json.Unmarshal([]byte(response), user)
 	if err != nil {
 		// If there is an error fetching from cache, return an internal server error status
 		return fmt.Errorf("Error decoding json object: %s", err)
 	}
+
+	// Set the session object
 	s.User = *user
-	s.IsAuth = true
+	s.IsAuth = s.User.IsAuth
 
 	return nil
 }
