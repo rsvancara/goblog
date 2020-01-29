@@ -5,6 +5,7 @@ import (
 	"blog/blog/session"
 	"bytes"
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/flosch/pongo2"
@@ -17,6 +18,9 @@ import (
 
 // PhotoView View File
 func PhotoView(w http.ResponseWriter, r *http.Request) {
+
+	log.Print("Look at me!")
+
 	var media models.MediaModel
 
 	var sess session.Session

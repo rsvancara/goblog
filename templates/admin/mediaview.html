@@ -68,6 +68,11 @@
             <span>Category: </span> {{ media.Category}}
             {% endif %}
         </div>
+        <div class="location-view">
+            {% if media.Location %}
+            <span>Location: </span> {{ media.Location}}
+            {% endif %}
+        </div>
     </div>
 </div>
 {% if user %}

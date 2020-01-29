@@ -11,7 +11,7 @@ COPY blog /BUILD/blog
 
 #RUN go mod download && CGO_ENABLED=1 GOOS=linux go build blog.go 
 
-RUN CGO_ENABLED=1 GOOS=linux go build blog.go 
+RUN CGO_ENABLED=1 GOOS=linux go build -o dabloog blog.go 
 
 FROM ubuntu:18.04
 
@@ -21,8 +21,9 @@ RUN apt-get update &&  \
 
 WORKDIR /app
 
-COPY --from=0 /BUILD/blog .
+COPY --from=0 /BUILD/dabloog .
 
 COPY templates templates
+COPY static static
     
-CMD ["./blog"] 
+CMD ["./dabloog"] 

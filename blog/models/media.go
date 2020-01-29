@@ -52,6 +52,7 @@ type MediaModel struct {
 	ExposureProgram       string             `json:"exposure_program" bson:"exposure_program,omitempty"`
 	FStop                 string             `json:"fstop" bson:"fstop,omitempty"`
 	Tags                  []Tag              `json:"tags" bson:"tags"`
+	Location              string             `json:"location" bson:"location"`
 }
 
 // Tag stores tag objects
@@ -139,6 +140,7 @@ func (m *MediaModel) UpdateMedia() error {
 			"tags":        m.Tags,
 			"category":    m.Category,
 			"slug":        m.Slug,
+			"location":    m.Location,
 		},
 	}
 

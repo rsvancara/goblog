@@ -35,6 +35,17 @@
     {{ formKeywordsError }}
 </div>
 {% endif %}
+
+<div class="form-group">
+    <label for="keywords">Location</label>
+    <input type="input" class="form-control" id="location" name="location" value="{{ media.Location }}" placeholder="Location"/>
+</div>
+{% if formLocation == true %}
+<div class="alert alert-warning" role="alert">
+    {{ formLocationError }}
+</div>
+{% endif %}
+
 <div class="form-group">
     <label for="inputPost">Description</label>
     <textarea class="form-control" id="description" name="description" rows="20">{{ media.Description }}</textarea>

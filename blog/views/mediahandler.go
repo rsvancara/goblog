@@ -1,6 +1,7 @@
 package views
 
 import (
+	"blog/blog/config"
 	"blog/blog/models"
 	"blog/blog/requestfilter"
 	"blog/blog/session"
@@ -167,6 +168,7 @@ func PutMedia(w http.ResponseWriter, r *http.Request) {
 	description := r.FormValue("description")
 	title := r.FormValue("title")
 	category := r.FormValue("category")
+	location := r.FormValue("location")
 
 	file, handler, err := r.FormFile("file") // Retrieve the file from form data
 	if err != nil {
@@ -231,6 +233,7 @@ func PutMedia(w http.ResponseWriter, r *http.Request) {
 	media.Category = category
 	media.FileName = handler.Filename
 	media.Title = title
+	media.Location = location
 	media.S3Uploaded = "false"
 
 	err = media.InsertMedia()
@@ -269,6 +272,8 @@ func MediaEdit(w http.ResponseWriter, r *http.Request) {
 	formKeywordsError := false
 	formCategory := ""
 	formCategoryError := false
+	formLocation := ""
+	formLocationError := false
 
 	//http Session
 	var sess session.Session
@@ -304,6 +309,7 @@ func MediaEdit(w http.ResponseWriter, r *http.Request) {
 		media.Keywords = r.FormValue("keywords")
 		media.Description = r.FormValue("description")
 		media.Category = r.FormValue("category")
+		media.Location = r.FormValue("location")
 
 		// Do validation here
 		validate := true
@@ -329,6 +335,12 @@ func MediaEdit(w http.ResponseWriter, r *http.Request) {
 			validate = false
 			formCategory = "Please provide a category"
 			formCategoryError = true
+		}
+
+		if media.Location == "" {
+			validate = false
+			formLocation = "Please provide a location"
+			formLocationError = true
 		}
 
 		if validate == true {
@@ -362,6 +374,8 @@ func MediaEdit(w http.ResponseWriter, r *http.Request) {
 		"formDescriptionError": formDescriptionError,
 		"formCategory":         formCategory,
 		"formCategoryError":    formCategoryError,
+		"formLocation":         formLocation,
+		"formLocationError":    formLocationError,
 	})
 
 	if err != nil {
@@ -392,11 +406,11 @@ func MediaDelete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	deleteS3Object("vi-goblog", media.S3Location)
+	deleteS3Object(media.S3Location)
 
-	deleteS3Object("vi-goblog", media.S3Thumbnail)
+	deleteS3Object(media.S3Thumbnail)
 
-	deleteS3Object("vi-goblog", media.S3LargeView)
+	deleteS3Object(media.S3LargeView)
 
 	err = media.DeleteMedia()
 	if err != nil {
@@ -407,7 +421,13 @@ func MediaDelete(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func deleteS3Object(bucket string, key string) {
+func deleteS3Object(key string) {
+
+	cfg, err := config.GetConfig()
+	if err != nil {
+		fmt.Printf("could not get configuration object %s", (err))
+		return
+	}
 
 	// Create a single AWS session (we can re use this if we're uploading many files)
 	s, err := awsSession.NewSession(&aws.Config{Region: aws.String("us-west-2")})
@@ -418,19 +438,19 @@ func deleteS3Object(bucket string, key string) {
 
 	svc := s3.New(s)
 
-	_, err = svc.DeleteObject(&s3.DeleteObjectInput{Bucket: aws.String(bucket), Key: aws.String(key)})
+	_, err = svc.DeleteObject(&s3.DeleteObjectInput{Bucket: aws.String(cfg.S3Bucket), Key: aws.String(key)})
 	if err != nil {
-		fmt.Printf("Unable to delete object %q from bucket %q, %v", key, bucket, err)
+		fmt.Printf("Unable to delete object %q from bucket %q, %v", key, cfg.S3Bucket, err)
 		return
 	}
 
 	err = svc.WaitUntilObjectNotExists(&s3.HeadObjectInput{
-		Bucket: aws.String(bucket),
+		Bucket: aws.String(cfg.S3Bucket),
 		Key:    aws.String(key),
 	})
 
 	if err != nil {
-		fmt.Printf("Unable to wait on delete of object %q from bucket %q, %v", key, bucket, err)
+		fmt.Printf("Unable to wait on delete of object %q from bucket %q, %v", key, cfg.S3Bucket, err)
 		return
 	}
 
@@ -474,6 +494,12 @@ func s3KeyGenerator(media *models.MediaModel) {
 // AddFileToS3 will upload a single file to S3, it will require a pre-built aws session
 // and will set file info like content type and encryption on the uploaded file.
 func addFileToS3(filepath string, media models.MediaModel) {
+
+	cfg, err := config.GetConfig()
+	if err != nil {
+		fmt.Printf("could not get configuration object %s", (err))
+		return
+	}
 
 	// Generate a random 10 character string
 	letterBytes := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -520,7 +546,7 @@ func addFileToS3(filepath string, media models.MediaModel) {
 	// Config settings: this is where you choose the bucket, filename, content-type etc.
 	// of the file you're uploading.
 	_, err = s3.New(s).PutObject(&s3.PutObjectInput{
-		Bucket:               aws.String("vi-goblog"),
+		Bucket:               aws.String(cfg.S3Bucket),
 		Key:                  aws.String(media.S3Thumbnail),
 		ACL:                  aws.String("public-read"),
 		Body:                 bytes.NewReader(buffer),
@@ -566,7 +592,7 @@ func addFileToS3(filepath string, media models.MediaModel) {
 	// Config settings: this is where you choose the bucket, filename, content-type etc.
 	// of the file you're uploading.
 	_, err = s3.New(s).PutObject(&s3.PutObjectInput{
-		Bucket:               aws.String("vi-goblog"),
+		Bucket:               aws.String(cfg.S3Bucket),
 		Key:                  aws.String(media.S3LargeView),
 		ACL:                  aws.String("public-read"),
 		Body:                 bytes.NewReader(buffer),
@@ -606,7 +632,8 @@ func addFileToS3(filepath string, media models.MediaModel) {
 	// Config settings: this is where you choose the bucket, filename, content-type etc.
 	// of the file you're uploading.
 	_, err = s3.New(s).PutObject(&s3.PutObjectInput{
-		Bucket:               aws.String("vi-goblog"),
+		//Bucket:               aws.String("vi-goblog"),
+		Bucket:               aws.String(cfg.S3Bucket),
 		Key:                  aws.String(media.S3Location),
 		ACL:                  aws.String("public-read"),
 		Body:                 bytes.NewReader(buffer),
