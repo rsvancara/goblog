@@ -10,20 +10,21 @@ pipeline {
     stages {
         stage('Test') {
             steps {
-                sh 'echo hello world'
+                sh 'docker build --no-cache -t rsvancara/goblog:jenkins .'
             }
         }
-        stage('Build') {
+        stage('Build Release') {
+            when { buildingTag() }
             steps {
                 sh 'docker build --no-cache -t rsvancara/goblog:${TAG_NAME} .'
             }
         }
 
-        stage('Publish') {
+        stage('Publish VI') {
             when { buildingTag() }
             steps {
-                withDockerRegistry([ credentialsId: "jenkins-inf", url: "https://docker.util.pages/" ]) {
-                    sh 'docker push docker.util.pages/inf/dabloog:${TAG_NAME}'
+                withDockerRegistry([ credentialsId: "dockerhub", url: "https://docker.io/" ]) {
+                    sh 'docker push rsvancara/goblog:vi-${TAG_NAME}'
                 }
             }
         }
