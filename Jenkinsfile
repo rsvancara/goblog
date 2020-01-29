@@ -8,11 +8,17 @@ pipeline {
         timestamps()
     }
     stages {
-        stage('Build') {
+        stage('Test') {
             steps {
-                sh 'docker build -t rsvancara/goblog:jenkins-build .'
+                
             }
         }
+        stage('Build') {
+            steps {
+                sh 'docker build --no-cache -t rsvancara/goblog:${TAG_NAME} .'
+            }
+        }
+
         stage('Publish') {
             when { buildingTag() }
             steps {
