@@ -19,7 +19,6 @@ pipeline {
                 sh 'docker build --no-cache -t rsvancara/goblog:${TAG_NAME} .'
             }
         }
-
         stage('Publish VI') {
             when { buildingTag() }
             steps {
