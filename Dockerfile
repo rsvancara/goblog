@@ -3,13 +3,12 @@ FROM golang:1.13.4-stretch
 RUN mkdir BUILD
 WORKDIR /BUILD
 
+# Build the binary
 COPY blog.go /BUILD/blog.go
 COPY go.sum  /BUILD.go.sum
 COPY go.mod /BUILD/go.mod
 COPY vendor /BUILD/vendor
 COPY blog /BUILD/blog
-
-#RUN go mod download && CGO_ENABLED=1 GOOS=linux go build blog.go 
 
 RUN CGO_ENABLED=1 GOOS=linux go build -o dabloog blog.go 
 
@@ -23,7 +22,10 @@ WORKDIR /app
 
 COPY --from=0 /BUILD/dabloog .
 
-COPY templates templates
-COPY static static
+# Copy the site directories
+COPY visualintrigue.com visualintrigue.com
+COPY tinycamperfun.com tinycamperfun.com
+
+EXPOSE 5000
     
 CMD ["./dabloog"] 

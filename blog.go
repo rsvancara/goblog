@@ -38,7 +38,13 @@ func main() {
 	r := mux.NewRouter()
 
 	r.HandleFunc("/", blog.HomeHandler)
-	r.Handle("/", handlers.LoggingHandler(os.Stdout, http.HandlerFunc(blog.HomeHandler))).Methods("GET")
+	r.Handle(
+		"/",
+		handlers.LoggingHandler(
+			os.Stdout,
+			http.HandlerFunc(
+				blog.HomeHandler))).Methods("GET")
+
 	r.Handle("/stories/{id}", handlers.LoggingHandler(os.Stdout, blog.GeoFilterMiddleware(http.HandlerFunc(views.PostView))))
 	r.Handle("/photo/{id}", handlers.LoggingHandler(os.Stdout, http.HandlerFunc(views.PhotoView))).Methods("GET")
 	r.Handle("/image/{slug}/{type}", handlers.LoggingHandler(os.Stdout, http.HandlerFunc(views.ServerImage))).Methods("GET")
@@ -58,9 +64,6 @@ func main() {
 	r.Handle("/admin/post/edit/{id}", handlers.LoggingHandler(os.Stdout, blog.AuthHandler(http.HandlerFunc(views.PostEdit)))).Methods("GET", "POST")
 	r.Handle("/admin/post/delete/{id}", handlers.LoggingHandler(os.Stdout, blog.AuthHandler(http.HandlerFunc(views.PostDelete)))).Methods("GET")
 	ServeStatic(r, "./"+staticAssets)
-	//r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./static/"))))
-	//r.Handle("/static/", handlers.LoggingHandler(os.Stdout, http.StripPrefix("/static/", http.FileServer(http.Dir("./"+staticAssets)))))
-	//r.Handle("/static/", http.FileServer(http.Dir(staticAssets+"/static")))
 	http.Handle("/", r)
 
 	fmt.Println("Now serving requests")
@@ -72,8 +75,6 @@ func main() {
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
 	}
-
-	//log.Fatal(http.ListenAndServe("0.0.0.0:5000", n))
 
 	log.Fatal(srv.ListenAndServe())
 }

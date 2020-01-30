@@ -45,7 +45,6 @@ func PhotoView(w http.ResponseWriter, r *http.Request) {
 	}
 
 	template, err := SiteTemplate("/admin/mediaview.html")
-	//template := "templates/admin/mediaview.html"
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
 	out, err := tmpl.Execute(pongo2.Context{
@@ -157,7 +156,6 @@ func PostView(w http.ResponseWriter, r *http.Request) {
 	}
 
 	template, err := SiteTemplate("/post.html")
-	//template := "templates/post.html"
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
 	out, err := tmpl.Execute(pongo2.Context{
@@ -190,7 +188,6 @@ func Post(w http.ResponseWriter, r *http.Request) {
 	}
 
 	template, err := SiteTemplate("/admin/post.html")
-	//template := "templates/admin/post.html"
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
 	out, err := tmpl.Execute(pongo2.Context{"title": "Index", "posts": posts, "user": sess.User})
@@ -309,7 +306,6 @@ func PostEdit(w http.ResponseWriter, r *http.Request) {
 
 	// HTTP Template
 	template, err := SiteTemplate("/admin/postedit.html")
-	//template := "templates/admin/postedit.html"
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
 	out, err := tmpl.Execute(pongo2.Context{
@@ -381,7 +377,6 @@ func PostAdminView(w http.ResponseWriter, r *http.Request) {
 
 	// HTTP Template
 	template, err := SiteTemplate("/admin/postview.html")
-	//template := "templates/admin/postview.html"
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
 	out, err := tmpl.Execute(pongo2.Context{
@@ -497,7 +492,6 @@ func PostAdd(w http.ResponseWriter, r *http.Request) {
 	}
 
 	template, err := SiteTemplate("/admin/postadd.html")
-	//template := "templates/admin/postadd.html"
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
 	out, err := tmpl.Execute(pongo2.Context{
