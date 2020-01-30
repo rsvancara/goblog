@@ -12,8 +12,9 @@ type AppConfig struct {
 	Dburi         string `envconfig:"DB_URI"`         //MongDB URI
 	AdminUser     string `envconfig:"ADMIN_USER"`     // Admin User for application
 	AdminPassword string `envconfig:"ADMIN_PASSWORD"` // Admin Password for application
-	S3Bucket      string `envconfig:"S3_BUCKET"`         // Where your S3 Buckets is
+	S3Bucket      string `envconfig:"S3_BUCKET"`      // Where your S3 Buckets is
 	Env           string `envconfig:"ENV"`            //PROD,DEV
+	Site          string `envconfig:"SITE"`           // defines site name and location of template directories etc...
 }
 
 // GetConfig get the current configuration from the environment

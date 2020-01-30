@@ -50,7 +50,8 @@ func Media(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 	}
 
-	template := "templates/admin/media.html"
+	template, err := SiteTemplate("/admin/media.html")
+	//template := "templates/admin/media.html"
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
 	out, err := tmpl.Execute(pongo2.Context{
@@ -95,7 +96,8 @@ func ViewMedia(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	template := "templates/admin/mediaview.html"
+	template, err := SiteTemplate("/admin/mediaview.html")
+	//template := "templates/admin/mediaview.html"
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
 	out, err := tmpl.Execute(pongo2.Context{
@@ -124,7 +126,8 @@ func MediaAdd(w http.ResponseWriter, r *http.Request) {
 		fmt.Printf("Session not available %s", err)
 	}
 
-	template := "templates/admin/mediaadd.html"
+	template, err := SiteTemplate("/admin/mediaadd.html")
+	//template := "templates/admin/mediaadd.html"
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
 	out, err := tmpl.Execute(pongo2.Context{"title": "Index", "greating": "Hello", "user": sess.User})
@@ -359,7 +362,8 @@ func MediaEdit(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// HTTP Template
-	template := "templates/admin/mediaedit.html"
+	template, err := SiteTemplate("/admin/mediaedit.html")
+	//template := "templates/admin/mediaedit.html"
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
 	out, err := tmpl.Execute(pongo2.Context{
@@ -418,7 +422,6 @@ func MediaDelete(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.Redirect(w, r, "/admin/media", http.StatusSeeOther)
-
 }
 
 func deleteS3Object(key string) {

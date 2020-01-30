@@ -10,6 +10,7 @@ import (
 	"blog/blog/models"
 	"blog/blog/requestfilter"
 	"blog/blog/session"
+	"blog/blog/views"
 
 	"github.com/flosch/pongo2"
 )
@@ -100,7 +101,8 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 	}
 
-	template := "templates/index.html"
+	template, err := views.SiteTemplate("/index.html")
+	//template := "templates/index.html"
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
 	out, err := tmpl.Execute(pongo2.Context{
@@ -162,7 +164,8 @@ func Signin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	template := "templates/signin.html"
+	template, err := views.SiteTemplate("/signin.html")
+	//template := "templates/signin.html"
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
 	out, err := tmpl.Execute(pongo2.Context{"title": "Index", "greating": "Hello"})
@@ -185,7 +188,8 @@ func AdminHome(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/signin", http.StatusSeeOther)
 		return
 	}
-	template := "templates/admin/admin.html"
+	template, err := views.SiteTemplate("/admin/admin.html")
+	//template := "templates/admin/admin.html"
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
 	out, err := tmpl.Execute(pongo2.Context{"title": "Index", "greating": "Hello", "user": sess.User})
@@ -206,7 +210,8 @@ func AboutHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Printf("Session not available %s", err)
 	}
 
-	template := "templates/about.html"
+	template, err := views.SiteTemplate("/about.html")
+	//template := "templates/about.html"
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
 	out, err := tmpl.Execute(pongo2.Context{"title": "Index", "greating": "Hello", "user": sess.User})

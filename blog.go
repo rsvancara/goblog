@@ -24,6 +24,13 @@ func main() {
 		log.Fatal(err.Error())
 	}
 
+	staticAssets, err := views.SiteTemplate("/static")
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	fmt.Println(staticAssets)
+
 	fmt.Println("== Initializing Configuration ==")
 	fmt.Printf("Database URI: %s\n", cfg.Dburi)
 	fmt.Printf("Cache URI: %s\n", cfg.Cacheuri)
@@ -50,7 +57,10 @@ func main() {
 	r.Handle("/admin/post/view/{id}", handlers.LoggingHandler(os.Stdout, blog.AuthHandler(http.HandlerFunc(views.PostAdminView)))).Methods("GET")
 	r.Handle("/admin/post/edit/{id}", handlers.LoggingHandler(os.Stdout, blog.AuthHandler(http.HandlerFunc(views.PostEdit)))).Methods("GET", "POST")
 	r.Handle("/admin/post/delete/{id}", handlers.LoggingHandler(os.Stdout, blog.AuthHandler(http.HandlerFunc(views.PostDelete)))).Methods("GET")
-	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./static/"))))
+	ServeStatic(r, "./"+staticAssets)
+	//r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./static/"))))
+	//r.Handle("/static/", handlers.LoggingHandler(os.Stdout, http.StripPrefix("/static/", http.FileServer(http.Dir("./"+staticAssets)))))
+	//r.Handle("/static/", http.FileServer(http.Dir(staticAssets+"/static")))
 	http.Handle("/", r)
 
 	fmt.Println("Now serving requests")
@@ -66,4 +76,18 @@ func main() {
 	//log.Fatal(http.ListenAndServe("0.0.0.0:5000", n))
 
 	log.Fatal(srv.ListenAndServe())
+}
+
+// ServeStatic  serve static content from the appropriate location
+func ServeStatic(router *mux.Router, staticDirectory string) {
+	staticPaths := map[string]string{
+		"css":     staticDirectory + "/css/",
+		"images":  staticDirectory + "/images/",
+		"scripts": staticDirectory + "/scripts/",
+	}
+	for pathName, pathValue := range staticPaths {
+		pathPrefix := "/" + pathName + "/"
+		router.PathPrefix(pathPrefix).Handler(http.StripPrefix(pathPrefix,
+			http.FileServer(http.Dir(pathValue))))
+	}
 }

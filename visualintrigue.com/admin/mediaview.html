@@ -32,12 +32,12 @@
 </div>
 <div class="row">
     <div class="col-md-12" style="margin-bottom: 10px;">
-        <span style="width: 20px;height:20px;padding-right: 5px;"><img src="/static/clock.svg" style="width: 20px;height:20px;"/></span> {{ media.CreatedAt |timesince }}
+        <span style="width: 20px;height:20px;padding-right: 5px;"><img src="/images/clock.svg" style="width: 20px;height:20px;"/></span> {{ media.CreatedAt |timesince }}
     </div>
 </div>
 <div class="row">
     <div class="col-md-6">
-        <h4><span class="icon-h4"><img src="/static/camera.svg" /></span>Photo Details</h4>
+        <h4><span class="icon-h4"><img src="/images/camera.svg" /></span>Photo Details</h4>
         <div><span class="photo-details">Make: </span>{{ media.Make }}</div>
         <div><span class="photo-details">Model: </span>{{ media.Model }}</div>
         <div><span class="photo-details">Date Taken: </span>{{ media.DateTime }}</div>
@@ -55,7 +55,7 @@
         {% endif %}
     </div>
     <div class="col-md-6">
-        <h4><span class="icon-h4"><img src="/static/blog.svg" />Description</h4>
+        <h4><span class="icon-h4"><img src="/images/blog.svg" />Description</h4>
         <p>{{ media.Description }}</p>
 
         <div class="tagview">
