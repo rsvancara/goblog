@@ -19,6 +19,7 @@ require (
 	github.com/gorilla/handlers v1.4.2
 	github.com/gorilla/mux v1.7.3
 	github.com/gosimple/slug v1.9.0
+	github.com/h2non/bimg v1.0.19
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/oschwald/geoip2-golang v1.4.0
 	github.com/pkg/errors v0.8.1 // indirect

@@ -1,0 +1,39 @@
+{% extends "../base.html" %}
+ 
+{% block title  %}Blog Administration{% endblock %}
+
+{% block headertitle %}<h1>Blog Manager</h1>{% endblock %}
+ 
+{% block body %}
+<div class="row">
+  <div class="col-sm-6">
+    <div class="card" style="">
+      <div class="card-body">
+        <h3 class="card-title">
+            <span style="float: left; display: inline-block">
+                <img src="/images/blog.svg" class="card-img-top" alt="media" style="width:36px;height:36px;padding:5px;">
+            </span>
+            Manage Posts
+        </h3>
+        <p class="card-text">Posts include text based content.</p>
+        <a href="/admin/post" class="btn btn-primary">Manage Posts</a>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6">
+    <div class="card" style="">
+      <div class="card-body">
+        <h3 class="card-title">
+            <span style="float: left; display: inline-block">
+                <img src="/images/instagram.svg" class="card-img-top" alt="media" style="width:33px;height:33px;padding:5px;">
+            </span>
+            Media
+        </h3>
+        <p class="card-text">Media includes items such as photos.</p>
+        <a href="/admin/media" class="btn btn-primary">Manage Media</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

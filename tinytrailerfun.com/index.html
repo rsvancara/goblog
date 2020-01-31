@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+ 
+{% block title %}Blog{% endblock %}
+
+{% block headertitle %}{% endblock %}
+
+{% block body %}
+{% for p in posts %}
+<div class="card border-0 shadow my-5">
+    <div class="card-body p-5">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="blog-item-box">
+                    <div class="blog-item-date">
+                        <div class="blog-item-date-day">
+                            {{ p.CreatedAt | date:"02 January 2006"|slice:":2" }}
+                        </div>
+                        <div class="blog-item-date-full-month-year">
+                            {{ p.CreatedAt | date:"02 January 2006"|slice:"2:" }}, {{ p.CreatedAt | date:"Monday" }}
+                        </div>
+                    </div>
+                    <div class="blog-item-title-title">
+                        <h2><a href="/stories/{{ p.Slug }}">{{ p.Title }}</a></h2>
+                    </div>
+                    <div class="tagview">
+                        {% for tag in p.Tags %}
+                            <div class="tag">{{ tag.Keyword }}</div>
+                        {% endfor %}
+                    </div>
+                    <div class="blog-item-content">
+                        {{ p.PostTeaser }} ... <a href="/stories/{{ p.Slug }}">Read More</a>
+                    </div>  
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endfor %}
+{% endblock %}
+
+{% block script %}
+<script>
+
+</script>
+{% endblock %}

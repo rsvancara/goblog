@@ -28,7 +28,7 @@ import (
 	"github.com/flosch/pongo2"
 	"github.com/gorilla/mux"
 
-	"github.com/disintegration/imaging"
+	
 )
 
 type jsonErrorMessage struct {
@@ -528,7 +528,7 @@ func addFileToS3(filepath string, media models.MediaModel) {
 	dThumb := fmt.Sprintf("temp/thumbnail-%s.jpeg", randString)
 
 	// Create thumbnail
-	err = getThumbnail(filepath, dThumb)
+	err = GetThumbnail(filepath, dThumb)
 	if err != nil {
 		fmt.Printf("Error creating thumbnail %s with error %s\n", dThumb, err)
 	}
@@ -574,7 +574,7 @@ func addFileToS3(filepath string, media models.MediaModel) {
 
 	// Create Viewer Image
 	dView := fmt.Sprintf("temp/view-%s.jpeg", randString)
-	err = getViewerImage(filepath, dView)
+	err = GetViewerImage(filepath, dView)
 	if err != nil {
 		fmt.Printf("Error creating view image %s with error %s\n", dView, err)
 	}
@@ -684,49 +684,7 @@ func addFileToS3(filepath string, media models.MediaModel) {
 	return
 }
 
-func getViewerImage(srcFilePath string, dstFilePath string) error {
-	// Open a test image.
-	src, err := imaging.Open(srcFilePath)
-	if err != nil {
-		return err
-	}
 
-	// Resize the cropped image to width = 200px preserving the aspect ratio.
-	src = imaging.Resize(src, 1440, 0, imaging.Lanczos)
-
-	// Crop the original image to 300x300px size using the center anchor.
-	//src = imaging.CropAnchor(src, 300, 300, imaging.Center)
-
-	// Save the resulting image as JPEG.
-	err = imaging.Save(src, dstFilePath)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func getThumbnail(srcFilePath string, dstFilePath string) error {
-	// Open a test image.
-	src, err := imaging.Open(srcFilePath)
-	if err != nil {
-		return err
-	}
-
-	// Resize the cropped image to width = 200px preserving the aspect ratio.
-	src = imaging.Resize(src, 300, 0, imaging.Lanczos)
-
-	// Crop the original image to 300x300px size using the center anchor.
-	src = imaging.CropAnchor(src, 300, 300, imaging.Center)
-
-	// Save the resulting image as JPEG.
-	err = imaging.Save(src, dstFilePath)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
 
 // Hop-by-hop headers. These are removed when sent to the backend.
 // http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html
