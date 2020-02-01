@@ -10,7 +10,7 @@ import (
 	"blog/blog/models"
 	"blog/blog/requestfilter"
 	"blog/blog/session"
-	"blog/blog/views"
+	"blog/blog/util"
 
 	"github.com/flosch/pongo2"
 )
@@ -101,7 +101,7 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 	}
 
-	template, err := views.SiteTemplate("/index.html")
+	template, err := util.SiteTemplate("/index.html")
 	//template := "templates/index.html"
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
@@ -145,7 +145,7 @@ func Signin(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			fmt.Println(err)
 		}
-		fmt.Printf("SIGNUP - User is authenticated %s %s\n", sess.SessionToken, sess.User)
+		fmt.Printf("SIGNUP - User is authenticated %s %s\n", sess.SessionToken, sess.User.Username)
 
 		if isAuth == false {
 			w.WriteHeader(http.StatusUnauthorized)
@@ -164,14 +164,14 @@ func Signin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	template, err := views.SiteTemplate("/signin.html")
+	template, err := util.SiteTemplate("/signin.html")
 	//template := "templates/signin.html"
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
 	out, err := tmpl.Execute(pongo2.Context{"title": "Index", "greating": "Hello"})
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		fmt.Printf("error loading template with error: \n", err)
+		fmt.Printf("error loading template with error: %s\n", err)
 	}
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprintf(w, out)
@@ -188,7 +188,7 @@ func AdminHome(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/signin", http.StatusSeeOther)
 		return
 	}
-	template, err := views.SiteTemplate("/admin/admin.html")
+	template, err := util.SiteTemplate("/admin/admin.html")
 	//template := "templates/admin/admin.html"
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
@@ -210,7 +210,7 @@ func AboutHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Printf("Session not available %s", err)
 	}
 
-	template, err := views.SiteTemplate("/about.html")
+	template, err := util.SiteTemplate("/about.html")
 	//template := "templates/about.html"
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 

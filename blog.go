@@ -9,6 +9,7 @@ import (
 
 	"blog/blog"
 	"blog/blog/config"
+	"blog/blog/util"
 	"blog/blog/views"
 
 	"github.com/gorilla/handlers"
@@ -24,7 +25,7 @@ func main() {
 		log.Fatal(err.Error())
 	}
 
-	staticAssets, err := views.SiteTemplate("/static")
+	staticAssets, err := util.SiteTemplate("/static")
 	if err != nil {
 		log.Fatal(err.Error())
 	}
@@ -63,6 +64,7 @@ func main() {
 	r.Handle("/admin/post/view/{id}", handlers.LoggingHandler(os.Stdout, blog.AuthHandler(http.HandlerFunc(views.PostAdminView)))).Methods("GET")
 	r.Handle("/admin/post/edit/{id}", handlers.LoggingHandler(os.Stdout, blog.AuthHandler(http.HandlerFunc(views.PostEdit)))).Methods("GET", "POST")
 	r.Handle("/admin/post/delete/{id}", handlers.LoggingHandler(os.Stdout, blog.AuthHandler(http.HandlerFunc(views.PostDelete)))).Methods("GET")
+	r.Handle("/admin/sessions", handlers.LoggingHandler(os.Stdout, blog.AuthHandler(http.HandlerFunc(views.SessionReportHandler)))).Methods("GET")
 	ServeStatic(r, "./"+staticAssets)
 	http.Handle("/", r)
 

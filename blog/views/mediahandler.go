@@ -5,6 +5,7 @@ import (
 	"blog/blog/models"
 	"blog/blog/requestfilter"
 	"blog/blog/session"
+	"blog/blog/util"
 	"bytes"
 	"encoding/hex"
 	"encoding/json"
@@ -27,8 +28,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/flosch/pongo2"
 	"github.com/gorilla/mux"
-
-	
 )
 
 type jsonErrorMessage struct {
@@ -50,7 +49,7 @@ func Media(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 	}
 
-	template, err := SiteTemplate("/admin/media.html")
+	template, err := util.SiteTemplate("/admin/media.html")
 	//template := "templates/admin/media.html"
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
@@ -96,7 +95,7 @@ func ViewMedia(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	template, err := SiteTemplate("/admin/mediaview.html")
+	template, err := util.SiteTemplate("/admin/mediaview.html")
 	//template := "templates/admin/mediaview.html"
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
@@ -126,7 +125,7 @@ func MediaAdd(w http.ResponseWriter, r *http.Request) {
 		fmt.Printf("Session not available %s", err)
 	}
 
-	template, err := SiteTemplate("/admin/mediaadd.html")
+	template, err := util.SiteTemplate("/admin/mediaadd.html")
 	//template := "templates/admin/mediaadd.html"
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
@@ -362,7 +361,7 @@ func MediaEdit(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// HTTP Template
-	template, err := SiteTemplate("/admin/mediaedit.html")
+	template, err := util.SiteTemplate("/admin/mediaedit.html")
 	//template := "templates/admin/mediaedit.html"
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
@@ -528,7 +527,7 @@ func addFileToS3(filepath string, media models.MediaModel) {
 	dThumb := fmt.Sprintf("temp/thumbnail-%s.jpeg", randString)
 
 	// Create thumbnail
-	err = GetThumbnail(filepath, dThumb)
+	err = util.GetThumbnail(filepath, dThumb)
 	if err != nil {
 		fmt.Printf("Error creating thumbnail %s with error %s\n", dThumb, err)
 	}
@@ -574,7 +573,7 @@ func addFileToS3(filepath string, media models.MediaModel) {
 
 	// Create Viewer Image
 	dView := fmt.Sprintf("temp/view-%s.jpeg", randString)
-	err = GetViewerImage(filepath, dView)
+	err = util.GetViewerBImage(filepath, dView)
 	if err != nil {
 		fmt.Printf("Error creating view image %s with error %s\n", dView, err)
 	}
@@ -683,8 +682,6 @@ func addFileToS3(filepath string, media models.MediaModel) {
 
 	return
 }
-
-
 
 // Hop-by-hop headers. These are removed when sent to the backend.
 // http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html

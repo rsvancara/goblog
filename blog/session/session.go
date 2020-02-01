@@ -67,6 +67,31 @@ type Session struct {
 	User         User
 }
 
+func (s *Session) Get(key string) error {
+	cache, err := cache.GetRedisConn()
+	if err != nil {
+		return fmt.Errorf("error connecting to redis during session creation: %s", err)
+	}
+	defer cache.Close()
+
+	// We then get the name of the user from our cache, where we set the session token
+	response, err := redis.String(cache.Do("GET", key))
+
+	if err != nil {
+		return fmt.Errorf("Error retrieving user object from redis: %s", err)
+	}
+
+	user := &User{}
+
+	err = json.Unmarshal([]byte(response), user)
+
+	s.User = *user
+	s.IsAuth = user.IsAuth
+	s.SessionToken = key
+
+	return nil
+}
+
 // Create a session object in Redis
 func (s *Session) Create() error {
 
@@ -305,4 +330,57 @@ func (s *Session) Session(r *http.Request, w http.ResponseWriter) error {
 	s.IsAuth = s.User.IsAuth
 
 	return nil
+}
+
+func GetAllSessions() ([]Session, error) {
+
+	var sessions []Session
+
+	keys, err := getKeys("*")
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	for _, v := range keys {
+		var sess Session
+		sess.Get(v)
+
+		sessions = append(sessions, sess)
+
+	}
+
+	fmt.Println(sessions)
+
+	return sessions, nil
+
+}
+
+func getKeys(pattern string) ([]string, error) {
+
+	// Connect to Redis and get our user object
+	cache, err := cache.GetRedisConn()
+	defer cache.Close()
+	if err != nil {
+		return nil, fmt.Errorf("Error getting cache object, empty object returned: %s", err)
+	}
+
+	iter := 0
+	keys := []string{}
+	for {
+		arr, err := redis.Values(cache.Do("SCAN", iter, "MATCH", pattern))
+		if err != nil {
+			return keys, fmt.Errorf("error retrieving '%s' keys", pattern)
+		}
+
+		iter, _ = redis.Int(arr[0], nil)
+		k, _ := redis.Strings(arr[1], nil)
+		keys = append(keys, k...)
+
+		if iter == 0 {
+			break
+		}
+	}
+
+	return keys, nil
+
 }

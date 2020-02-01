@@ -52,7 +52,7 @@ type MediaModel struct {
 	ExposureProgram       string             `json:"exposure_program" bson:"exposure_program,omitempty"`
 	FStop                 string             `json:"fstop" bson:"fstop,omitempty"`
 	Tags                  []Tag              `json:"tags" bson:"tags"`
-	Location              string             `json:"location" bson:"location"`
+	Location              string             `json:"location" bson:"location,omitempty"`
 }
 
 // Tag stores tag objects

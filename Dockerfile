@@ -1,5 +1,9 @@
 FROM golang:1.13.4-stretch
 
+RUN apt-get update && \
+    apt-get install -y libvips-dev && \
+    apt-get clean 
+
 RUN mkdir BUILD
 WORKDIR /BUILD
 
@@ -12,9 +16,10 @@ COPY blog /BUILD/blog
 
 RUN CGO_ENABLED=1 GOOS=linux go build -o dabloog blog.go 
 
-FROM ubuntu:18.04
+FROM debian:jessie-slim
 
 RUN apt-get update &&  \
+    apt-get install -y libvips && \
     apt-get clean && \
     mkdir app
 

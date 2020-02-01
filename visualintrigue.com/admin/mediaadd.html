@@ -147,6 +147,7 @@ $(document).ready(function() {
             fd.append('title',$('#title').val());
             fd.append('description',$('#description').val());
             fd.append('category',$('#category').val());
+            fd.append('location',$('#location').val());
 
             $.ajax({ 
                 url: '/api/v1/putmedia/1', 
@@ -171,7 +172,6 @@ $(document).ready(function() {
                             }
                             else {
                                 $('#file-list-status').append('<div class="alert alert-success" role="alert">Uploaded file:' + response['file'] + '</div>');
-
                             }
                         }
                         
