@@ -14,7 +14,7 @@ COPY go.mod /BUILD/go.mod
 COPY vendor /BUILD/vendor
 COPY blog /BUILD/blog
 
-RUN CGO_ENABLED=1 GOOS=linux go build -o dabloog blog.go 
+RUN go build -o dabloog blog.go 
 
 FROM debian:jessie-slim
 
