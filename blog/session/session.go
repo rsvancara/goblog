@@ -7,6 +7,8 @@ import (
 	"time"
 
 	"blog/blog/cache"
+	"blog/blog/requestfilter"
+	"blog/blog/util"
 
 	"github.com/gomodule/redigo/redis"
 	uuid "github.com/satori/go.uuid"
@@ -31,9 +33,13 @@ type Item struct {
 
 // User stores user information for a session
 type User struct {
-	Username string `json:"username"`
-	Items    []Item `json:"items"`
-	IsAuth   bool   `json:"isauth"`
+	Username  string `json:"username"`
+	Items     []Item `json:"items"`
+	IsAuth    bool   `json:"isauth"`
+	IPAddress string `json:"ipaddress"`
+	City      string `json:"city"`
+	TimeZone  string `json:"timezone"`
+	Country   string `json:"country"`
 }
 
 func (u *User) setItem(key string, value string) {
@@ -67,6 +73,7 @@ type Session struct {
 	User         User
 }
 
+// Get Get the session key value for provided key
 func (s *Session) Get(key string) error {
 	cache, err := cache.GetRedisConn()
 	if err != nil {
@@ -92,16 +99,11 @@ func (s *Session) Get(key string) error {
 	return nil
 }
 
-// Create a session object in Redis
-func (s *Session) Create() error {
-
-	// Create the user object
-	var user User
-	user.Username = "anonymous"
-	user.IsAuth = false
+// CreateRedisSession a session object in Redis
+func (s *Session) CreateRedisSession() error {
 
 	// Convert object to JSON
-	byteResult, err := json.Marshal(user)
+	byteResult, err := json.Marshal(s.User)
 	if err != nil {
 		fmt.Printf("Error marshaling json object %s", err)
 	}
@@ -138,26 +140,70 @@ func (s *Session) Authenticate(creds Credentials, r *http.Request, w http.Respon
 		return false, nil
 	}
 
+	// Connect to Redis and get our user object
+	cache, err := cache.GetRedisConn()
+	defer cache.Close()
+	if err != nil {
+		return false, fmt.Errorf("Error getting cache object, empty object returned: %s", err)
+	}
+
+	// We should get a cache object, the above code should ensure this
+	if cache == nil {
+		return false, fmt.Errorf("Error getting cache object, empty object returned")
+	}
+
+	// get the name of the user from cache, where the session token exists
+	response, err := redis.String(cache.Do("GET", s.SessionToken))
+	if err != nil {
+		// If there is an error fetching from cache, return an internal server error status
+		return false, fmt.Errorf("Error? No Response from Cache: %s", err)
+	}
+
+	// Unmarshal the user object from Redis
+	user := &User{}
+	err = json.Unmarshal([]byte(response), user)
+	if err != nil {
+		// If there is an error fetching from cache, return an internal server error status
+		return false, fmt.Errorf("Error decoding json object: %s", err)
+	}
+
 	// Update the user object
-	var user User
+	//var user User
 	user.Username = creds.Username
 	user.IsAuth = true
 	s.IsAuth = true
+
+	// Attempt to extract additional information from a context
+	//var geoIP requestfilter.GeoIP
+	var ctxKey util.CtxKey
+	ctxKey = "geoip"
+
+	if result := r.Context().Value(ctxKey); result != nil {
+
+		fmt.Println("Found context")
+		fmt.Println(result)
+		// Type Assertion....
+		geoIP, ok := result.(requestfilter.GeoIP)
+		if !ok {
+			fmt.Println("Could not perform type assertion on result to GeoIP type")
+		}
+
+		user.City = geoIP.City
+		user.TimeZone = geoIP.TimeZone
+		user.Country = geoIP.CountryName
+		user.IPAddress = geoIP.IPAddress.String()
+	} else {
+		fmt.Println("Could not find ctxkey: geoip")
+	}
+
 	// Dont forget to update the session object with the new user information
-	s.User = user
+	s.User = *user
 
 	// Convert to JSON
 	byteResult, err := json.Marshal(user)
 	if err != nil {
 		fmt.Printf("Error marshaling json object %s", err)
 	}
-
-	// Connect to Redis
-	cache, err := cache.GetRedisConn()
-	if err != nil {
-		return false, fmt.Errorf("error connecting to redis during authentication: %s", err)
-	}
-	defer cache.Close()
 
 	// Remove existing session
 	_, err = cache.Do("DEL", s.SessionToken)
@@ -270,27 +316,74 @@ func (s *Session) Session(r *http.Request, w http.ResponseWriter) error {
 
 	// We can obtain the session token from the requests cookies, which come with every request
 	// This code ensures a session token is always created
+
+	// Generate session token
 	s.SessionToken = uuid.NewV4().String()
+
+	// Create a new cookie
 	var newCookie http.Cookie
 	newCookie.Name = "session_token"
 	newCookie.Value = s.SessionToken
 	newCookie.Path = "/"
 	newCookie.Expires = time.Now().Add(86400 * time.Second)
 
+	// Default there is no cookie error
 	isCookieError := false
 
+	// Attempt to get the current cookie and if it does not exist, build a new cookie
 	c, err := r.Cookie("session_token")
 	if err != nil {
 		if err == http.ErrNoCookie {
-			//Create new cookie
+			// No cookie exists, create the new cookie.
+
+			// Populate an anonymous user object
+
+			var user User
+			user.Username = "anonymous"
+			user.IsAuth = false
+
+			// Attempt to extract additional information from a context
+			//var geoIP requestfilter.GeoIP
+			var ctxKey util.CtxKey
+			ctxKey = "geoip"
+
+			if result := r.Context().Value(ctxKey); result != nil {
+
+				fmt.Println("Found context")
+				fmt.Println(result)
+				// Type Assertion....
+				geoIP, ok := result.(requestfilter.GeoIP)
+				if !ok {
+					fmt.Println("Could not perform type assertion on result to GeoIP type")
+				}
+
+				user.City = geoIP.City
+				user.TimeZone = geoIP.TimeZone
+				user.Country = geoIP.CountryName
+				user.IPAddress = geoIP.IPAddress.String()
+			} else {
+				fmt.Println("Could not find ctxkey: geoip")
+			}
+
+			//TODO: Set the user
+			s.User = user
+
+			fmt.Println(s)
+
+			// Set the new cookie
 			http.SetCookie(w, &newCookie)
-			// Create redis object
-			s.Create()
+
+			// Create the Redis Object which holds the session variables
+			// in a backend Redis Cache
+			s.CreateRedisSession()
+
+			// Since we have an error We need to flag the creation of a new cookie
 			isCookieError = true
 			fmt.Printf("Creating new session %s\n", s.SessionToken)
 		}
 	}
 
+	// Create the new cookie because of the error above
 	if isCookieError == true {
 		c = &newCookie
 	}
@@ -332,6 +425,7 @@ func (s *Session) Session(r *http.Request, w http.ResponseWriter) error {
 	return nil
 }
 
+// GetAllSessions get all the sessions stored in Redis
 func GetAllSessions() ([]Session, error) {
 
 	var sessions []Session

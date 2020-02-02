@@ -1,22 +1,23 @@
 package main
 
 import (
+	"blog/blog/config"
+	"blog/blog/routes"
+	"context"
+	"flag"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
 	"time"
-
-	"blog/blog"
-	"blog/blog/config"
-	"blog/blog/util"
-	"blog/blog/views"
-
-	"github.com/gorilla/handlers"
-	"github.com/gorilla/mux"
 )
 
 func main() {
+
+	var wait time.Duration
+	flag.DurationVar(&wait, "graceful-timeout", time.Second*15, "the duration for which the server gracefully wait for existing connections to finish - e.g. 15s or 1m")
+	flag.Parse()
 
 	fmt.Println("== Starting Service ==")
 
@@ -25,50 +26,15 @@ func main() {
 		log.Fatal(err.Error())
 	}
 
-	staticAssets, err := util.SiteTemplate("/static")
-	if err != nil {
-		log.Fatal(err.Error())
-	}
-
-	fmt.Println(staticAssets)
-
 	fmt.Println("== Initializing Configuration ==")
 	fmt.Printf("Database URI: %s\n", cfg.Dburi)
 	fmt.Printf("Cache URI: %s\n", cfg.Cacheuri)
 
-	r := mux.NewRouter()
-
-	r.HandleFunc("/", blog.HomeHandler)
-	r.Handle(
-		"/",
-		handlers.LoggingHandler(
-			os.Stdout,
-			http.HandlerFunc(
-				blog.HomeHandler))).Methods("GET")
-
-	r.Handle("/stories/{id}", handlers.LoggingHandler(os.Stdout, blog.GeoFilterMiddleware(http.HandlerFunc(views.PostView))))
-	r.Handle("/photo/{id}", handlers.LoggingHandler(os.Stdout, http.HandlerFunc(views.PhotoView))).Methods("GET")
-	r.Handle("/image/{slug}/{type}", handlers.LoggingHandler(os.Stdout, http.HandlerFunc(views.ServerImage))).Methods("GET")
-	r.Handle("/about", handlers.LoggingHandler(os.Stdout, blog.AuthHandler(http.HandlerFunc(blog.AboutHandler)))).Methods("GET")
-	r.Handle("/signin", handlers.LoggingHandler(os.Stdout, http.HandlerFunc(blog.Signin))).Methods("GET", "POST")
-	r.Handle("/admin", handlers.LoggingHandler(os.Stdout, blog.AuthHandler(http.HandlerFunc(blog.AdminHome)))).Methods("GET", "POST")
-	r.Handle("/admin/media", handlers.LoggingHandler(os.Stdout, blog.AuthHandler(http.HandlerFunc(views.Media)))).Methods("GET")
-	r.Handle("/api/v1/putmedia/{id}", handlers.LoggingHandler(os.Stdout, blog.AuthHandler(http.HandlerFunc(views.PutMedia))))
-	r.Handle("/api/v1/getmedia/{id}", handlers.LoggingHandler(os.Stdout, http.HandlerFunc(views.GetMediaAPI))).Methods("GET")
-	r.Handle("/admin/media/add", handlers.LoggingHandler(os.Stdout, blog.AuthHandler(http.HandlerFunc(views.MediaAdd)))).Methods("GET", "POST")
-	r.Handle("/admin/media/edit/{id}", handlers.LoggingHandler(os.Stdout, blog.AuthHandler(http.HandlerFunc(views.MediaEdit)))).Methods("GET", "POST")
-	r.Handle("/admin/media/view/{id}", handlers.LoggingHandler(os.Stdout, blog.AuthHandler(http.HandlerFunc(views.ViewMedia)))).Methods("GET")
-	r.Handle("/admin/media/delete/{id}", handlers.LoggingHandler(os.Stdout, blog.AuthHandler(http.HandlerFunc(views.MediaDelete)))).Methods("GET")
-	r.Handle("/admin/post", handlers.LoggingHandler(os.Stdout, blog.AuthHandler(http.HandlerFunc(views.Post)))).Methods("GET")
-	r.Handle("/admin/post/add", handlers.LoggingHandler(os.Stdout, blog.AuthHandler(http.HandlerFunc(views.PostAdd)))).Methods("GET", "POST")
-	r.Handle("/admin/post/view/{id}", handlers.LoggingHandler(os.Stdout, blog.AuthHandler(http.HandlerFunc(views.PostAdminView)))).Methods("GET")
-	r.Handle("/admin/post/edit/{id}", handlers.LoggingHandler(os.Stdout, blog.AuthHandler(http.HandlerFunc(views.PostEdit)))).Methods("GET", "POST")
-	r.Handle("/admin/post/delete/{id}", handlers.LoggingHandler(os.Stdout, blog.AuthHandler(http.HandlerFunc(views.PostDelete)))).Methods("GET")
-	r.Handle("/admin/sessions", handlers.LoggingHandler(os.Stdout, blog.AuthHandler(http.HandlerFunc(views.SessionReportHandler)))).Methods("GET")
-	ServeStatic(r, "./"+staticAssets)
-	http.Handle("/", r)
+	r := routes.GetRoutes()
 
 	fmt.Println("Now serving requests")
+	//mux := http.NewServeMux()
+	//contextedMux := AddContext(mux)
 
 	srv := &http.Server{
 		Handler: r,
@@ -78,19 +44,32 @@ func main() {
 		ReadTimeout:  15 * time.Second,
 	}
 
-	log.Fatal(srv.ListenAndServe())
-}
+	// Run our server in a goroutine so that it doesn't block.
+	go func() {
+		if err := srv.ListenAndServe(); err != nil {
+			log.Println(err)
+		}
+	}()
 
-// ServeStatic  serve static content from the appropriate location
-func ServeStatic(router *mux.Router, staticDirectory string) {
-	staticPaths := map[string]string{
-		"css":     staticDirectory + "/css/",
-		"images":  staticDirectory + "/images/",
-		"scripts": staticDirectory + "/scripts/",
-	}
-	for pathName, pathValue := range staticPaths {
-		pathPrefix := "/" + pathName + "/"
-		router.PathPrefix(pathPrefix).Handler(http.StripPrefix(pathPrefix,
-			http.FileServer(http.Dir(pathValue))))
-	}
+	c := make(chan os.Signal, 1)
+	// We'll accept graceful shutdowns when quit via SIGINT (Ctrl+C)
+	// SIGKILL, SIGQUIT or SIGTERM (Ctrl+/) will not be caught.
+	signal.Notify(c, os.Interrupt)
+
+	// Block until we receive our signal.
+	<-c
+
+	// Create a deadline to wait for.
+	ctx, cancel := context.WithTimeout(context.Background(), wait)
+	defer cancel()
+
+	// Doesn't block if no connections, but will otherwise wait
+	// until the timeout deadline.
+
+	srv.Shutdown(ctx)
+	// Optionally, you could run srv.Shutdown in a goroutine and block on
+	// <-ctx.Done() if your application should wait for other services
+	// to finalize based on context cancellation.
+	log.Println("shutting down")
+	os.Exit(0)
 }
