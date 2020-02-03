@@ -19,11 +19,19 @@ pipeline {
                 sh 'docker build --no-cache -t rsvancara/goblog:${TAG_NAME} .'
             }
         }
-        stage('Publish VI') {
+        stage('Publish visualintrigue') {
             when { buildingTag() }
             steps {
                 withDockerRegistry([ credentialsId: "dockerhub", url: "https://docker.io/" ]) {
                     sh 'docker push rsvancara/goblog:vi-${TAG_NAME}'
+                }
+            }
+        }
+        stage('Publish dyitinytrailer') {
+            when { buildingTag() }
+            steps {
+                withDockerRegistry([ credentialsId: "dockerhub", url: "https://docker.io/" ]) {
+                    sh 'docker push rsvancara/goblog:dyi-${TAG_NAME}'
                 }
             }
         }

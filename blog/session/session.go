@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"blog/blog/cache"
+	"blog/blog/config"
 	"blog/blog/requestfilter"
 	"blog/blog/util"
 
@@ -127,6 +128,11 @@ func (s *Session) CreateRedisSession() error {
 // Authenticate Authenticate a user
 func (s *Session) Authenticate(creds Credentials, r *http.Request, w http.ResponseWriter) (bool, error) {
 
+	cfg, err := config.GetConfig()
+	if err != nil {
+		fmt.Printf("error getting configuration: %s", err)
+	}
+
 	// Get the existing cookie
 	c, err := r.Cookie("session_token")
 
@@ -211,9 +217,9 @@ func (s *Session) Authenticate(creds Credentials, r *http.Request, w http.Respon
 		return false, fmt.Errorf("Error removing session in redis: %s", err)
 	}
 
-	// Set/Replace the token in the cache, along with the user whom it represents
+	// Set/Replace the token in the cache, along with t he user whom it represents
 	// The token has an expiry time of 120 seconds
-	_, err = cache.Do("SETEX", s.SessionToken, "86400", string(byteResult))
+	_, err = cache.Do("SETEX", s.SessionToken, cfg.GetSessionTimeout(), string(byteResult))
 	if err != nil {
 		return false, fmt.Errorf("Error saving session to redis: %s", err)
 	}
