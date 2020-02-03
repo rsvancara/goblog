@@ -14,25 +14,18 @@ pipeline {
             }
         }
         stage('Build Release') {
-            when { buildingTag() }
             steps {
-                sh 'docker build --no-cache -t rsvancara/goblog:${TAG_NAME} .'
+                sh 'docker build --no-cache -t rsvancara/goblog:release .'
+                sh 'docker push rsvancara/goblog:release'
             }
         }
         stage('Publish visualintrigue') {
-            when { buildingTag() }
+            //when { buildingTag() }
             steps {
-                withDockerRegistry([ credentialsId: "dockerhub", url: "https://docker.io/" ]) {
-                    sh 'docker push rsvancara/goblog:vi-${TAG_NAME}'
-                }
-            }
-        }
-        stage('Publish dyitinytrailer') {
-            when { buildingTag() }
-            steps {
-                withDockerRegistry([ credentialsId: "dockerhub", url: "https://docker.io/" ]) {
-                    sh 'docker push rsvancara/goblog:dyi-${TAG_NAME}'
-                }
+                //withDockerRegistry([ credentialsId: "dockerhub", url: "https://docker.io/" ]) {
+                //    sh 'kubectl get pods -o wide -n dev'
+                //}
+                sh 'kubectl get pods -o wide -n dev'
             }
         }
     }
