@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"strconv"
+	"time"
 
 	"github.com/kelseyhightower/envconfig"
 )
@@ -57,6 +58,18 @@ func (a *AppConfig) GetSite() string {
 //GetSessionTimeout sets the session lifetime for redis and cookies
 func (a *AppConfig) GetSessionTimeout() string {
 	return a.GetSessionTimeout()
+}
+
+//GetDurationTimeout sets the session lifetime for redis and cookies
+func (a *AppConfig) GetDurationTimeout() time.Duration {
+
+	retVal, err := time.ParseDuration(a.SessionTimeout)
+	if err != nil {
+		return 86400 * time.Second
+	}
+
+	return retVal
+
 }
 
 //GetIntegerSessionTimeout sets the session lifetime for redis and cookies

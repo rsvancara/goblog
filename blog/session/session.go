@@ -229,7 +229,7 @@ func (s *Session) Authenticate(creds Credentials, r *http.Request, w http.Respon
 		Name:    "session_token",
 		Value:   c.Value,
 		Path:    "/",
-		Expires: time.Now().Add(86400 * time.Second),
+		Expires: time.Now().Add(cfg.GetDurationTimeout() * time.Second),
 	})
 
 	return true, nil
@@ -320,6 +320,11 @@ func (s *Session) GetValue(key string) (string, error) {
 // Session Session Test if user isauthenticated
 func (s *Session) Session(r *http.Request, w http.ResponseWriter) error {
 
+	cfg, err := config.GetConfig()
+	if err != nil {
+		fmt.Printf("error getting configuration: %s", err)
+	}
+
 	// We can obtain the session token from the requests cookies, which come with every request
 	// This code ensures a session token is always created
 
@@ -331,7 +336,7 @@ func (s *Session) Session(r *http.Request, w http.ResponseWriter) error {
 	newCookie.Name = "session_token"
 	newCookie.Value = s.SessionToken
 	newCookie.Path = "/"
-	newCookie.Expires = time.Now().Add(86400 * time.Second)
+	newCookie.Expires = time.Now().Add(cfg.GetDurationTimeout() * time.Second)
 
 	// Default there is no cookie error
 	isCookieError := false
