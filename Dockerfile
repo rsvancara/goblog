@@ -29,7 +29,7 @@ COPY --from=0 /BUILD/dabloog .
 
 # Copy the site directories
 COPY visualintrigue.com visualintrigue.com
-COPY tinycamperfun.com tinycamperfun.com
+COPY tinytrailerfun.com tinytrailerfun.com
 
 EXPOSE 5000
     
