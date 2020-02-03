@@ -69,7 +69,6 @@ func (a *AppConfig) GetDurationTimeout() time.Duration {
 	}
 
 	return retVal
-
 }
 
 //GetIntegerSessionTimeout sets the session lifetime for redis and cookies
