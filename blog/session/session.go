@@ -119,10 +119,14 @@ func (s *Session) Authenticate(creds Credentials, r *http.Request, w http.Respon
 	s.SessionToken = c.Value
 
 	// Get the expected password from our in memory map
-	expectedPassword, ok := users[creds.Username]
+	//expectedPassword, ok := users[creds.Username]
 
 	// Authenticate the user here!!
-	if !ok || expectedPassword != creds.Password {
+	//if !ok || expectedPassword != creds.Password {
+	//	return false, nil
+	//}
+
+	if creds.Username != cfg.GetAdminUser() || creds.Password != cfg.GetAdminPassword() {
 		return false, nil
 	}
 
