@@ -144,10 +144,15 @@ func Signin(w http.ResponseWriter, r *http.Request) {
 		creds.Username = r.FormValue("username")
 		creds.Password = r.FormValue("password")
 
+		if creds.Username == "" || creds.Password == "" {
+			http.Redirect(w, r, "/signin", http.StatusSeeOther)
+		}
+
 		isAuth, err := sess.Authenticate(creds, r, w)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			fmt.Println(err)
+			//http.Error(w, err.Error(), http.StatusInternalServerError)
+			fmt.Printf("error authenticating user %s with error %s", creds.Username, err)
+			http.Redirect(w, r, "/signin", http.StatusSeeOther)
 		}
 		fmt.Printf("SIGNUP - User is authenticated %s %s\n", sess.SessionToken, sess.User.Username)
 

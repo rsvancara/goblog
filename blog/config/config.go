@@ -10,14 +10,14 @@ import (
 
 //AppConfig Application Configuration
 type AppConfig struct {
-	Cacheuri       string `envconfig:"CACHE_URI"`      // Cacheuri
-	Dburi          string `envconfig:"DB_URI"`         //MongDB URI
-	AdminUser      string `envconfig:"ADMIN_USER"`     // Admin User for application
-	AdminPassword  string `envconfig:"ADMIN_PASSWORD"` // Admin Password for application
-	S3Bucket       string `envconfig:"S3_BUCKET"`      // Where your S3 Buckets is
-	Env            string `envconfig:"ENV"`            //PROD,DEV
-	Site           string `envconfig:"SITE"`           // defines site name and location of template directories etc...
-	SessionTimeout string `envconfig:"SESION_TIMEOUT"` // defines session timeout
+	Cacheuri       string `envconfig:"CACHE_URI"`       // Cacheuri
+	Dburi          string `envconfig:"DB_URI"`          //MongDB URI
+	AdminUser      string `envconfig:"ADMIN_USER"`      // Admin User for application
+	AdminPassword  string `envconfig:"ADMIN_PASSWORD"`  // Admin Password for application
+	S3Bucket       string `envconfig:"S3_BUCKET"`       // Where your S3 Buckets is
+	Env            string `envconfig:"ENV"`             //PROD,DEV
+	Site           string `envconfig:"SITE"`            // defines site name and location of template directories etc...
+	SessionTimeout string `envconfig:"SESSION_TIMEOUT"` // defines session timeout
 }
 
 //GetCacheURI returs cache uri for redis
@@ -57,25 +57,32 @@ func (a *AppConfig) GetSite() string {
 
 //GetSessionTimeout sets the session lifetime for redis and cookies
 func (a *AppConfig) GetSessionTimeout() string {
-	return a.GetSessionTimeout()
+	return a.SessionTimeout
 }
 
 //GetDurationTimeout sets the session lifetime for redis and cookies
 func (a *AppConfig) GetDurationTimeout() time.Duration {
 
-	retVal, err := time.ParseDuration(a.SessionTimeout)
+	//fmt.Println(a.SessionTimeout)
+	//retVal, err := time.ParseDuration(a.SessionTimeout + "s")
+	val, err := strconv.ParseUint(a.SessionTimeout, 10, 64)
+	retVal := time.Duration(val)
 	if err != nil {
+		fmt.Printf("error parsing timout duration: %s\n", err)
 		return 86400 * time.Second
 	}
 
-	return retVal
+	//fmt.Println(retVal)
+	return retVal * time.Second
 }
 
 //GetIntegerSessionTimeout sets the session lifetime for redis and cookies
 func (a *AppConfig) GetIntegerSessionTimeout() int64 {
 	retVal, err := strconv.ParseInt(a.SessionTimeout, 10, 32)
 	if err != nil {
+		fmt.Printf("error converting session to integer %s\n", err)
 		return 86400
+
 	}
 
 	return retVal

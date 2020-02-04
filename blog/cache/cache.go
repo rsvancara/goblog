@@ -2,6 +2,7 @@ package cache
 
 import (
 	"blog/blog/config"
+	"fmt"
 
 	"github.com/gomodule/redigo/redis"
 )
@@ -13,8 +14,11 @@ func GetRedisConn() (redis.Conn, error) {
 	// you've already changed the Redis configuration file this should
 	// work.
 	cfg, err := config.GetConfig()
+
 	conn, err := redis.Dial("tcp", cfg.Cacheuri)
 	if err != nil {
+
+		fmt.Printf("Error connecting to redis with error %s using URI %s", err, cfg.Cacheuri)
 		return conn, err
 	}
 	// Importantly, use defer to ensure the connection is always
