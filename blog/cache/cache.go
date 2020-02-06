@@ -15,7 +15,7 @@ func GetRedisConn() (redis.Conn, error) {
 	// work.
 	cfg, err := config.GetConfig()
 
-	conn, err := redis.Dial("tcp", cfg.Cacheuri)
+	conn, err := redis.DialURL(cfg.GetCacheURI())
 	if err != nil {
 
 		fmt.Printf("Error connecting to redis with error %s using URI %s", err, cfg.Cacheuri)
