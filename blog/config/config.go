@@ -11,6 +11,7 @@ import (
 //AppConfig Application Configuration
 type AppConfig struct {
 	Cacheuri       string `envconfig:"CACHE_URI"`       // Cacheuri
+	RedisPassword  string `envconfig:"REDIS_PASSWORD"`  // Redis Password
 	Dburi          string `envconfig:"DB_URI"`          //MongDB URI
 	AdminUser      string `envconfig:"ADMIN_USER"`      // Admin User for application
 	AdminPassword  string `envconfig:"ADMIN_PASSWORD"`  // Admin Password for application

@@ -30,6 +30,7 @@ COPY --from=0 /BUILD/dabloog .
 # Copy the site directories
 COPY visualintrigue.com visualintrigue.com
 COPY tinytrailerfun.com tinytrailerfun.com
+COPY db db
 
 EXPOSE 5000
     
