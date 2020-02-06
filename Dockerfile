@@ -16,7 +16,7 @@ COPY blog /BUILD/blog
 
 RUN go build -o dabloog blog.go 
 
-FROM debian:jessie-slim
+FROM debian:stretch-slim
 
 RUN apt-get update &&  \
     apt-get install -y libvips && \
