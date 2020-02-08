@@ -19,6 +19,7 @@ type AppConfig struct {
 	Env            string `envconfig:"ENV"`             //PROD,DEV
 	Site           string `envconfig:"SITE"`            // defines site name and location of template directories etc...
 	SessionTimeout string `envconfig:"SESSION_TIMEOUT"` // defines session timeout
+	MongoDatabase  string `envconfig:"MONGO_DATABASE"`  // defines session timeout
 }
 
 //GetCacheURI returs cache uri for redis

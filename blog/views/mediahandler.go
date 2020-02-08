@@ -725,6 +725,12 @@ func appendHostToXForwardHeader(header http.Header, host string) {
 func ServerImage(wr http.ResponseWriter, req *http.Request) {
 	//log.Println(req.RemoteAddr, " ", req.Method, " ", req.URL)
 
+	cfg, err := config.GetConfig()
+	if err != nil {
+		fmt.Printf("could not get configuration object %s", (err))
+		return
+	}
+
 	slug := ""
 	mediaType := ""
 
@@ -745,7 +751,7 @@ func ServerImage(wr http.ResponseWriter, req *http.Request) {
 
 	var media models.MediaModel
 
-	err := media.GetMediaBySlug(slug)
+	err = media.GetMediaBySlug(slug)
 	if err != nil {
 		fmt.Printf("error getting media by slug: %s", err)
 	}
@@ -766,27 +772,32 @@ func ServerImage(wr http.ResponseWriter, req *http.Request) {
 
 	// Generate S3 URL
 	var mediaRequest http.Request
-	mediaURL, err := url.Parse("https://vi-goblog.s3-us-west-2.amazonaws.com" + s3Path)
+	mediaURL, err := url.Parse("https://" + cfg.GetS3Bucket() + ".s3-us-west-2.amazonaws.com" + s3Path)
 	if err != nil {
 		log.Printf("ServeHTTP: %s", err)
 	}
 
 	mediaRequest.URL = mediaURL
 
+	fmt.Printf("proxy for media slug id %s for image type %s using url %s\n", slug, mediaType, mediaURL)
+
 	// Create client
 	client := &http.Client{}
 
 	//delHopHeaders(req.Header)
 
-	if clientIP, err := requestfilter.GetIPAddress(req); err == nil {
-		appendHostToXForwardHeader(req.Header, clientIP)
+	clientIP, err := requestfilter.GetIPAddress(req)
+	if err != nil {
+		fmt.Printf("error getting ip address in proxy to send to s3 bucke with error %s", err)
 	}
+
+	appendHostToXForwardHeader(req.Header, clientIP)
 
 	resp, err := client.Do(&mediaRequest)
 	if err != nil {
 
-		http.Error(wr, "Server Error", http.StatusInternalServerError)
-		log.Printf("ServeHTTP: %s", err)
+		http.Error(wr, fmt.Sprintf("error proxying url %s with error %s", mediaURL, err), http.StatusInternalServerError)
+		log.Printf("error proxying url %s with error %s\n", mediaURL, err)
 		return
 	}
 

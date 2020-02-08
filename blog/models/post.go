@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"blog/blog/config"
 	"blog/blog/db"
 
 	"github.com/gosimple/slug"
@@ -36,7 +37,7 @@ func (p *PostModel) GetPost(id string) error {
 
 	err := db.NewSession()
 
-	c := db.Client.Database("blog").Collection("posts")
+	c := db.Client.Database(getPostDB()).Collection("posts")
 
 	err = c.FindOne(context.TODO(), bson.M{"postid": id}).Decode(p)
 	if err != nil {
@@ -54,7 +55,7 @@ func (p *PostModel) GetPostBySlug(id string) error {
 
 	err := db.NewSession()
 
-	c := db.Client.Database("blog").Collection("posts")
+	c := db.Client.Database(getPostDB()).Collection("posts")
 
 	err = c.FindOne(context.TODO(), bson.M{"slug": id}).Decode(p)
 	if err != nil {
@@ -84,7 +85,7 @@ func (p *PostModel) InsertPost() error {
 	p.Slug = slug.Make(p.Title)
 	p.Tags = TagExtractor(p.Keywords)
 
-	c := db.Client.Database("blog").Collection("posts")
+	c := db.Client.Database(getPostDB()).Collection("posts")
 
 	insertResult, err := c.InsertOne(context.TODO(), p)
 	if err != nil {
@@ -115,7 +116,7 @@ func (p *PostModel) UpdatePost() error {
 	// Manage update time
 	p.UpdatedAt = time.Now()
 
-	c := db.Client.Database("blog").Collection("posts")
+	c := db.Client.Database(getPostDB()).Collection("posts")
 
 	filter := bson.M{
 		"postid": bson.M{
@@ -164,7 +165,7 @@ func (p *PostModel) DeletePost() error {
 	}
 	defer db.Close()
 
-	c := db.Client.Database("blog").Collection("posts")
+	c := db.Client.Database(getPostDB()).Collection("posts")
 	_, err = c.DeleteOne(context.TODO(), bson.M{"postid": p.PostID})
 
 	if err != nil {
@@ -212,7 +213,7 @@ func AllPostsSortedByDate() ([]PostModel, error) {
 	// Sort by `_id` field descending
 	options.SetSort(map[string]int{"created_at": -1})
 
-	cur, err := db.Client.Database("blog").Collection("posts").Find(context.TODO(), filter, options)
+	cur, err := db.Client.Database(getPostDB()).Collection("posts").Find(context.TODO(), filter, options)
 	if err != nil {
 		return nil, err
 	}
@@ -235,4 +236,15 @@ func AllPostsSortedByDate() ([]PostModel, error) {
 	}
 
 	return postModels, nil
+}
+
+func getPostDB() string {
+	cfg, err := config.GetConfig()
+	if err != nil {
+		fmt.Printf("error getting configuration: %s", err)
+		return ""
+	}
+
+	return cfg.MongoDatabase
+
 }

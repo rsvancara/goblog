@@ -70,12 +70,15 @@ func IsPrivateSubnet(ipAddress net.IP) bool {
 // Why we can not have nice things!
 // https://husobee.github.io/golang/ip-address/2015/12/17/remote-ip-go.html
 func GetIPAddress(r *http.Request) (string, error) {
-	for _, h := range []string{"X-Forwarded-For", "X-Real-Ip"} {
+	// Possibly values: "X-Original-Forwarded-For","X-Forwarded-For", "X-Real-Ip","X-Original-Forwarded-For"
+	for _, h := range []string{"X-Original-Forwarded-For", "X-Forwarded-For", "X-Real-Ip"} {
 		addresses := strings.Split(r.Header.Get(h), ",")
 		// march from right to left until we get a public address
 		// that will be the address right before our proxy.
 		for i := len(addresses) - 1; i >= 0; i-- {
 			ip := strings.TrimSpace(addresses[i])
+
+			fmt.Printf("Found Client IP Address %s for \"%s\"\n", ip, h)
 			// header can contain spaces too, strip those out.
 			realIP := net.ParseIP(ip)
 			//if !realIP.IsGlobalUnicast() || IsPrivateSubnet(realIP) {
@@ -83,12 +86,17 @@ func GetIPAddress(r *http.Request) (string, error) {
 				// bad address, go to next
 				continue
 			}
+			// Return the ip address
+			fmt.Printf("Returning client ip address %s\n", ip)
+
+			//fmt.Printf("by the way the remote address %s\n", r.RemoteAddr)
 			return ip, nil
 		}
 	}
 	parts := strings.Split(r.RemoteAddr, ":")
 	if len(parts) > 0 {
 		ip := parts[0]
+		fmt.Printf("No address found and will RemoteAddr ip address %s which is probably not what you want\n", ip)
 		return ip, nil
 	}
 

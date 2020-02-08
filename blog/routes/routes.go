@@ -191,6 +191,15 @@ func GetRoutes() *mux.Router {
 			views.GeoFilterMiddleware(
 				views.AuthHandler(
 					http.HandlerFunc(views.SessionReportHandler))))).Methods("GET")
+
+	r.Handle(
+		"/admin/session/delete/{id}",
+		handlers.LoggingHandler(
+			os.Stdout,
+			views.GeoFilterMiddleware(
+				views.AuthHandler(
+					http.HandlerFunc(views.SessionDeleteHandler))))).Methods("GET")
+
 	ServeStatic(r, "./"+staticAssets)
 	http.Handle("/", r)
 

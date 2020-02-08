@@ -19,9 +19,15 @@ RUN go build -o dabloog blog.go
 FROM debian:stretch-slim
 
 RUN apt-get update &&  \
-    apt-get install -y libvips && \
-    apt-get clean && \
-    mkdir app
+    apt-get install -y libvips ca-certificates && \
+    apt-get clean 
+
+RUN mkdir app && \
+    mkdir app/temp && \
+    chmod 1777 app/temp && \
+    groupadd -g 1001 goblog && \
+    useradd -r -u 1001 -g goblog goblog && \
+    chown -R goblog:goblog /app 
 
 WORKDIR /app
 
@@ -32,6 +38,7 @@ COPY visualintrigue.com visualintrigue.com
 COPY tinytrailerfun.com tinytrailerfun.com
 COPY db db
 
+USER goblog
 EXPOSE 5000
     
 CMD ["./dabloog"] 

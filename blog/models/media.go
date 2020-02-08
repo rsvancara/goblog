@@ -1,6 +1,7 @@
 package models
 
 import (
+	"blog/blog/config"
 	"blog/blog/db"
 	"context"
 	"fmt"
@@ -80,7 +81,7 @@ func (m *MediaModel) InsertMedia() error {
 
 	m.Tags = TagExtractor(m.Keywords)
 
-	c := db.Client.Database("blog").Collection("media")
+	c := db.Client.Database(getMediaDB()).Collection("media")
 
 	insertResult, err := c.InsertOne(context.TODO(), m)
 	if err != nil {
@@ -121,7 +122,7 @@ func (m *MediaModel) UpdateMedia() error {
 
 	defer db.Close()
 
-	c := db.Client.Database("blog").Collection("media")
+	c := db.Client.Database(getMediaDB()).Collection("media")
 
 	filter := bson.M{
 		"media_id": bson.M{
@@ -166,7 +167,7 @@ func (m *MediaModel) SetS3Uploaded() error {
 
 	defer db.Close()
 
-	c := db.Client.Database("blog").Collection("media")
+	c := db.Client.Database(getMediaDB()).Collection("media")
 
 	filter := bson.M{
 		"media_id": bson.M{
@@ -201,7 +202,7 @@ func (m *MediaModel) GetMedia(id string) error {
 	//config.DBUri = "mongodb://host.docker.internal:27017"
 	err := db.NewSession()
 
-	c := db.Client.Database("blog").Collection("media")
+	c := db.Client.Database(getMediaDB()).Collection("media")
 
 	err = c.FindOne(context.TODO(), bson.M{"media_id": id}).Decode(m)
 	if err != nil {
@@ -220,7 +221,7 @@ func (m *MediaModel) GetMediaBySlug(slug string) error {
 	//config.DBUri = "mongodb://host.docker.internal:27017"
 	err := db.NewSession()
 
-	c := db.Client.Database("blog").Collection("media")
+	c := db.Client.Database(getMediaDB()).Collection("media")
 
 	err = c.FindOne(context.TODO(), bson.M{"slug": slug}).Decode(m)
 	if err != nil {
@@ -425,7 +426,7 @@ func (m *MediaModel) DeleteMedia() error {
 	}
 	defer db.Close()
 
-	c := db.Client.Database("blog").Collection("media")
+	c := db.Client.Database(getMediaDB()).Collection("media")
 	_, err = c.DeleteOne(context.TODO(), bson.M{"media_id": m.MediaID})
 
 	if err != nil {
@@ -457,7 +458,7 @@ func AllMediaSortedByDate() ([]MediaModel, error) {
 	// Sort by `_id` field descending
 	options.SetSort(map[string]int{"created_at": -1})
 
-	cur, err := db.Client.Database("blog").Collection("media").Find(context.TODO(), filter, options)
+	cur, err := db.Client.Database(getMediaDB()).Collection("media").Find(context.TODO(), filter, options)
 	if err != nil {
 		return nil, err
 	}
@@ -480,4 +481,15 @@ func AllMediaSortedByDate() ([]MediaModel, error) {
 	}
 
 	return mediaModels, nil
+}
+
+func getMediaDB() string {
+	cfg, err := config.GetConfig()
+	if err != nil {
+		fmt.Printf("error getting configuration: %s", err)
+		return ""
+	}
+
+	return cfg.MongoDatabase
+
 }

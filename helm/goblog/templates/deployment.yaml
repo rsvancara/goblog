@@ -1,0 +1,121 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "goblog.fullname" . }}
+  labels:
+    {{- include "goblog.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "goblog.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "goblog.selectorLabels" . | nindent 8 }}
+    spec:
+    {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      serviceAccountName: {{ include "goblog.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+          - name: S3_BUCKET
+            valueFrom:
+                secretKeyRef:
+                  name: vi
+                  key: S3_BUCKET
+          - name: AWS_ACCESS_KEY_ID
+            valueFrom:
+                secretKeyRef:
+                  name: vi
+                  key: AWS_ACCESS_KEY_ID
+          - name: AWS_SECRET_ACCESS_KEY
+            valueFrom:
+                secretKeyRef:
+                  name: vi
+                  key: AWS_SECRET_ACCESS_KEY
+          - name: AWS_REGION
+            valueFrom:
+                secretKeyRef:
+                  name: vi
+                  key: AWS_REGION
+          - name: CACHE_URI
+            valueFrom:
+                secretKeyRef:
+                  name: vi
+                  key: CACHE_URI
+          - name: REDIS_PASSWORD
+            valueFrom:
+                secretKeyRef:
+                  name: vi
+                  key: REDIS_PASSWORD
+          - name: DB_URI
+            valueFrom:
+                secretKeyRef:
+                  name: vi
+                  key: DB_URI
+          - name: ENV
+            valueFrom:
+                secretKeyRef:
+                  name: vi
+                  key: ENV
+          - name: ADMIN_USER
+            valueFrom:
+                secretKeyRef:
+                  name: vi
+                  key: ADMIN_USER
+          - name: ADMIN_PASSWORD
+            valueFrom:
+                secretKeyRef:
+                  name: vi
+                  key: ADMIN_PASSWORD
+          - name: SITE
+            valueFrom:
+                secretKeyRef:
+                  name: vi
+                  key: SITE
+          - name: SESSION_TIMEOUT
+            valueFrom:
+                secretKeyRef:
+                  name: vi
+                  key: SESSION_TIMEOUT
+          - name: MONGO_DATABASE
+            valueFrom:
+                secretKeyRef:
+                  name: vi
+                  key: MONGO_DATABASE
+          ports:
+            - name: http
+              containerPort: 5000
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /healthcheck957873
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /healthcheck957873
+              port: http
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}

@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "../base.html" %}
  
 {% block title  %}View Media{% endblock %}
 
@@ -75,19 +75,7 @@
         </div>
     </div>
 </div>
-{% if user %}
-<div class="row">
-    <div class="col-md-12 image-view-md">
-        <a href="/admin/media/edit/{{ media.MediaID  }}" class="btn btn-primary">Edit</a>
-        <a href="#" id="media-link" class="btn btn-primary"  data-id="{{ media.MediaID }}" data-title="{{ media.Title }}">Media Link</a>
-    </div>
-</div>
-<div class="row">
-    <div id="media-link-display" class="col-md-12" style="display: none;">
 
-    </div>
-</div>
-{% endif %}
 <div class="row">
     <div class="col-md-12">
 
@@ -97,16 +85,6 @@
 
 {% block script %}
 <script>
-$(document).ready(function() { 
-
-    $("#media-link").click((function(e) {
-        e.preventDefault();
-        $('media-link-display').empty();
-        console.log($(this).data('id'));
-        $('#media-link-display').html("<textarea class=\"m-link-textarea\"><div class=\"load-image\" data-id=\"" + $(this).data('id') +  "\">" + $(this).data('title') + "</div></textarea>")
-        $('#media-link-display').css('display','block')
-    }));    
-});
 </script>
 
 {% endblock %}

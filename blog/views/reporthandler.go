@@ -7,12 +7,11 @@ import (
 	"net/http"
 
 	"github.com/flosch/pongo2"
+	"github.com/gorilla/mux"
 )
 
 // SessionReportHandler build a list of current user sessions
 func SessionReportHandler(w http.ResponseWriter, r *http.Request) {
-
-	fmt.Println("Build Session List")
 
 	var sess session.Session
 	err := sess.Session(r, w)
@@ -43,6 +42,32 @@ func SessionReportHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprintf(w, out)
+
+	return
+}
+
+// SessionDeleteHandler build a list of current user sessions
+func SessionDeleteHandler(w http.ResponseWriter, r *http.Request) {
+
+	var sess session.Session
+	err := sess.Session(r, w)
+	if err != nil {
+		fmt.Printf("Session not available %s\n", err)
+	}
+
+	// HTTP URL Parameters
+	vars := mux.Vars(r)
+	if val, ok := vars["id"]; ok {
+
+	} else {
+		fmt.Printf("Error getting url variable, id: %s", val)
+	}
+
+
+	session.DeleteSession(vars["id"])
+
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintf(w, "ok")
 
 	return
 }
