@@ -3,7 +3,6 @@ package routes
 import (
 	"blog/blog/util"
 	"blog/blog/views"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -19,8 +18,6 @@ func GetRoutes() *mux.Router {
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-
-	fmt.Println(staticAssets)
 
 	r := mux.NewRouter()
 

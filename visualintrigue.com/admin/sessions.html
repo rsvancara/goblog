@@ -28,6 +28,9 @@
         <td>
             {{ s.User.Country }}
         </td>
+        <td>
+            <a class="btn btn-primary" href="/admin/session/delete/{{ s.SessionToken }}">Remove</a>
+        </td>
     </tr>
     
     {% endfor %}

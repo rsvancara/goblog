@@ -17,7 +17,6 @@ serviceAccount:
   create: true
   # Annotations to add to the service account
   annotations: 
-
     nginx.ingress.kubernetes.io/server-snippet: |
       location /service(|/)(.) {
         proxy_set_header Host $host;

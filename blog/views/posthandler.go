@@ -45,7 +45,7 @@ func PhotoView(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	template, err := util.SiteTemplate("/admin/mediaview.html")
+	template, err := util.SiteTemplate("/mediaview.html")
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
 	out, err := tmpl.Execute(pongo2.Context{

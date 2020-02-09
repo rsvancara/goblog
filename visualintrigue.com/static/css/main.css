@@ -20,11 +20,18 @@ image {
 
 /* Set a background image by replacing the URL below */
 body.frontpage {
+    /*
     background: url('https://vi-goblog.s3-us-west-2.amazonaws.com/media/2015/10/4/7/51/46/1WkWQz4lQ0ubDAO2ZUlBx7kp1si/largeview.jpeg') no-repeat center center fixed;
+    */
+    background-color: #6b6b6b;
+    background-image: url("/images/black-paper.jpg");
+    background-repeat: repeat;
+    /*
     -webkit-background-size: cover;
     -moz-background-size: cover;
     background-size: cover;
     -o-background-size: cover;
+    */
   }
 
 .blog-item-box {

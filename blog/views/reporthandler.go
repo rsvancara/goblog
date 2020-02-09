@@ -63,11 +63,12 @@ func SessionDeleteHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Printf("Error getting url variable, id: %s", val)
 	}
 
+	err = session.DeleteSession(vars["id"])
+	if err != nil {
+		fmt.Printf("error deleting session %s\n", err)
+	}
 
-	session.DeleteSession(vars["id"])
-
-	w.WriteHeader(http.StatusOK)
-	fmt.Fprintf(w, "ok")
+	http.Redirect(w, r, "/admin/sessions", http.StatusSeeOther)
 
 	return
 }

@@ -2,6 +2,7 @@ package main
 
 import (
 	"blog/blog/config"
+	"blog/blog/metrics"
 	"blog/blog/routes"
 	"context"
 	"flag"
@@ -11,6 +12,8 @@ import (
 	"os"
 	"os/signal"
 	"time"
+
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 func main() {
@@ -30,11 +33,14 @@ func main() {
 	fmt.Printf("Database URI: %s\n", cfg.Dburi)
 	fmt.Printf("Cache URI: %s\n", cfg.Cacheuri)
 
+	middleware := metrics.NewPrometheusMiddleware(metrics.Opts{})
+
 	r := routes.GetRoutes()
 
+	r.Handle("/metrics", promhttp.Handler())
+	r.Use(middleware.InstrumentHandlerDuration)
+
 	fmt.Println("Now serving requests")
-	//mux := http.NewServeMux()
-	//contextedMux := AddContext(mux)
 
 	srv := &http.Server{
 		Handler: r,

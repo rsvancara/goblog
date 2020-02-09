@@ -15,25 +15,25 @@ require (
 	github.com/go-stack/stack v1.8.0 // indirect
 	github.com/golang/snappy v0.0.1 // indirect
 	github.com/gomodule/redigo v2.0.0+incompatible
-	github.com/google/go-cmp v0.3.1 // indirect
 	github.com/gorilla/handlers v1.4.2
 	github.com/gorilla/mux v1.7.3
 	github.com/gosimple/slug v1.9.0
 	github.com/h2non/bimg v1.0.19
 	github.com/kelseyhightower/envconfig v1.4.0
+	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
+	github.com/modern-go/reflect2 v1.0.1 // indirect
 	github.com/oschwald/geoip2-golang v1.4.0
-	github.com/pkg/errors v0.8.1 // indirect
+	github.com/prometheus/client_golang v1.4.1
 	github.com/russross/blackfriday v2.0.0+incompatible // indirect
 	github.com/satori/go.uuid v1.2.0
 	github.com/segmentio/ksuid v1.0.2
 	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect
+	github.com/slok/go-http-metrics v0.6.1
 	github.com/tidwall/pretty v1.0.0 // indirect
 	github.com/xdg/scram v0.0.0-20180814205039-7eeb5667e42c // indirect
 	github.com/xdg/stringprep v1.0.0 // indirect
 	github.com/yuin/goldmark v1.1.18
 	go.mongodb.org/mongo-driver v1.2.0
 	golang.org/x/crypto v0.0.0-20191219195013-becbf705a915 // indirect
-	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e // indirect
-	golang.org/x/text v0.3.2 // indirect
 	gopkg.in/mgo.v2 v2.0.0-20190816093944-a6b53ec6cb22
 )

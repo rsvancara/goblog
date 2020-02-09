@@ -500,8 +500,9 @@ func getKeys(pattern string) ([]string, error) {
 func DeleteSession(id string) error {
 
 	cache, err := cache.GetRedisConn()
+	fmt.Printf("deleting redis key %s\n", id)
 
-	_, err = cache.Do("DELETE", id)
+	_, err = cache.Do("DEL", id)
 	if err != nil {
 		return fmt.Errorf("Error deleting session key %s in redis: %s", id, err)
 	}

@@ -78,7 +78,7 @@ func GetIPAddress(r *http.Request) (string, error) {
 		for i := len(addresses) - 1; i >= 0; i-- {
 			ip := strings.TrimSpace(addresses[i])
 
-			fmt.Printf("Found Client IP Address %s for \"%s\"\n", ip, h)
+			//fmt.Printf("Found Client IP Address %s for \"%s\"\n", ip, h)
 			// header can contain spaces too, strip those out.
 			realIP := net.ParseIP(ip)
 			//if !realIP.IsGlobalUnicast() || IsPrivateSubnet(realIP) {
@@ -87,7 +87,7 @@ func GetIPAddress(r *http.Request) (string, error) {
 				continue
 			}
 			// Return the ip address
-			fmt.Printf("Returning client ip address %s\n", ip)
+			//fmt.Printf("Returning client ip address %s\n", ip)
 
 			//fmt.Printf("by the way the remote address %s\n", r.RemoteAddr)
 			return ip, nil
@@ -96,7 +96,7 @@ func GetIPAddress(r *http.Request) (string, error) {
 	parts := strings.Split(r.RemoteAddr, ":")
 	if len(parts) > 0 {
 		ip := parts[0]
-		fmt.Printf("No address found and will RemoteAddr ip address %s which is probably not what you want\n", ip)
+		//fmt.Printf("No address found and will use RemoteAddr ip address %s which is probably not what you want\n", ip)
 		return ip, nil
 	}
 
