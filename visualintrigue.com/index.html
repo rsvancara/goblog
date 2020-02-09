@@ -15,7 +15,7 @@
                         <div class="blog-item-date-day">
                             {{ p.CreatedAt | date:"02 January 2006"|slice:":2" }}
                         </div>
-                        <div class="blog-item-date-full-month-year">
+                        <div class="blog-item-date-full-month-year blog-item-date-full-month-year-adjustment">
                             {{ p.CreatedAt | date:"02 January 2006"|slice:"2:" }}, {{ p.CreatedAt | date:"Monday" }}
                         </div>
                     </div>

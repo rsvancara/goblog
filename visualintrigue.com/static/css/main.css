@@ -52,7 +52,7 @@ body.frontpage {
     color: #fff;
     font-weight: 500;
     text-align: center;
-    background-color: #6b6b6b;
+    background-color: #2d2d2d
 }
 
 .blog-item-date-full-month-year {
@@ -60,9 +60,8 @@ body.frontpage {
     height: 65px;
     overflow: hidden;
     margin: 0 0 10px 0;
-    padding: 17px 0 0 10px;
     font-weight: 400;
-    color: #6b6b6b;
+    color: #2d2d2d
 }
 
 .blog-item-title-title {
@@ -76,15 +75,28 @@ body.frontpage {
 }
 
 /** Image Display **/
- 
+/* Small devices (landscape phones, 576px and up) */
+@media (min-width: 200px) {  
+    .load-image {
+        width: 360px;
+    }
+
+    .blog-item-date-full-month-year-adjustment {
+        font-size: 3.0vw;
+        padding: 20px 0 0 10px;
+    }
+} 
+
+
 /* Small devices (landscape phones, 576px and up) */
 @media (min-width: 576px) {  
     .load-image {
-        width: 960px;
+        width: 520px;
     }
 
-    .blog-item-date-full-month-year {
-        font-size: 2.8vw;
+    .blog-item-date-full-month-year-adjustment {
+        font-size: 3.0vw;
+        padding: 20px 0 0 10px;
     }
 }
  
@@ -94,8 +106,9 @@ body.frontpage {
         width: 720px;
     }
 
-    .blog-item-date-full-month-year {
-        font-size: 2.0vw;
+    .blog-item-date-full-month-year-adjustment {
+        font-size: 22px;
+        padding: 17px 0 0 10px;
     }
 
 }
@@ -106,8 +119,9 @@ body.frontpage {
         width: 960px;
     }
 
-    .blog-item-date-full-month-year {
-        font-size: 1.8vw;
+    .blog-item-date-full-month-year-adjustment {
+        font-size: 22px;
+        padding: 17px 0 0 10px;
     }
 }
  
@@ -117,8 +131,9 @@ body.frontpage {
         width: 1140px;
     }  
 
-    .blog-item-date-full-month-year {
-        font-size: 1.4vw;
+    .blog-item-date-full-month-year-adjustment {
+        font-size: 22px;
+        padding: 17px 0 0 10px;
     }
 }
   

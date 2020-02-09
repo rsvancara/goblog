@@ -10,17 +10,20 @@ pipeline {
     stages {
         stage('Test') {
             steps {
+                sh 'cp /home/artifacts/geoip/*.mmdb db/'
                 sh 'docker build --no-cache -t rsvancara/goblog:jenkins .'
             }
         }
         stage('Build Release') {
+            when { buildingTag() }
             steps {
-                sh 'docker build --no-cache -t rsvancara/goblog:release .'
+                sh 'cp /home/artifacts/geoip/*.mmdb db/'
+                sh 'docker build --no-cache -t rsvancara/goblog:${TAG_NAME} .'
                 sh 'docker push rsvancara/goblog:release'
             }
         }
         stage('Publish visualintrigue') {
-            //when { buildingTag() }
+            when { buildingTag() }
             steps {
                 //withDockerRegistry([ credentialsId: "dockerhub", url: "https://docker.io/" ]) {
                 //    sh 'kubectl get pods -o wide -n dev'
