@@ -8,12 +8,6 @@ pipeline {
         timestamps()
     }
     stages {
-        stage('Test') {
-            steps {
-                sh 'cp /home/artifacts/geoip/*.mmdb db/'
-                sh 'docker build --no-cache -t rsvancara/goblog:jenkins .'
-            }
-        }
         stage('Build Release') {
             steps {
                 latestTag = sh(returnStdout:  true, script: "git tag --sort=-creatordate | head -n 1").trim()
