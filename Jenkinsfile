@@ -15,15 +15,15 @@ pipeline {
             }
         }
         stage('Build Release') {
-            when { buildingTag() }
+            //when { buildingTag() }
             steps {
                 sh 'cp /home/artifacts/geoip/*.mmdb db/'
                 sh 'docker build --no-cache -t rsvancara/goblog:${TAG_NAME} .'
-                sh 'docker push rsvancara/goblog:release'
+                sh 'docker push rsvancara/goblog:${TAG_NAME}'
             }
         }
         stage('Publish visualintrigue') {
-            when { buildingTag() }
+            //when { buildingTag() }
             steps {
                 //withDockerRegistry([ credentialsId: "dockerhub", url: "https://docker.io/" ]) {
                 //    sh 'kubectl get pods -o wide -n dev'
