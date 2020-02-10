@@ -9,7 +9,33 @@ RUN mkdir /app && \
     chown -R goblog:goblog /app 
 
 RUN apt-get update && \
-    apt-get install -y wget ca-certificates libvips-dev
+    DEBIAN_FRONTEND=noninteractive apt-get install -y wget curl ca-certificates \
+    build-essential automake pkg-config libexpat1-dev \
+    libglib2.0-dev fftw3-dev liblcms2-dev libexif-dev libjpeg-dev
+
+ENV LIBVIPS_VERSION_MAJOR 8
+ENV LIBVIPS_VERSION_MINOR 9
+ENV LIBVIPS_VERSION_PATCH 1
+ENV LIBVIPS_VERSION $LIBVIPS_VERSION_MAJOR.$LIBVIPS_VERSION_MINOR.$LIBVIPS_VERSION_PATCH
+
+  # download libvips
+
+RUN \
+  cd /tmp && \
+  curl -L -O https://github.com/jcupitt/libvips/releases/download/v$LIBVIPS_VERSION/vips-$LIBVIPS_VERSION.tar.gz && \
+  tar zxvf vips-$LIBVIPS_VERSION.tar.gz
+
+# build libvips
+RUN \
+  cd /tmp/vips-$LIBVIPS_VERSION && \
+  ./configure --without-gsf --without-orc --without-OpenEXR \
+  --without-nifti --without-heif --without-rsvg \
+  --without-openslide --without-matio --without-radiance \
+  --without-libwebp --without-tiff --without-giflib \
+  --without-imagequant --without-pangoft2 --enable-debug=no --without-python $1 && \
+  make && \
+  make install && \
+  ldconfig  
 
 # Install golang
 RUN wget https://dl.google.com/go/go1.13.4.linux-amd64.tar.gz && \
@@ -33,7 +59,7 @@ COPY tinytrailerfun.com tinytrailerfun.com
 COPY db db
 
 RUN \
-  apt-get remove -y wget && \
+  apt-get remove -y wget curl build-essential automake && \
   apt-get autoremove -y && \
   apt-get autoclean && \
   apt-get clean && \

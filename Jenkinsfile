@@ -9,15 +9,17 @@ pipeline {
     }
     stages {
         stage('Build Release') {
+            def tag = sh(returnStdout: true, script: "git tag --contains | head -1").trim()
+            if (tag) {
             steps {
-                latestTag = sh(returnStdout:  true, script: "git tag --sort=-creatordate | head -n 1").trim()
                 sh 'cp /home/artifacts/geoip/*.mmdb db/'
-                sh 'docker build --no-cache -t rsvancara/goblog:${latestTag} .'
-                sh 'docker push rsvancara/goblog:${latestTag}'
+                sh 'docker build --no-cache -t rsvancara/goblog:${tag} .'
+                sh 'docker push rsvancara/goblog:${tag}'
+            }
             }
         }
         stage('Publish visualintrigue') {
-            //when { buildingTag() }
+
             steps {
                 //withDockerRegistry([ credentialsId: "dockerhub", url: "https://docker.io/" ]) {
                 //    sh 'kubectl get pods -o wide -n dev'
