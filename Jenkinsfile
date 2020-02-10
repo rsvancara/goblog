@@ -9,12 +9,9 @@ pipeline {
     }
     stages {
         stage('Build Release') {
-            def tag = sh(returnStdout: true, script: "git tag --contains | head -1").trim()
-            if (tag) {
+
             steps {
-                sh 'cp /home/artifacts/geoip/*.mmdb db/'
-                sh 'docker build --no-cache -t rsvancara/goblog:${tag} .'
-                sh 'docker push rsvancara/goblog:${tag}'
+                sh 'scripts/build.sh'
             }
             }
         }
