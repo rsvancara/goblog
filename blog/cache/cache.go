@@ -24,5 +24,8 @@ func GetRedisConn() (redis.Conn, error) {
 	// Importantly, use defer to ensure the connection is always
 	// properly closed before exiting the main() function.
 
+	// Set the logical database in Redis
+	conn.Do("SELECT", cfg.RedisDB)
+
 	return conn, nil
 }
