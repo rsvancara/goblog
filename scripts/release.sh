@@ -9,7 +9,8 @@ set -xe
 # LATEST TAG
 GIT_TAG=$(git describe --abbrev=0 --tags)
 
+sed -i "s/VERSION/${GIT_TAG}/g" helm/goblog/Chart.yaml
 
-helm3 upgrade goblog helm/goblog --set apiVersion=${GIT_TAG}
+helm3 upgrade goblog helm/goblog 
 
 
