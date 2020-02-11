@@ -1,18 +1,18 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "goblog.fullname" . }}
+  name: {{ include "visualintrigue.fullname" . }}
   labels:
-    {{- include "goblog.labels" . | nindent 4 }}
+    {{- include "visualintrigue.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      {{- include "goblog.selectorLabels" . | nindent 6 }}
+      {{- include "visualintrigue.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        {{- include "goblog.selectorLabels" . | nindent 8 }}
+        {{- include "visualintrigue.selectorLabels" . | nindent 8 }}
       annotations:
         prometheus.io/scrape: "true"
         prometheus.io/path: /metrics
@@ -22,7 +22,7 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
     {{- end }}
-      serviceAccountName: {{ include "goblog.serviceAccountName" . }}
+      serviceAccountName: {{ include "visualintrigue.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:

@@ -13,7 +13,7 @@ pipeline {
                 sh 'scripts/build.sh'
             }
         }
-        stage('Publish visualintrigue') {
+        stage('Publish Sites') {
             steps {
                 sh 'scripts/release.sh'
             }

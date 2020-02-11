@@ -23,9 +23,21 @@ body.frontpage {
     /*
     background: url('https://vi-goblog.s3-us-west-2.amazonaws.com/media/2015/10/4/7/51/46/1WkWQz4lQ0ubDAO2ZUlBx7kp1si/largeview.jpeg') no-repeat center center fixed;
     */
-    background-color: #6b6b6b;
-    background-image: url("/images/black-paper.jpg");
-    background-repeat: repeat;
+    background: url(/images/glass_metal_tile.jpg) no-repeat center center fixed; 
+    -webkit-background-size: cover;
+    -moz-background-size: cover;
+    -o-background-size: cover;
+    background-size: cover;
+}
+
+.bg-light {
+    background-color: #a7a7a7!important;
+}
+
+.navbar-light .navbar-nav .nav-link {
+    color: rgba(0, 0, 0, 0.651);
+}
+
     /*
     -webkit-background-size: cover;
     -moz-background-size: cover;
@@ -210,5 +222,5 @@ div.category-view {
 .footer {
     margin: 0px;
     padding: 15px;
-    background-color: rgb(215, 216, 219);
+    background-color: #a7a7a7!important;
 }
