@@ -16,7 +16,7 @@ GIT_TAG=$(git describe --abbrev=0 --tags)
 cp /home/artifacts/geoip/*.mmdb db/
 
 # Build the docker image
-docker build -t rsvancara/goblog:${GIT_TAG} .
+docker build -t rsvancara/goblog:${GIT_TAG} --no-cache . 
 
 # Push to repository
 docker push rsvancara/goblog:${GIT_TAG}
