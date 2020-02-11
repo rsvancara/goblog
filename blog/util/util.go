@@ -19,10 +19,11 @@ func SiteTemplate(path string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("error loading template directory %s", err)
 	}
-	return cfg.Site + path, nil
+	return "sites/" + cfg.Site + path, nil
 
 }
 
+//GetViewerBImage get the image
 func GetViewerBImage(srcFilePath string, dstFilePath string) error {
 
 	buffer, err := bimg.Read(srcFilePath)

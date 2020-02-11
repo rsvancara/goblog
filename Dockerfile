@@ -54,8 +54,9 @@ RUN cd /BUILD && /usr/local/go/bin/go build -o /app/dabloog blog.go
 WORKDIR /app
 
 # Copy the site directories
-COPY visualintrigue.com visualintrigue.com
-COPY dyitinytrailer.com dyitinytrailer.com
+COPY sites sites
+
+# Copy the database directories
 COPY db db
 
 RUN \
