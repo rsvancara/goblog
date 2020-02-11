@@ -55,7 +55,7 @@ WORKDIR /app
 
 # Copy the site directories
 COPY visualintrigue.com visualintrigue.com
-COPY tinytrailerfun.com tinytrailerfun.com
+COPY dyitinytrailer.com dyitinytrailer.com
 COPY db db
 
 RUN \
