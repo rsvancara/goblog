@@ -97,6 +97,11 @@ spec:
                 secretKeyRef:
                   name: vi
                   key: MONGO_DATABASE
+          - name: REDIS_DB
+            valueFrom:
+                secretKeyRef:
+                  name: vi
+                  key: REDIS_DB
           ports:
             - name: http
               containerPort: 5000
