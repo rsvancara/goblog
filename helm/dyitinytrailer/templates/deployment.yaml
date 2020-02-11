@@ -1,0 +1,130 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "dyitinytrailer.fullname" . }}
+  labels:
+    {{- include "dyitinytrailer.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "dyitinytrailer.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "dyitinytrailer.selectorLabels" . | nindent 8 }}
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: /metrics
+        prometheus.io/port: "5000"
+    spec:
+    {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      serviceAccountName: {{ include "dyitinytrailer.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+          - name: S3_BUCKET
+            valueFrom:
+                secretKeyRef:
+                  name: dyi
+                  key: S3_BUCKET
+          - name: AWS_ACCESS_KEY_ID
+            valueFrom:
+                secretKeyRef:
+                  name: dyi
+                  key: AWS_ACCESS_KEY_ID
+          - name: AWS_SECRET_ACCESS_KEY
+            valueFrom:
+                secretKeyRef:
+                  name: dyi
+                  key: AWS_SECRET_ACCESS_KEY
+          - name: AWS_REGION
+            valueFrom:
+                secretKeyRef:
+                  name: dyi
+                  key: AWS_REGION
+          - name: CACHE_URI
+            valueFrom:
+                secretKeyRef:
+                  name: dyi
+                  key: CACHE_URI
+          - name: REDIS_PASSWORD
+            valueFrom:
+                secretKeyRef:
+                  name: dyi
+                  key: REDIS_PASSWORD
+          - name: DB_URI
+            valueFrom:
+                secretKeyRef:
+                  name: dyi
+                  key: DB_URI
+          - name: ENV
+            valueFrom:
+                secretKeyRef:
+                  name: dyi
+                  key: ENV
+          - name: ADMIN_USER
+            valueFrom:
+                secretKeyRef:
+                  name: dyi
+                  key: ADMIN_USER
+          - name: ADMIN_PASSWORD
+            valueFrom:
+                secretKeyRef:
+                  name: dyi
+                  key: ADMIN_PASSWORD
+          - name: SITE
+            valueFrom:
+                secretKeyRef:
+                  name: dyi
+                  key: SITE
+          - name: SESSION_TIMEOUT
+            valueFrom:
+                secretKeyRef:
+                  name: dyi
+                  key: SESSION_TIMEOUT
+          - name: MONGO_DATABASE
+            valueFrom:
+                secretKeyRef:
+                  name: dyi
+                  key: MONGO_DATABASE
+          - name: REDIS_DB
+            valueFrom:
+                secretKeyRef:
+                  name: dyi
+                  key: REDIS_DB
+          ports:
+            - name: http
+              containerPort: 5000
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /healthcheck957873
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /healthcheck957873
+              port: http
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
