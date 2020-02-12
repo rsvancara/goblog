@@ -1,18 +1,18 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "dyitinytrailer.fullname" . }}
+  name: {{ include "diytinytrailer.fullname" . }}
   labels:
-    {{- include "dyitinytrailer.labels" . | nindent 4 }}
+    {{- include "diytinytrailer.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      {{- include "dyitinytrailer.selectorLabels" . | nindent 6 }}
+      {{- include "diytinytrailer.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        {{- include "dyitinytrailer.selectorLabels" . | nindent 8 }}
+        {{- include "diytinytrailer.selectorLabels" . | nindent 8 }}
       annotations:
         prometheus.io/scrape: "true"
         prometheus.io/path: /metrics
@@ -22,7 +22,7 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
     {{- end }}
-      serviceAccountName: {{ include "dyitinytrailer.serviceAccountName" . }}
+      serviceAccountName: {{ include "diytinytrailer.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
@@ -35,67 +35,67 @@ spec:
           - name: S3_BUCKET
             valueFrom:
                 secretKeyRef:
-                  name: dyi
+                  name: diy
                   key: S3_BUCKET
           - name: AWS_ACCESS_KEY_ID
             valueFrom:
                 secretKeyRef:
-                  name: dyi
+                  name: diy
                   key: AWS_ACCESS_KEY_ID
           - name: AWS_SECRET_ACCESS_KEY
             valueFrom:
                 secretKeyRef:
-                  name: dyi
+                  name: diy
                   key: AWS_SECRET_ACCESS_KEY
           - name: AWS_REGION
             valueFrom:
                 secretKeyRef:
-                  name: dyi
+                  name: diy
                   key: AWS_REGION
           - name: CACHE_URI
             valueFrom:
                 secretKeyRef:
-                  name: dyi
+                  name: diy
                   key: CACHE_URI
           - name: REDIS_PASSWORD
             valueFrom:
                 secretKeyRef:
-                  name: dyi
+                  name: diy
                   key: REDIS_PASSWORD
           - name: DB_URI
             valueFrom:
                 secretKeyRef:
-                  name: dyi
+                  name: diy
                   key: DB_URI
           - name: ENV
             valueFrom:
                 secretKeyRef:
-                  name: dyi
+                  name: diy
                   key: ENV
           - name: ADMIN_USER
             valueFrom:
                 secretKeyRef:
-                  name: dyi
+                  name: diy
                   key: ADMIN_USER
           - name: ADMIN_PASSWORD
             valueFrom:
                 secretKeyRef:
-                  name: dyi
+                  name: diy
                   key: ADMIN_PASSWORD
           - name: SITE
             valueFrom:
                 secretKeyRef:
-                  name: dyi
+                  name: diy
                   key: SITE
           - name: SESSION_TIMEOUT
             valueFrom:
                 secretKeyRef:
-                  name: dyi
+                  name: diy
                   key: SESSION_TIMEOUT
           - name: MONGO_DATABASE
             valueFrom:
                 secretKeyRef:
-                  name: dyi
+                  name: diy
                   key: MONGO_DATABASE
           - name: REDIS_DB
             valueFrom:

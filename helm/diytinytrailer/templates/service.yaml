@@ -1,9 +1,9 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "dyitinytrailer.fullname" . }}
+  name: {{ include "diytinytrailer.fullname" . }}
   labels:
-    {{- include "dyitinytrailer.labels" . | nindent 4 }}
+    {{- include "diytinytrailer.labels" . | nindent 4 }}
 spec:
   type: {{ .Values.service.type }}
   ports:
@@ -12,4 +12,4 @@ spec:
       protocol: TCP
       name: http
   selector:
-    {{- include "dyitinytrailer.selectorLabels" . | nindent 4 }}
+    {{- include "diytinytrailer.selectorLabels" . | nindent 4 }}
