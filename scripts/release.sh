@@ -14,5 +14,3 @@ sed -i "s/VERSION/${GIT_TAG}/g" helm/dyitinytrailer/Chart.yaml
 
 helm3 upgrade visualintrigue helm/visualintrigue 
 helm3 upgrade dyitinytrailer helm/dyitinytrailer 
-
-
