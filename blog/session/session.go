@@ -15,8 +15,6 @@ import (
 	uuid "github.com/satori/go.uuid"
 )
 
-const sessionTimeout = 84600
-
 var users = map[string]string{
 	"user1": "password1",
 	"user2": "password2",
