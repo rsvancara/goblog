@@ -1,12 +1,9 @@
-FROM debian:stretch-slim
+FROM debian:stretch-slim as builder
 
 RUN mkdir /app && \
-    mkdir /build && \
+    mkdir /BUILD && \
     mkdir app/temp && \
-    chmod 1777 app/temp && \
-    groupadd -g 1001 goblog && \
-    useradd -r -u 1001 -g goblog goblog && \
-    chown -R goblog:goblog /app 
+    chmod 1777 app/temp
 
 RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y wget curl ca-certificates \
@@ -18,8 +15,7 @@ ENV LIBVIPS_VERSION_MINOR 9
 ENV LIBVIPS_VERSION_PATCH 1
 ENV LIBVIPS_VERSION $LIBVIPS_VERSION_MAJOR.$LIBVIPS_VERSION_MINOR.$LIBVIPS_VERSION_PATCH
 
-  # download libvips
-
+# download libvips
 RUN \
   cd /tmp && \
   curl -L -O https://github.com/jcupitt/libvips/releases/download/v$LIBVIPS_VERSION/vips-$LIBVIPS_VERSION.tar.gz && \
@@ -27,8 +23,8 @@ RUN \
 
 # build libvips
 RUN \
-  cd /tmp/vips-$LIBVIPS_VERSION && \
-  ./configure --without-gsf --without-orc --without-OpenEXR \
+  cd /tmp/vips-$LIBVIPS_VERSION && \ 
+  ./configure --prefix=/opt/vips --with-pkg-config -without-gsf --without-orc --without-OpenEXR \
   --without-nifti --without-heif --without-rsvg \
   --without-openslide --without-matio --without-radiance \
   --without-libwebp --without-tiff --without-giflib \
@@ -49,7 +45,18 @@ COPY go.sum  /BUILD.go.sum
 COPY go.mod /BUILD/go.mod
 COPY vendor /BUILD/vendor
 COPY blog /BUILD/blog
-RUN cd /BUILD && /usr/local/go/bin/go build -o /app/dabloog blog.go 
+RUN cd /BUILD && PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/opt/vips/lib/pkgconfig LD_LIBRARY_PATH=/opt/vips/lib /usr/local/go/bin/go build -o /BUILD/dabloog blog.go 
+
+
+FROM debian:stretch-slim
+
+RUN mkdir /app && \
+    groupadd -g 1001 goblog && \
+    useradd -r -u 1001 -g goblog goblog && \
+    chown -R goblog:goblog /app 
+
+COPY --from=builder /opt/vips /opt/vips
+COPY --from=builder /BUILD/dabloog /app/dabloog
 
 WORKDIR /app
 
@@ -60,15 +67,14 @@ COPY sites sites
 COPY db db
 
 RUN \
-  apt-get remove -y wget curl build-essential automake && \
-  apt-get autoremove -y && \
-  apt-get autoclean && \
-  apt-get clean && \
-  rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* && \
-  rm -rf /BUILD && \
-  rm -rf /usr/local/go 
+  apt-get update && \
+  apt-get upgrade -y && \
+  apt-get install -y libjpeg62 libexpat1 libglib2.0-0 libfftw3-3 liblcms2-2 libexif12 && \
+  apt-get clean
 
 USER goblog
 EXPOSE 5000
+
+ENV LD_LIBRARY_PATH=/opt/vips/lib
     
 CMD ["./dabloog"] 
