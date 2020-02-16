@@ -1,9 +1,7 @@
 FROM debian:stretch-slim as builder
 
 RUN mkdir /app && \
-    mkdir /BUILD && \
-    mkdir app/temp && \
-    chmod 1777 app/temp 
+    mkdir /BUILD 
 
 RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y wget curl ca-certificates \
@@ -52,7 +50,9 @@ FROM debian:stretch-slim
 RUN mkdir /app && \
     groupadd -g 1001 goblog && \
     useradd -r -u 1001 -g goblog goblog && \
-    chown -R goblog:goblog /app 
+    chown -R goblog:goblog /app && \
+    mkdir app/temp && \
+    chmod 1777 app/temp 
 
 COPY --from=builder /opt/vips /opt/vips
 COPY --from=builder /BUILD/dabloog /app/dabloog
