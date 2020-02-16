@@ -3,7 +3,7 @@ FROM debian:stretch-slim as builder
 RUN mkdir /app && \
     mkdir /BUILD && \
     mkdir app/temp && \
-    chmod 1777 app/temp
+    chmod 1777 app/temp 
 
 RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y wget curl ca-certificates \
@@ -47,7 +47,6 @@ COPY vendor /BUILD/vendor
 COPY blog /BUILD/blog
 RUN cd /BUILD && PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/opt/vips/lib/pkgconfig LD_LIBRARY_PATH=/opt/vips/lib /usr/local/go/bin/go build -o /BUILD/dabloog blog.go 
 
-
 FROM debian:stretch-slim
 
 RUN mkdir /app && \
@@ -69,7 +68,7 @@ COPY db db
 RUN \
   apt-get update && \
   apt-get upgrade -y && \
-  apt-get install -y libjpeg62 libexpat1 libglib2.0-0 libfftw3-3 liblcms2-2 libexif12 && \
+  apt-get install -y libjpeg62 libexpat1 libglib2.0-0 libfftw3-3 liblcms2-2 libexif12 ca-certificates && \
   apt-get clean
 
 USER goblog
