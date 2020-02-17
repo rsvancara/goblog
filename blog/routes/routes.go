@@ -190,6 +190,14 @@ func GetRoutes() *mux.Router {
 					http.HandlerFunc(views.SessionReportHandler))))).Methods("GET")
 
 	r.Handle(
+		"/admin/filters",
+		handlers.LoggingHandler(
+			os.Stdout,
+			views.GeoFilterMiddleware(
+				views.AuthHandler(
+					http.HandlerFunc(views.FilterHandler))))).Methods("GET")
+
+	r.Handle(
 		"/admin/session/delete/{id}",
 		handlers.LoggingHandler(
 			os.Stdout,
