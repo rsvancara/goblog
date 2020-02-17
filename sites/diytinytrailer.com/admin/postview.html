@@ -25,8 +25,6 @@ $( document ).ready(function() {
     $('.load-image').mouseover(function(e){
         console.log("load image details");
         console.log($(this).data('id'));
-        
-        console.log(data.get($(this).data('id')));
     });
 
     $('.load-image').mouseleave(function(e){
@@ -50,11 +48,13 @@ function getMedia(imgel, id){
                 var status = response['status'];
                 var mediaurl = response['url'];
                 var refurl = response['refurl'];
+                var title = response['title'];
                 if (status == 'error') {
                     console.log(response['message'])
                 }
 
                 imgel.html('<a href="'+ refurl +'"><img src="' + mediaurl + '"/></a>')
+                imgel.append('<div class="image-title-blurb">' +  title  + '</div>')
                 
             },
             complete: function(jqXHR, status) {
