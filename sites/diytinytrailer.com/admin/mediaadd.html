@@ -129,14 +129,18 @@ $(document).ready(function() {
 
     $("#but_upload").click((function(e) {
         e.preventDefault();
+        var count = 0
         $('#file-list-status').empty();
+        
         fileList.forEach(function (file) {
-            base = base.then(getAjaxDeferred(file));
+
+            base = base.then(getAjaxDeferred(file, count));
+            count = count + 1
             //console.log("Upload completed....")
         });
     }));
 
-    function getAjaxDeferred(file){
+    function getAjaxDeferred(file, count){
         return function(){
             // wrap with a deferred
             var defer = $.Deferred();
@@ -144,7 +148,11 @@ $(document).ready(function() {
 
             fd.append('file', file); 
             fd.append('keywords',$('#keywords').val());
+            if (count == 0) {
             fd.append('title',$('#title').val());
+            } else {
+                fd.append('title',$('#title').val() + " [" + count +  "]" );
+            }
             fd.append('description',$('#description').val());
             fd.append('category',$('#category').val());
             fd.append('location',$('#location').val());
