@@ -30,13 +30,21 @@ func GetRoutes() *mux.Router {
 				http.HandlerFunc(
 					views.HomeHandler)))).Methods("GET")
 
-	// Index Page
+	// Test Page
 	r.Handle(
 		"/healthcheck957873",
 		handlers.LoggingHandler(
 			os.Stdout,
 			http.HandlerFunc(
 				views.HealthCheck))).Methods("GET")
+
+	// Sitemap
+	r.Handle(
+		"/sitemap.xml",
+		handlers.LoggingHandler(
+			os.Stdout,
+			http.HandlerFunc(
+				views.SiteMap))).Methods("GET")
 
 	// Stories page
 	r.Handle(

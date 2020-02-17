@@ -5,10 +5,12 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strings"
 
 	//"bf.go/blog/mongo"
 	//"bf.go/blog/models"
 
+	"blog/blog/config"
 	"blog/blog/models"
 	"blog/blog/requestfilter"
 	"blog/blog/session"
@@ -228,4 +230,79 @@ func AboutHandler(w http.ResponseWriter, r *http.Request) {
 func HealthCheck(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprintf(w, "healthy")
+}
+
+// SiteMap generate a sitemap.xml
+func SiteMap(w http.ResponseWriter, r *http.Request) {
+
+	cfg, err := config.GetConfig()
+	if err != nil {
+		fmt.Printf("could not get configuration object %s", (err))
+		return
+	}
+
+	// Get all post records
+	posts, err := models.AllPostsSortedByDate()
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	// Get all media records
+	media, err := models.AllMediaSortedByDate()
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	var b strings.Builder
+
+	fmt.Fprintf(&b, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>")
+	fmt.Fprintf(&b, "<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">")
+
+	fmt.Fprintf(&b, "<url>")
+
+	fmt.Fprintf(&b, fmt.Sprintf("<loc>https://%s/</loc>", cfg.GetSite()))
+
+	fmt.Fprintf(&b, "<lastmod>2020-01-01</lastmod>")
+
+	fmt.Fprintf(&b, "<changefreq>monthly</changefreq>")
+
+	fmt.Fprintf(&b, "<priority>1.0</priority>")
+
+	fmt.Fprintf(&b, "</url>")
+
+	for _, p := range posts {
+		fmt.Fprintf(&b, "<url>")
+
+		fmt.Fprintf(&b, fmt.Sprintf("<loc>https://%s/stories/%s</loc>", cfg.GetSite(), p.Slug))
+
+		fmt.Fprintf(&b, fmt.Sprintf("<lastmod>%s</lastmod>", p.CreatedAt.Format("2006-01-02")))
+
+		fmt.Fprintf(&b, "<changefreq>monthly</changefreq>")
+
+		fmt.Fprintf(&b, "<priority>0.8</priority>")
+
+		fmt.Fprintf(&b, "</url>")
+	}
+
+	for _, m := range media {
+		fmt.Fprintf(&b, "<url>")
+
+		fmt.Fprintf(&b, fmt.Sprintf("<loc>https://%s/stories/%s</loc>", cfg.GetSite(), m.Slug))
+
+		fmt.Fprintf(&b, fmt.Sprintf("<lastmod>%s</lastmod>", m.CreatedAt.Format("2006-01-02")))
+
+		fmt.Fprintf(&b, "<changefreq>monthly</changefreq>")
+
+		fmt.Fprintf(&b, "<priority>0.8</priority>")
+
+		fmt.Fprintf(&b, "</url>")
+	}
+
+	fmt.Fprintf(&b, "</urlset>")
+
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/xml")
+
+	fmt.Fprintf(w, b.String())
+
 }
