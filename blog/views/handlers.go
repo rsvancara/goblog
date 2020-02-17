@@ -287,7 +287,7 @@ func SiteMap(w http.ResponseWriter, r *http.Request) {
 	for _, m := range media {
 		fmt.Fprintf(&b, "<url>")
 
-		fmt.Fprintf(&b, fmt.Sprintf("<loc>https://%s/stories/%s</loc>", cfg.GetSite(), m.Slug))
+		fmt.Fprintf(&b, fmt.Sprintf("<loc>https://%s/photo/%s</loc>", cfg.GetSite(), m.Slug))
 
 		fmt.Fprintf(&b, fmt.Sprintf("<lastmod>%s</lastmod>", m.CreatedAt.Format("2006-01-02")))
 
