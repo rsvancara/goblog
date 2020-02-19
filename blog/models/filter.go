@@ -5,6 +5,14 @@ import (
 	"time"
 )
 
+// Field The search terms you want to look for
+type Field struct {
+	Name     string `json:"name" bson:"name,omitempty"`         // Name name of the field to match on
+	Operator string `json:"operator" bson:"operator,omitempty"` // Operator or, and, not
+	Value    string `json:"value" bson:"value,omitempty"`       // Value to match on
+	Order    uint   `json:"order" bson:"order,omitempty"`       // Order of evaluation
+}
+
 // Filter A type that represents a filter object
 type Filter struct {
 	FilterID           string    `json:"filter_id" bson:"filter_id,omitempty"`                         // Unique identifier
@@ -14,8 +22,11 @@ type Filter struct {
 	FilterTypeURL      string    `json:"filter_type_url" bson:"filter_type_url,omitempty"`             // If type is MATCHURL then match on the URL regex
 	FilterAction       string    `json:"filter_action" bson:"filter_action,omitempty"`                 // Allow Deny Redirect
 	FilterRedirectURL  string    `json:"filter_redirect_URL" bson:"filter_direct_URL,omitempty"`       // Filter redirect URL REDIRECT is selected
-	CreatedAt          time.Time `json:"created_at" bson:"created_at"`
-	UpdatedAt          time.Time `json:"updated_at" bson:"updated_at"`
+	CreatedAt          time.Time `json:"created_at" bson:"created_at"`                                 //CreatedAt date record was created
+	UpdatedAt          time.Time `json:"updated_at" bson:"updated_at"`                                 //UpdatedAt date record was updated
+	Matchers           []Field   `json:"matchers" bson:"matchers"`                                     // Matchers fields to match or not match on
+	Name               string    `json:"name" bson:"name"`                                             // Name of the rule
+
 }
 
 // GetFilterByID get a filter by id
