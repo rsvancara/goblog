@@ -206,6 +206,38 @@ func GetRoutes() *mux.Router {
 					http.HandlerFunc(views.FilterHandler))))).Methods("GET")
 
 	r.Handle(
+		"/admin/affiliates",
+		handlers.LoggingHandler(
+			os.Stdout,
+			views.GeoFilterMiddleware(
+				views.AuthHandler(
+					http.HandlerFunc(views.FilterHandler))))).Methods("GET")
+
+	r.Handle(
+		"/admin/affiliatesadd",
+		handlers.LoggingHandler(
+			os.Stdout,
+			views.GeoFilterMiddleware(
+				views.AuthHandler(
+					http.HandlerFunc(views.AffiliateAddHandler))))).Methods("GET")
+
+	r.Handle(
+		"/admin/affiliatesedit",
+		handlers.LoggingHandler(
+			os.Stdout,
+			views.GeoFilterMiddleware(
+				views.AuthHandler(
+					http.HandlerFunc(views.AffiliateEditHandler))))).Methods("GET")
+
+	r.Handle(
+		"/admin/affiliatesdelete",
+		handlers.LoggingHandler(
+			os.Stdout,
+			views.GeoFilterMiddleware(
+				views.AuthHandler(
+					http.HandlerFunc(views.AffiliateDeleteHandler))))).Methods("GET")
+
+	r.Handle(
 		"/admin/session/delete/{id}",
 		handlers.LoggingHandler(
 			os.Stdout,

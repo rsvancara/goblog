@@ -2,8 +2,10 @@ package requestfilter
 
 import (
 	"fmt"
+	"log"
 	"net"
 	"os"
+	"time"
 
 	"github.com/oschwald/geoip2-golang"
 )
@@ -23,6 +25,8 @@ type GeoIP struct {
 
 // Search get geoip information from ipaddress
 func (g *GeoIP) Search(ipaddress string) error {
+
+	start := time.Now()
 
 	ip := net.ParseIP(ipaddress)
 	if ip == nil {
@@ -63,6 +67,9 @@ func (g *GeoIP) Search(ipaddress string) error {
 	g.IsProxy = record.Traits.IsAnonymousProxy
 
 	g.IsEU = record.Country.IsInEuropeanUnion
+
+	elapsed := time.Since(start)
+	log.Printf("geoipa took %s \n", elapsed)
 
 	return nil
 

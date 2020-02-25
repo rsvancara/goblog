@@ -269,6 +269,15 @@ func SiteMap(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(&b, "<priority>1.0</priority>")
 
 	fmt.Fprintf(&b, "</url>")
+	fmt.Fprintf(&b, fmt.Sprintf("<loc>https://%s</loc>", cfg.GetSite()))
+
+	fmt.Fprintf(&b, "<lastmod>2020-01-01</lastmod>")
+
+	fmt.Fprintf(&b, "<changefreq>monthly</changefreq>")
+
+	fmt.Fprintf(&b, "<priority>1.0</priority>")
+
+	fmt.Fprintf(&b, "</url>")
 
 	for _, p := range posts {
 		fmt.Fprintf(&b, "<url>")
