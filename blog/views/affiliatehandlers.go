@@ -286,8 +286,6 @@ func AffiliateBouncyHouseHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Println(af)
-
 	//http.Redirect(w, r, af.AffiliateLink, http.StatusSeeOther)
 
 	template, err := util.SiteTemplate("/bouncyhouse.html")
