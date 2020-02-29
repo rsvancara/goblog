@@ -211,31 +211,47 @@ func GetRoutes() *mux.Router {
 			os.Stdout,
 			views.GeoFilterMiddleware(
 				views.AuthHandler(
-					http.HandlerFunc(views.FilterHandler))))).Methods("GET")
+					http.HandlerFunc(views.AffiliateHandler))))).Methods("GET")
 
 	r.Handle(
-		"/admin/affiliatesadd",
+		"/admin/affiliates/add",
 		handlers.LoggingHandler(
 			os.Stdout,
 			views.GeoFilterMiddleware(
 				views.AuthHandler(
-					http.HandlerFunc(views.AffiliateAddHandler))))).Methods("GET")
+					http.HandlerFunc(views.AffiliateAddHandler))))).Methods("GET", "POST")
 
 	r.Handle(
-		"/admin/affiliatesedit",
+		"/admin/affiliates/edit/{id}",
 		handlers.LoggingHandler(
 			os.Stdout,
 			views.GeoFilterMiddleware(
 				views.AuthHandler(
-					http.HandlerFunc(views.AffiliateEditHandler))))).Methods("GET")
+					http.HandlerFunc(views.AffiliateEditHandler))))).Methods("GET", "POST")
 
 	r.Handle(
-		"/admin/affiliatesdelete",
+		"/admin/affiliates/delete/{id}",
 		handlers.LoggingHandler(
 			os.Stdout,
 			views.GeoFilterMiddleware(
 				views.AuthHandler(
 					http.HandlerFunc(views.AffiliateDeleteHandler))))).Methods("GET")
+
+	r.Handle(
+		"/bouncyhouse/{id}",
+		handlers.LoggingHandler(
+			os.Stdout,
+			views.GeoFilterMiddleware(
+				views.AuthHandler(
+					http.HandlerFunc(views.AffiliateBouncyHouseHandler))))).Methods("GET")
+
+	r.Handle(
+		"/contact",
+		handlers.LoggingHandler(
+			os.Stdout,
+			views.GeoFilterMiddleware(
+				views.AuthHandler(
+					http.HandlerFunc(views.ContactHandler))))).Methods("GET")
 
 	r.Handle(
 		"/admin/session/delete/{id}",

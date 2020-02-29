@@ -232,6 +232,27 @@ func HealthCheck(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "healthy")
 }
 
+// ContactHandler defines a healthcheck
+func ContactHandler(w http.ResponseWriter, r *http.Request) {
+	var sess session.Session
+	err := sess.Session(r, w)
+	if err != nil {
+		fmt.Printf("Session not available %s", err)
+	}
+
+	template, err := util.SiteTemplate("/contact.html")
+	//template := "templates/about.html"
+	tmpl := pongo2.Must(pongo2.FromFile(template))
+
+	out, err := tmpl.Execute(pongo2.Context{"title": "Index", "greating": "Hello", "user": sess.User})
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		fmt.Println(err)
+	}
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintf(w, out)
+}
+
 // SiteMap generate a sitemap.xml
 func SiteMap(w http.ResponseWriter, r *http.Request) {
 

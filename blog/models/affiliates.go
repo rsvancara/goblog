@@ -76,7 +76,7 @@ func (a *Affiliate) InsertAffiliate() error {
 }
 
 // EditAffiliate edit affiliate database entry
-func (a *Affiliate) EditAffiliate(id string) error {
+func (a *Affiliate) EditAffiliate() error {
 	var db db.Session
 
 	err := db.NewSession()
@@ -165,7 +165,7 @@ func GetAllAffiliateOrderByDate() ([]Affiliate, error) {
 }
 
 // DeleteAffiliate delete the affiliate
-func (a *Affiliate) DeleteAffiliate(id string) error {
+func (a *Affiliate) DeleteAffiliate() error {
 
 	//var config db.Config
 	var db db.Session
