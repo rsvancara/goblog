@@ -261,6 +261,21 @@ func GetRoutes() *mux.Router {
 				views.AuthHandler(
 					http.HandlerFunc(views.SessionDeleteHandler))))).Methods("GET")
 
+	// Fake wordpress routes for detecting and blocking bad bots
+	r.Handle(
+		"/wp-login.php",
+		handlers.LoggingHandler(
+			os.Stdout,
+			views.GeoFilterMiddleware(
+				http.HandlerFunc(views.WPLoginHandler)))).Methods("GET", "POST")
+
+	r.Handle(
+		"/wp-admin",
+		handlers.LoggingHandler(
+			os.Stdout,
+			views.GeoFilterMiddleware(
+				http.HandlerFunc(views.WPAdminHandler)))).Methods("GET", "POST")
+
 	ServeStatic(r, "./"+staticAssets)
 	http.Handle("/", r)
 

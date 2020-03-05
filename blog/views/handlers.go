@@ -339,3 +339,91 @@ func SiteMap(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, b.String())
 
 }
+
+// WPLoginHandler handles fake wordpress login requests.  Log the request
+// to process for adding to permenant block list
+func WPLoginHandler(w http.ResponseWriter, r *http.Request) {
+	var sess session.Session
+	err := sess.Session(r, w)
+	if err != nil {
+		fmt.Printf("Session not available %s", err)
+	}
+
+	cfg, err := config.GetConfig()
+	if err != nil {
+		fmt.Printf("could not get configuration object %s", (err))
+		return
+	}
+
+	login := ""
+	pass := ""
+
+	// Test if we are a POST to capture form submission
+	if r.Method == http.MethodPost {
+		if err := r.ParseForm(); err != nil {
+			fmt.Fprintf(w, "ParseForm() err: %v", err)
+			return
+		}
+
+		var f models.FakeRequest
+
+		f.URL = "/wp-login.php"
+		f.IPAddress = sess.User.IPAddress
+		f.City = sess.User.City
+		f.Country = sess.User.Country
+		f.TimeZone = sess.User.TimeZone
+		f.Username = r.FormValue("log")
+		f.Password = r.FormValue("pwd")
+
+		fmt.Printf("Fake WP Login - login: %s, Password: %s\n", login, pass)
+
+		// Create Record
+		err = f.InsertFakeRequest()
+		if err != nil {
+			fmt.Printf("error inserting fakereqest: %s\n", err)
+		}
+
+		// Send them to the admin page so they think they logged in.
+		http.Redirect(w, r, "/wp-admnin", http.StatusSeeOther)
+		return
+
+	}
+
+	template, err := util.SiteTemplate("/evil/wp-login.html")
+	tmpl := pongo2.Must(pongo2.FromFile(template))
+
+	out, err := tmpl.Execute(pongo2.Context{
+		"title": "WP-Login",
+		"site":  cfg.Site,
+	})
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		fmt.Println(err)
+	}
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintf(w, out)
+}
+
+// WPAdminHandler provides fake admin page
+func WPAdminHandler(w http.ResponseWriter, r *http.Request) {
+	var sess session.Session
+	err := sess.Session(r, w)
+	if err != nil {
+		fmt.Printf("Session not available %s", err)
+	}
+
+	template, err := util.SiteTemplate("/evil/wp-admin.html")
+	tmpl := pongo2.Must(pongo2.FromFile(template))
+
+	out, err := tmpl.Execute(pongo2.Context{
+		"title": "WP-Login",
+	})
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		fmt.Println(err)
+	}
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintf(w, out)
+}
