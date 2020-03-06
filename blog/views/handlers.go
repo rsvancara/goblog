@@ -384,7 +384,7 @@ func WPLoginHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Send them to the admin page so they think they logged in.
-		http.Redirect(w, r, "/wp-admnin", http.StatusSeeOther)
+		http.Redirect(w, r, "/wp-admin", http.StatusSeeOther)
 		return
 
 	}
