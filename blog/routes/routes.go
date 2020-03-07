@@ -276,6 +276,13 @@ func GetRoutes() *mux.Router {
 			views.GeoFilterMiddleware(
 				http.HandlerFunc(views.WPAdminHandler)))).Methods("GET", "POST")
 
+	r.Handle(
+		"/request/api/v1",
+		handlers.LoggingHandler(
+			os.Stdout,
+			views.GeoFilterMiddleware(
+				http.HandlerFunc(views.RequestBotAPI)))).Methods("GET", "POST")
+
 	ServeStatic(r, "./"+staticAssets)
 	http.Handle("/", r)
 

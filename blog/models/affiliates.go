@@ -59,7 +59,7 @@ func (a *Affiliate) InsertAffiliate() error {
 	// Manage the create and update time
 	a.CreatedAt = time.Now()
 	a.UpdatedAt = time.Now()
-	a.AffiliateID = genUUID()
+	a.AffiliateID = GenUUID()
 	a.Slug = slug.Make(a.AffiliateTitle)
 
 	c := db.Client.Database(getAffiliateDB()).Collection("affiliate")

@@ -21,6 +21,7 @@ type GeoIP struct {
 	TimeZone       string
 	IsProxy        bool
 	IsEU           bool
+	PageID         string
 }
 
 // Search get geoip information from ipaddress

@@ -81,7 +81,7 @@ func (p *PostModel) InsertPost() error {
 	// Manage the create and update time
 	p.CreatedAt = time.Now()
 	p.UpdatedAt = time.Now()
-	p.PostID = genUUID()
+	p.PostID = GenUUID()
 	p.Slug = slug.Make(p.Title)
 	p.Tags = TagExtractor(p.Keywords)
 

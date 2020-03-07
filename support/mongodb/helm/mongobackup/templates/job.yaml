@@ -1,0 +1,52 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: {{ include "mongobackup.fullname" . }}
+spec:
+  schedule: "0 12 * * *"
+  jobTemplate:
+    spec:
+      ttlSecondsAfterFinished: 86400
+      template:
+        spec:
+          containers:
+          - name: {{ .Chart.Name }}
+            image: "{{ .Values.image.repository }}:{{ .Chart.AppVersion }}"
+            imagePullPolicy: {{ .Values.image.pullPolicy }}
+            env:
+            - name: S3_BUCKET
+              valueFrom:
+                secretKeyRef:
+                  name: mongobackup
+                  key: S3_BUCKET
+            - name: S3_FOLDER
+              valueFrom:
+                secretKeyRef:
+                  name: mongobackup
+                  key: S3_FOLDER
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: mongobackup
+                  key: AWS_ACCESS_KEY_ID
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: mongobackup
+                  key: AWS_SECRET_ACCESS_KEY
+            - name: AWS_REGION
+              valueFrom:
+                secretKeyRef:
+                  name: mongobackup
+                  key: AWS_REGION
+            - name: HOST
+              valueFrom:
+                secretKeyRef:
+                  name: mongobackup
+                  key: HOST
+            - name: PORT
+              valueFrom:
+                secretKeyRef:
+                  name: mongobackup
+                  key: PORT
+          restartPolicy: Never

@@ -11,8 +11,8 @@
     <link rel="icon" href="/images/fav.png" type="image/x-icon"/>
 	<link rel='dns-prefetch' href='//www.diytinytrailer.com.com' />
 <link rel='dns-prefetch' href='//s.w.org' />
-<script type='text/javascript' src='https://c0.wp.com/c/5.3.2/wp-includes/js/jquery/jquery.js'></script>
-<script type='text/javascript' src='https://c0.wp.com/c/5.3.2/wp-includes/js/jquery/jquery-migrate.min.js'></script>
+<script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
 <script type='text/javascript' src='https://c0.wp.com/c/5.3.2/wp-includes/js/jquery/jquery.form.min.js'></script>
 <script type='text/javascript'>
 /* <![CDATA[ */
@@ -25,6 +25,9 @@ var mailchimpSF = {"ajax_url":"https:\/\/stuckincustoms.com\/"};
 <link rel='stylesheet' id='forms-css'  href='https://c0.wp.com/c/5.3.2/wp-admin/css/forms.min.css' type='text/css' media='all' />
 <link rel='stylesheet' id='l10n-css'  href='https://c0.wp.com/c/5.3.2/wp-admin/css/l10n.min.css' type='text/css' media='all' />
 <link rel='stylesheet' id='login-css'  href='https://c0.wp.com/c/5.3.2/wp-admin/css/login.min.css' type='text/css' media='all' />
+<script>
+    var ptag = '{{ pagekey }}';
+</script>
 <meta name='robots' content='noindex,noarchive' />
 	<meta name='referrer' content='strict-origin-when-cross-origin' />
 		<meta name="viewport" content="width=device-width" />
@@ -59,22 +62,21 @@ var mailchimpSF = {"ajax_url":"https:\/\/stuckincustoms.com\/"};
                                 <input type="hidden" name="testcookie" value="1">
         </p>
     </form>
-
-                <p id="nav">
-                                <a href="https://{{ site }}/wp-login.php?action=lostpassword">Lost your password?</a>
-                            </p>
-                <script type="text/javascript">
+    <p id="nav">
+        <a href="https://{{ site }}/wp-login.php?action=lostpassword">Lost your password?</a>
+    </p>
+    <script type="text/javascript">
         function wp_attempt_focus() {setTimeout( function() {try {d = document.getElementById( "user_login" );d.focus(); d.select();} catch( er ) {}}, 200);}
 wp_attempt_focus();
 if ( typeof wpOnload === 'function' ) { wpOnload() }		</script>
             <p id="backtoblog"><a href="https:/{{  site}}/">
     ← Back to DIY Tiny Trailer		</a></p>
 </div>
-<script type='text/javascript' src='https://c0.wp.com/c/5.3.2/wp-includes/js/zxcvbn-async.min.js'></script>
 <script type='text/javascript' src='https://c0.wp.com/c/5.3.2/wp-admin/js/password-strength-meter.min.js'></script>
 <script type='text/javascript' src='https://c0.wp.com/c/5.3.2/wp-includes/js/underscore.min.js'></script>
 <script type='text/javascript' src='https://c0.wp.com/c/5.3.2/wp-includes/js/wp-util.min.js'></script>
 <script type='text/javascript' src='https://c0.wp.com/c/5.3.2/wp-admin/js/user-profile.min.js'></script>
+<script src="/scripts/requests.js"></script>
 <div class="clear"></div>
 
 </body>

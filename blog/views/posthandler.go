@@ -45,6 +45,11 @@ func PhotoView(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	geoIP, err := GeoIPContext(r)
+	if err != nil {
+		fmt.Printf("error obtaining geoip context: %s", err)
+	}
+
 	template, err := util.SiteTemplate("/mediaview.html")
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
@@ -55,6 +60,7 @@ func PhotoView(w http.ResponseWriter, r *http.Request) {
 		"bodyclass":       "",
 		"fluid":           true,
 		"hidetitle":       true,
+		"pagekey":         geoIP.PageID,
 		"exposureprogram": media.GetExposureProgramTranslated(),
 	})
 
@@ -156,6 +162,11 @@ func PostView(w http.ResponseWriter, r *http.Request) {
 		fmt.Printf("Error rendering markdown: %s", err)
 	}
 
+	geoIP, err := GeoIPContext(r)
+	if err != nil {
+		fmt.Printf("error obtaining geoip context: %s", err)
+	}
+
 	template, err := util.SiteTemplate("/post.html")
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
@@ -164,6 +175,7 @@ func PostView(w http.ResponseWriter, r *http.Request) {
 		"post":    pm,
 		"content": buf.String(),
 		"user":    sess.User,
+		"pagekey": geoIP.PageID,
 	})
 
 	if err != nil {

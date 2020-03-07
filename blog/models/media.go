@@ -76,7 +76,7 @@ func (m *MediaModel) InsertMedia() error {
 	// Manage the create and update time
 	m.CreatedAt = time.Now()
 	m.UpdatedAt = time.Now()
-	m.MediaID = genUUID()
+	m.MediaID = GenUUID()
 	m.Slug = slug.Make(m.Title)
 
 	m.Tags = TagExtractor(m.Keywords)

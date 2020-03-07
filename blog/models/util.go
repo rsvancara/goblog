@@ -5,7 +5,7 @@ import (
 )
 
 // Generate a unique identifier
-func genUUID() string {
+func GenUUID() string {
 	id := ksuid.New()
 	return id.String()
 }

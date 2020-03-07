@@ -5,9 +5,9 @@
 {% block headertitle %}<h1>{{ post.Title }}</h1>{% endblock %}
  
 {% block body %}
-<p>
+
     {{ content |safe }}
-</p>
+
 {% endblock %}
 
 {% block script %}
@@ -31,39 +31,36 @@ $( document ).ready(function() {
         console.log("leave image details");
         console.log($(this).data('id'));
     });
-
 });
 
-    function getMedia(imgel, id){
+function getMedia(imgel, id){
+    var mediaurl = "";
+    $.ajax({ 
+            url: '/api/v1/getmedia/' + id, 
+            type: 'get',  
+            dataType: 'json',
+            timeout: 120000,
+            error: function(error) {
+                console.log(error)
+            },
+            success: function(response){ 
+                var status = response['status'];
+                var mediaurl = response['url'];
+                var refurl = response['refurl'];
+                var title = response['title'];
+                if (status == 'error') {
+                    console.log(response['message'])
+                }
 
-        var mediaurl = "";
-
-        $.ajax({ 
-                url: '/api/v1/getmedia/' + id, 
-                type: 'get',  
-                dataType: 'json',
-                timeout: 120000,
-                error: function(error) {
-                    console.log(error)
-                },
-                success: function(response){ 
-                    var status = response['status'];
-                    var mediaurl = response['url'];
-                    var refurl = response['refurl'];
-                    var title = response['title'];
-                    if (status == 'error') {
-                        console.log(response['message'])
-                    }
-
-                    imgel.html('<a href="'+ refurl +'"><img src="' + mediaurl + '"/></a>')
-                    imgel.append('<div class="image-title-blurb">' +  title  + '</div>')
-                    
-                },
-                complete: function(jqXHR, status) {
-                    console.log("load complete");
-                },
-        });
-    }
+                imgel.html('<a href="'+ refurl +'"><img src="' + mediaurl + '"/></a>')
+                imgel.append('<div class="image-title-blurb">' +  title  + '</div>')
+                
+            },
+            complete: function(jqXHR, status) {
+                console.log("load complete");
+            },
+    });
+}
 </script>
 {% endblock %}
 

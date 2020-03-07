@@ -3,6 +3,7 @@ package views
 import (
 	//"context"
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
@@ -54,6 +55,8 @@ func GeoFilterMiddleware(next http.Handler) http.Handler {
 		//if ipaddress == "" {
 		//	ipaddress = "73.83.74.114"
 		//}
+
+		geoIP.PageID = models.GenUUID()
 
 		if ipaddress != "" {
 
@@ -107,6 +110,11 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 	}
 
+	geoIP, err := GeoIPContext(r)
+	if err != nil {
+		fmt.Printf("error obtaining geoip context: %s", err)
+	}
+
 	template, err := util.SiteTemplate("/index.html")
 	//template := "templates/index.html"
 	tmpl := pongo2.Must(pongo2.FromFile(template))
@@ -117,6 +125,7 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 		"user":      sess.User,
 		"bodyclass": "frontpage",
 		"hidetitle": true,
+		"pagekey":   geoIP.PageID,
 	})
 
 	if err != nil {
@@ -169,11 +178,21 @@ func Signin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	geoIP, err := GeoIPContext(r)
+	if err != nil {
+		fmt.Printf("error obtaining geoip context: %s", err)
+	}
+
 	template, err := util.SiteTemplate("/signin.html")
 	//template := "templates/signin.html"
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
-	out, err := tmpl.Execute(pongo2.Context{"title": "Index", "greating": "Hello"})
+	out, err := tmpl.Execute(pongo2.Context{
+		"title":    "Index",
+		"greating": "Hello",
+		"pagekey":  geoIP.PageID,
+		"user":     sess.User,
+	})
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		fmt.Printf("error loading template with error: %s\n", err)
@@ -191,11 +210,21 @@ func AdminHome(w http.ResponseWriter, r *http.Request) {
 		fmt.Printf("Session not available %s", err)
 	}
 
+	geoIP, err := GeoIPContext(r)
+	if err != nil {
+		fmt.Printf("error obtaining geoip context: %s", err)
+	}
+
 	template, err := util.SiteTemplate("/admin/admin.html")
 	//template := "templates/admin/admin.html"
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
-	out, err := tmpl.Execute(pongo2.Context{"title": "Index", "greating": "Hello", "user": sess.User})
+	out, err := tmpl.Execute(pongo2.Context{
+		"title":    "Index",
+		"greating": "Hello",
+		"user":     sess.User,
+		"pagekey":  geoIP.PageID,
+	})
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		fmt.Println(err)
@@ -213,11 +242,21 @@ func AboutHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Printf("Session not available %s", err)
 	}
 
+	geoIP, err := GeoIPContext(r)
+	if err != nil {
+		fmt.Printf("error obtaining geoip context: %s", err)
+	}
+
 	template, err := util.SiteTemplate("/about.html")
 	//template := "templates/about.html"
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
-	out, err := tmpl.Execute(pongo2.Context{"title": "Index", "greating": "Hello", "user": sess.User})
+	out, err := tmpl.Execute(pongo2.Context{
+		"title":    "Index",
+		"greating": "Hello",
+		"user":     sess.User,
+		"pagekey":  geoIP.PageID,
+	})
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		fmt.Println(err)
@@ -240,11 +279,21 @@ func ContactHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Printf("Session not available %s", err)
 	}
 
+	geoIP, err := GeoIPContext(r)
+	if err != nil {
+		fmt.Printf("error obtaining geoip context: %s", err)
+	}
+
 	template, err := util.SiteTemplate("/contact.html")
 	//template := "templates/about.html"
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
-	out, err := tmpl.Execute(pongo2.Context{"title": "Index", "greating": "Hello", "user": sess.User})
+	out, err := tmpl.Execute(pongo2.Context{
+		"title":    "Index",
+		"greating": "Hello",
+		"user":     sess.User,
+		"pagekey":  geoIP.PageID,
+	})
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		fmt.Println(err)
@@ -355,9 +404,6 @@ func WPLoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	login := ""
-	pass := ""
-
 	// Test if we are a POST to capture form submission
 	if r.Method == http.MethodPost {
 		if err := r.ParseForm(); err != nil {
@@ -374,8 +420,10 @@ func WPLoginHandler(w http.ResponseWriter, r *http.Request) {
 		f.TimeZone = sess.User.TimeZone
 		f.Username = r.FormValue("log")
 		f.Password = r.FormValue("pwd")
+		f.UserAgent = r.Header.Get("User-Agent")
+		f.SessionID = sess.SessionToken
 
-		fmt.Printf("Fake WP Login - login: %s, Password: %s\n", login, pass)
+		//fmt.Printf("Fake WP Login -> login: %s, Password: %s\n", f.Username, f.Password)
 
 		// Create Record
 		err = f.InsertFakeRequest()
@@ -417,7 +465,8 @@ func WPAdminHandler(w http.ResponseWriter, r *http.Request) {
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
 	out, err := tmpl.Execute(pongo2.Context{
-		"title": "WP-Login",
+		"title":     "WP-Login",
+		"sessionid": sess.SessionToken,
 	})
 
 	if err != nil {
@@ -426,4 +475,49 @@ func WPAdminHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprintf(w, out)
+}
+
+// RequestBotAPI attempts to update additional information about the bot
+func RequestBotAPI(w http.ResponseWriter, r *http.Request) {
+
+	type BrowserData struct {
+		FunctionalBrowser string `json:"functionalbrowser"`
+		Sessionid         string `json:"sessionid"`
+		OSVersion         string `json:"osversion"`
+		OS                string `json:"os"`
+		UserAgent         string `json:"useragent"`
+		NavAppVersion     string `json:"navappversion"`
+		NavPlatform       string `json:"navplatform"`
+		NavBrowser        string `json:"navbrowser"`
+		BrowserVersion    string `json:"browserversion"`
+		PTag              string `json:"ptag"`
+	}
+
+	errorMessage := "{\"status\":\"error\", \"message\": \"error: %s in %s\",\"file\":\"error\"}\n"
+
+	var sess session.Session
+	err := sess.Session(r, w)
+	if err != nil {
+		w.WriteHeader(http.StatusOK)
+		w.Header().Set("Content-Type", "application/json")
+		fmt.Fprintf(w, errorMessage, err, "getting session")
+		return
+	}
+
+	var d BrowserData
+	err = json.NewDecoder(r.Body).Decode(&d)
+	if err != nil {
+		w.WriteHeader(http.StatusOK)
+		w.Header().Set("Content-Type", "application/json")
+		fmt.Fprintf(w, errorMessage, err, "getting data")
+		return
+	}
+
+	//fmt.Println(d)
+	// Need to do some database work here and interface with pageview model
+
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	fmt.Fprintf(w, "{\"status\":\"success\", \"message\": \"request recieved %s\"}\n", sess.SessionToken)
+	return
 }
