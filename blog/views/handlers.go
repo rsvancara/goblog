@@ -20,6 +20,26 @@ import (
 	"github.com/flosch/pongo2"
 )
 
+// SessionHandler manage session objects
+func SessionHandler(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var sess session.Session
+		err := sess.Session(r, w)
+		if err != nil {
+			fmt.Printf("Session not available %s\n", err)
+		}
+
+		var ctxKey util.CtxKey
+		ctxKey = "session"
+		ctx := context.WithValue(r.Context(), ctxKey, sess)
+
+		fmt.Printf("session token created %s", sess.SessionToken)
+
+		h.ServeHTTP(w, r.WithContext(ctx))
+
+	})
+}
+
 // AuthHandler authorize user
 func AuthHandler(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -89,8 +109,25 @@ func GeoFilterMiddleware(next http.Handler) http.Handler {
 
 		var ctxKey util.CtxKey
 		ctxKey = "geoip"
-
 		ctx := context.WithValue(r.Context(), ctxKey, geoIP)
+
+		sess, err := SessionContext(r)
+		if err != nil {
+			fmt.Printf("Error getting session from context %s\n", err)
+		}
+
+		fmt.Printf("Found a context for session in geo module %s\n", sess.SessionToken)
+
+		var rv models.RequestView
+		rv.IPAddress = geoIP.IPAddress.String()
+		rv.HeaderUserAgent = r.Header.Get("User-Agent")
+		rv.PTag = geoIP.PageID
+		rv.RequestURL = r.RequestURI
+		rv.SessionID = sess.SessionToken
+		err = rv.CreateRequestView()
+		if err != nil {
+			fmt.Printf("error creating requestview: %s\n", err)
+		}
 
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
@@ -126,6 +163,7 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 		"bodyclass": "frontpage",
 		"hidetitle": true,
 		"pagekey":   geoIP.PageID,
+		"token":     sess.SessionToken,
 	})
 
 	if err != nil {
@@ -192,6 +230,7 @@ func Signin(w http.ResponseWriter, r *http.Request) {
 		"greating": "Hello",
 		"pagekey":  geoIP.PageID,
 		"user":     sess.User,
+		"token":    sess.SessionToken,
 	})
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -224,6 +263,7 @@ func AdminHome(w http.ResponseWriter, r *http.Request) {
 		"greating": "Hello",
 		"user":     sess.User,
 		"pagekey":  geoIP.PageID,
+		"token":    sess.SessionToken,
 	})
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -293,6 +333,7 @@ func ContactHandler(w http.ResponseWriter, r *http.Request) {
 		"greating": "Hello",
 		"user":     sess.User,
 		"pagekey":  geoIP.PageID,
+		"token":    sess.SessionToken,
 	})
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -436,13 +477,20 @@ func WPLoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 
 	}
+	geoIP, err := GeoIPContext(r)
+	if err != nil {
+		fmt.Printf("error obtaining geoip context: %s", err)
+	}
 
 	template, err := util.SiteTemplate("/evil/wp-login.html")
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
 	out, err := tmpl.Execute(pongo2.Context{
-		"title": "WP-Login",
-		"site":  cfg.Site,
+		"title":   "WP-Login",
+		"site":    cfg.Site,
+		"user":    sess.User,
+		"pagekey": geoIP.PageID,
+		"token":   sess.SessionToken,
 	})
 
 	if err != nil {
@@ -461,12 +509,20 @@ func WPAdminHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Printf("Session not available %s", err)
 	}
 
+	geoIP, err := GeoIPContext(r)
+	if err != nil {
+		fmt.Printf("error obtaining geoip context: %s", err)
+	}
+
 	template, err := util.SiteTemplate("/evil/wp-admin.html")
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
 	out, err := tmpl.Execute(pongo2.Context{
 		"title":     "WP-Login",
 		"sessionid": sess.SessionToken,
+		"user":      sess.User,
+		"pagekey":   geoIP.PageID,
+		"token":     sess.SessionToken,
 	})
 
 	if err != nil {
@@ -504,7 +560,7 @@ func RequestBotAPI(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var d BrowserData
+	var d models.RequestView
 	err = json.NewDecoder(r.Body).Decode(&d)
 	if err != nil {
 		w.WriteHeader(http.StatusOK)
@@ -513,7 +569,28 @@ func RequestBotAPI(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//fmt.Println(d)
+	var rv models.RequestView
+	err = rv.GetRequestViewByPTAG(d.PTag)
+	if err != nil {
+		fmt.Printf("error getting requestview by id %s: %s \n", d.PTag, err)
+	}
+
+	rv.BrowserVersion = d.BrowserVersion
+	rv.FunctionalBrowser = d.FunctionalBrowser
+	rv.SessionID = d.SessionID
+	rv.NavAppVersion = d.NavAppVersion
+	rv.NavBrowser = d.NavBrowser
+	rv.NavPlatform = d.NavPlatform
+	rv.OS = d.OS
+	rv.OSVersion = d.OSVersion
+	rv.UserAgent = d.UserAgent
+
+	err = rv.UpdateRequestView()
+	if err != nil {
+		fmt.Printf("error udating requestview: %s", err)
+	}
+
+	fmt.Println(d)
 	// Need to do some database work here and interface with pageview model
 
 	w.WriteHeader(http.StatusOK)

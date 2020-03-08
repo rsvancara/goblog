@@ -62,6 +62,7 @@ func PhotoView(w http.ResponseWriter, r *http.Request) {
 		"hidetitle":       true,
 		"pagekey":         geoIP.PageID,
 		"exposureprogram": media.GetExposureProgramTranslated(),
+		"token":           sess.SessionToken,
 	})
 
 	if err != nil {
@@ -176,6 +177,7 @@ func PostView(w http.ResponseWriter, r *http.Request) {
 		"content": buf.String(),
 		"user":    sess.User,
 		"pagekey": geoIP.PageID,
+		"token":   sess.SessionToken,
 	})
 
 	if err != nil {
@@ -203,7 +205,12 @@ func Post(w http.ResponseWriter, r *http.Request) {
 	template, err := util.SiteTemplate("/admin/post.html")
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
-	out, err := tmpl.Execute(pongo2.Context{"title": "Index", "posts": posts, "user": sess.User})
+	out, err := tmpl.Execute(pongo2.Context{
+		"title": "Index",
+		"posts": posts,
+		"user":  sess.User,
+		"token": sess.SessionToken,
+	})
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		fmt.Println(err)

@@ -2,6 +2,7 @@ package views
 
 import (
 	"blog/blog/requestfilter"
+	"blog/blog/session"
 	"blog/blog/util"
 	"fmt"
 	"net/http"
@@ -31,5 +32,32 @@ func GeoIPContext(r *http.Request) (requestfilter.GeoIP, error) {
 
 	}
 
-	return geoIP, fmt.Errorf("unable to find context for geoip")
+	return geoIP, fmt.Errorf("unable to find context for geoip %s", ctxKey)
+}
+
+//SessionContext get the session object
+func SessionContext(r *http.Request) (session.Session, error) {
+
+	var sess session.Session
+
+	// Attempt to extract additional information from a context
+	//var geoIP requestfilter.GeoIP
+	var ctxKey util.CtxKey
+	ctxKey = "session"
+
+	if result := r.Context().Value(ctxKey); result != nil {
+
+		//fmt.Println("Found context")
+		//fmt.Println(result)
+		// Type Assertion....
+		sess, ok := result.(session.Session)
+		if !ok {
+			return sess, fmt.Errorf("could not perform type assertion on result to session.Session type for ctxKey %s", ctxKey)
+		}
+
+		return sess, nil
+
+	}
+
+	return sess, fmt.Errorf("unable to find context for session  %s", ctxKey)
 }

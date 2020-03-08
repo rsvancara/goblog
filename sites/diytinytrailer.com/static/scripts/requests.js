@@ -168,7 +168,7 @@ var BrowserByFunction = function() {
 $( document ).ready(function() {
 
   bdata = {
-      'sessionid': readCookie('session_token'),
+      'sessionid': stag,
       'functionalbrowser': BrowserByFunction(),
       'osversion': OSVersion() + "",
       'os' : OS(),
