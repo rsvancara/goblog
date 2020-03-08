@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"sort"
 	"time"
 
 	"blog/blog/cache"
@@ -72,6 +73,7 @@ type Session struct {
 	SessionToken string
 	IsAuth       bool
 	User         User
+	TTL          int
 }
 
 // Get Get the session key value for provided key
@@ -84,7 +86,6 @@ func (s *Session) Get(key string) error {
 
 	// We then get the name of the user from our cache, where we set the session token
 	response, err := redis.String(cache.Do("GET", key))
-
 	if err != nil {
 		return fmt.Errorf("Error retrieving user object from redis: %s", err)
 	}
@@ -92,10 +93,19 @@ func (s *Session) Get(key string) error {
 	user := &User{}
 
 	err = json.Unmarshal([]byte(response), user)
+	if err != nil {
+		return fmt.Errorf("error unmarshaling session %s with error %s", key, err)
+	}
+
+	ttl, err := redis.Int(cache.Do("TTL", key))
+	if err != nil {
+		return fmt.Errorf("error unmarshaling session %s with error %s", key, err)
+	}
 
 	s.User = *user
 	s.IsAuth = user.IsAuth
 	s.SessionToken = key
+	s.TTL = ttl
 
 	return nil
 }
@@ -461,9 +471,15 @@ func GetAllSessions() ([]Session, error) {
 		sessions = append(sessions, sess)
 	}
 
+	// Sort by the TTL
+	sort.Slice(sessions, func(i, j int) bool {
+		return sessions[i].TTL < sessions[j].TTL
+	})
+
 	return sessions, nil
 }
 
+// getKey internal method for getting keys for a supplied pattern, like "*"
 func getKeys(pattern string) ([]string, error) {
 
 	// Connect to Redis and get our user object

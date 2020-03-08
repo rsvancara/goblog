@@ -14,17 +14,10 @@ import (
 // SessionReportHandler build a list of current user sessions
 func SessionReportHandler(w http.ResponseWriter, r *http.Request) {
 
-	var sess session.Session
-	err := sess.Session(r, w)
-	if err != nil {
-		fmt.Printf("Session not available %s\n", err)
-	}
-
-	// Get List
-	//var sessions []session.Session
+	sess := GetSession(r)
 
 	var sessions []session.Session
-	sessions, err = session.GetAllSessions()
+	sessions, err := session.GetAllSessions()
 
 	template, err := util.SiteTemplate("/admin/sessions.html")
 	//template := "templates/admin/media.html"
@@ -36,6 +29,8 @@ func SessionReportHandler(w http.ResponseWriter, r *http.Request) {
 		"user":      sess.User,
 		"bodyclass": "",
 		"hidetitle": true,
+		"pagekey":   GetPageID(r),
+		"token":     sess.SessionToken,
 	})
 
 	if err != nil {
@@ -51,11 +46,7 @@ func SessionReportHandler(w http.ResponseWriter, r *http.Request) {
 // SessionDetailsReportHandler build a list of current user sessions
 func SessionDetailsReportHandler(w http.ResponseWriter, r *http.Request) {
 
-	var sess session.Session
-	err := sess.Session(r, w)
-	if err != nil {
-		fmt.Printf("Session not available %s\n", err)
-	}
+	sess := GetSession(r)
 
 	// HTTP URL Parameters
 	vars := mux.Vars(r)
@@ -83,6 +74,8 @@ func SessionDetailsReportHandler(w http.ResponseWriter, r *http.Request) {
 		"sessionid":    vars["id"],
 		"bodyclass":    "",
 		"hidetitle":    true,
+		"pagekey":      GetPageID(r),
+		"token":        sess.SessionToken,
 	})
 
 	if err != nil {
@@ -98,12 +91,6 @@ func SessionDetailsReportHandler(w http.ResponseWriter, r *http.Request) {
 // SessionDeleteHandler build a list of current user sessions
 func SessionDeleteHandler(w http.ResponseWriter, r *http.Request) {
 
-	var sess session.Session
-	err := sess.Session(r, w)
-	if err != nil {
-		fmt.Printf("Session not available %s\n", err)
-	}
-
 	// HTTP URL Parameters
 	vars := mux.Vars(r)
 	if val, ok := vars["id"]; ok {
@@ -113,7 +100,7 @@ func SessionDeleteHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = session.DeleteSession(vars["id"])
+	err := session.DeleteSession(vars["id"])
 	if err != nil {
 		fmt.Printf("error deleting session %s\n", err)
 	}

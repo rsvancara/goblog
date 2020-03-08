@@ -59,5 +59,25 @@ func SessionContext(r *http.Request) (session.Session, error) {
 
 	}
 
-	return sess, fmt.Errorf("unable to find context for session  %s", ctxKey)
+	return sess, fmt.Errorf("unable to find context for session  %s on page %s", ctxKey, r.RequestURI)
+}
+
+// GetPageID get the page ID for a request
+func GetPageID(r *http.Request) string {
+	geoIP, err := GeoIPContext(r)
+	if err != nil {
+		fmt.Printf("error obtaining geoip context: %s\n", err)
+	}
+
+	return geoIP.PageID
+}
+
+// GetSession get session object for a request
+func GetSession(r *http.Request) session.Session {
+	sess, err := SessionContext(r)
+	if err != nil {
+		fmt.Printf("error obtaining session context: %s\n", err)
+	}
+
+	return sess
 }

@@ -37,11 +37,7 @@ type jsonErrorMessage struct {
 
 // Media media
 func Media(w http.ResponseWriter, r *http.Request) {
-	var sess session.Session
-	err := sess.Session(r, w)
-	if err != nil {
-		fmt.Printf("Session not available %s\n", err)
-	}
+	sess := GetSession(r)
 
 	// Get List
 	media, err := models.AllMediaSortedByDate()
@@ -59,6 +55,8 @@ func Media(w http.ResponseWriter, r *http.Request) {
 		"user":      sess.User,
 		"bodyclass": "",
 		"hidetitle": true,
+		"pagekey":   GetPageID(r),
+		"token":     sess.SessionToken,
 	})
 
 	if err != nil {
@@ -74,11 +72,7 @@ func ViewMedia(w http.ResponseWriter, r *http.Request) {
 
 	var media models.MediaModel
 
-	var sess session.Session
-	err := sess.Session(r, w)
-	if err != nil {
-		fmt.Printf("Session not available %s", err)
-	}
+	sess := GetSession(r)
 
 	// HTTP URL Parameters
 	vars := mux.Vars(r)
@@ -89,7 +83,7 @@ func ViewMedia(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Load Media
-	err = media.GetMedia(vars["id"])
+	err := media.GetMedia(vars["id"])
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -107,6 +101,8 @@ func ViewMedia(w http.ResponseWriter, r *http.Request) {
 		"fluid":           true,
 		"hidetitle":       true,
 		"exposureprogram": media.GetExposureProgramTranslated(),
+		"pagekey":         GetPageID(r),
+		"token":           sess.SessionToken,
 	})
 
 	if err != nil {
@@ -146,17 +142,8 @@ func PutMedia(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	var media models.MediaModel
 
-	var sess session.Session
-	err := sess.Session(r, w)
-	if err != nil {
-		w.WriteHeader(http.StatusOK)
-		w.Header().Set("Content-Type", "application/json")
-		fmt.Fprintf(w, errorMessage, err, "getting session")
-		return
-	}
-
 	//err = r.ParseForm()
-	err = r.ParseMultipartForm(128 << 20)
+	err := r.ParseMultipartForm(128 << 20)
 	if err != nil {
 		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json")
@@ -277,12 +264,7 @@ func MediaEdit(w http.ResponseWriter, r *http.Request) {
 	formLocation := ""
 	formLocationError := false
 
-	//http Session
-	var sess session.Session
-	err := sess.Session(r, w)
-	if err != nil {
-		fmt.Printf("Session not available %s", err)
-	}
+	sess := GetSession(r)
 
 	// HTTP URL Parameters
 	vars := mux.Vars(r)
@@ -293,7 +275,7 @@ func MediaEdit(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Load Media
-	err = media.GetMedia(vars["id"])
+	err := media.GetMedia(vars["id"])
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -379,6 +361,8 @@ func MediaEdit(w http.ResponseWriter, r *http.Request) {
 		"formCategoryError":    formCategoryError,
 		"formLocation":         formLocation,
 		"formLocationError":    formLocationError,
+		"pagekey":              GetPageID(r),
+		"token":                sess.SessionToken,
 	})
 
 	if err != nil {
@@ -392,6 +376,8 @@ func MediaEdit(w http.ResponseWriter, r *http.Request) {
 
 // MediaDelete Delete media from the database and s3
 func MediaDelete(w http.ResponseWriter, r *http.Request) {
+
+	//sess := GetSession(r)
 
 	// HTTP URL Parameters
 	vars := mux.Vars(r)

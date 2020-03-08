@@ -318,10 +318,11 @@ func GetRoutes() *mux.Router {
 					http.HandlerFunc(views.WPAdminHandler))))).Methods("GET", "POST")
 
 	r.Handle(
-		"/request/api/v1",
+		"/api/request/v1",
 		handlers.LoggingHandler(
 			os.Stdout,
-			http.HandlerFunc(views.RequestBotAPI))).Methods("GET", "POST")
+			views.SessionHandler(
+				http.HandlerFunc(views.RequestBotAPI)))).Methods("GET", "POST")
 
 	ServeStatic(r, "./"+staticAssets)
 	http.Handle("/", r)

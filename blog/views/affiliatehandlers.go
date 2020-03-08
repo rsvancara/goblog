@@ -2,7 +2,7 @@ package views
 
 import (
 	"blog/blog/models"
-	"blog/blog/session"
+	//"blog/blog/session"
 	"blog/blog/util"
 	"fmt"
 	"net/http"
@@ -14,11 +14,7 @@ import (
 // AffiliateHandler view list of affiliates
 func AffiliateHandler(w http.ResponseWriter, r *http.Request) {
 
-	var sess session.Session
-	err := sess.Session(r, w)
-	if err != nil {
-		fmt.Printf("Session not available %s", err)
-	}
+	sess := GetSession(r)
 
 	// Create Record
 	affiliates, err := models.GetAllAffiliateOrderByDate()
@@ -33,6 +29,8 @@ func AffiliateHandler(w http.ResponseWriter, r *http.Request) {
 		"user":       sess.User,
 		"title":      "Affiliates",
 		"affiliates": affiliates,
+		"pagekey":    GetPageID(r),
+		"token":      sess.SessionToken,
 	})
 
 	if err != nil {
@@ -46,11 +44,7 @@ func AffiliateHandler(w http.ResponseWriter, r *http.Request) {
 
 // AffiliateAddHandler view list of affiliates
 func AffiliateAddHandler(w http.ResponseWriter, r *http.Request) {
-	var sess session.Session
-	err := sess.Session(r, w)
-	if err != nil {
-		fmt.Printf("Session not available %s", err)
-	}
+	sess := GetSession(r)
 
 	var af models.Affiliate
 	// Form Variables
@@ -95,7 +89,7 @@ func AffiliateAddHandler(w http.ResponseWriter, r *http.Request) {
 		if validate == true {
 
 			// Create Record
-			err = af.InsertAffiliate()
+			err := af.InsertAffiliate()
 			if err != nil {
 				fmt.Printf("error inserting post: %s\n", err)
 			}
@@ -120,6 +114,8 @@ func AffiliateAddHandler(w http.ResponseWriter, r *http.Request) {
 		"titleMessageError":    titleMessageError,
 		"categoryMessage":      categoryMessage,
 		"categoryMessageError": categoryMessageError,
+		"pagekey":              GetPageID(r),
+		"token":                sess.SessionToken,
 	})
 
 	if err != nil {
@@ -133,11 +129,7 @@ func AffiliateAddHandler(w http.ResponseWriter, r *http.Request) {
 
 // AffiliateEditHandler view list of affiliates
 func AffiliateEditHandler(w http.ResponseWriter, r *http.Request) {
-	var sess session.Session
-	err := sess.Session(r, w)
-	if err != nil {
-		fmt.Printf("Session not available %s", err)
-	}
+	sess := GetSession(r)
 
 	// HTTP URL Parameters
 	vars := mux.Vars(r)
@@ -192,7 +184,7 @@ func AffiliateEditHandler(w http.ResponseWriter, r *http.Request) {
 		if validate == true {
 
 			// Create Record
-			err = af.EditAffiliate()
+			err := af.EditAffiliate()
 			if err != nil {
 				fmt.Printf("error inserting post: %s\n", err)
 			}
@@ -217,6 +209,8 @@ func AffiliateEditHandler(w http.ResponseWriter, r *http.Request) {
 		"titleMessageError":    titleMessageError,
 		"categoryMessage":      categoryMessage,
 		"categoryMessageError": categoryMessageError,
+		"pagekey":              GetPageID(r),
+		"token":                sess.SessionToken,
 	})
 
 	if err != nil {
@@ -230,12 +224,7 @@ func AffiliateEditHandler(w http.ResponseWriter, r *http.Request) {
 
 // AffiliateDeleteHandler view list of affiliates
 func AffiliateDeleteHandler(w http.ResponseWriter, r *http.Request) {
-	//http Session
-	var sess session.Session
-	err := sess.Session(r, w)
-	if err != nil {
-		fmt.Printf("Session not available %s", err)
-	}
+	//sess := GetSession(r)
 
 	// HTTP URL Parameters
 	vars := mux.Vars(r)
@@ -248,7 +237,7 @@ func AffiliateDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	var af models.Affiliate
 
 	// Load Model
-	err = af.GetAffiliate(vars["id"])
+	err := af.GetAffiliate(vars["id"])
 	if err != nil {
 		fmt.Printf("Error getting affiliate by id %s with error %s\n", vars["id"], err)
 		return
@@ -263,11 +252,7 @@ func AffiliateDeleteHandler(w http.ResponseWriter, r *http.Request) {
 // AffiliateBouncyHouseHandler view list of affiliates
 func AffiliateBouncyHouseHandler(w http.ResponseWriter, r *http.Request) {
 
-	var sess session.Session
-	err := sess.Session(r, w)
-	if err != nil {
-		fmt.Printf("Session not available %s", err)
-	}
+	sess := GetSession(r)
 
 	// HTTP URL Parameters
 	vars := mux.Vars(r)
@@ -280,7 +265,7 @@ func AffiliateBouncyHouseHandler(w http.ResponseWriter, r *http.Request) {
 	var af models.Affiliate
 
 	// Load Model
-	err = af.GetAffiliate(vars["id"])
+	err := af.GetAffiliate(vars["id"])
 	if err != nil {
 		fmt.Printf("Error getting affiliate by id %s with error %s\n", vars["id"], err)
 		return

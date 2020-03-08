@@ -33,7 +33,7 @@ func SessionHandler(h http.Handler) http.Handler {
 		ctxKey = "session"
 		ctx := context.WithValue(r.Context(), ctxKey, sess)
 
-		fmt.Printf("session token created %s", sess.SessionToken)
+		//fmt.Printf("session token created %s", sess.SessionToken)
 
 		h.ServeHTTP(w, r.WithContext(ctx))
 
@@ -113,10 +113,10 @@ func GeoFilterMiddleware(next http.Handler) http.Handler {
 
 		sess, err := SessionContext(r)
 		if err != nil {
-			fmt.Printf("Error getting session from context %s\n", err)
+			fmt.Printf("Error getting session from context: %s\n", err)
 		}
 
-		fmt.Printf("Found a context for session in geo module %s\n", sess.SessionToken)
+		//fmt.Printf("Found a context for session in geo module %s\n", sess.SessionToken)
 
 		var rv models.RequestView
 		rv.IPAddress = geoIP.IPAddress.String()
@@ -137,21 +137,12 @@ func GeoFilterMiddleware(next http.Handler) http.Handler {
 
 // HomeHandler Home page
 func HomeHandler(w http.ResponseWriter, r *http.Request) {
-	var sess session.Session
-	err := sess.Session(r, w)
-	if err != nil {
-		fmt.Printf("Session not available %s\n", err)
-	}
+	sess := GetSession(r)
 
 	// Get List
 	posts, err := models.AllPostsSortedByDate()
 	if err != nil {
 		fmt.Println(err)
-	}
-
-	geoIP, err := GeoIPContext(r)
-	if err != nil {
-		fmt.Printf("error obtaining geoip context: %s", err)
 	}
 
 	template, err := util.SiteTemplate("/index.html")
@@ -164,7 +155,7 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 		"user":      sess.User,
 		"bodyclass": "frontpage",
 		"hidetitle": true,
-		"pagekey":   geoIP.PageID,
+		"pagekey":   GetPageID(r),
 		"token":     sess.SessionToken,
 	})
 
@@ -179,11 +170,7 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 // Signin Sign into the application
 func Signin(w http.ResponseWriter, r *http.Request) {
 
-	var sess session.Session
-	err := sess.Session(r, w)
-	if err != nil {
-		fmt.Printf("Session not available %s\n", err)
-	}
+	sess := GetSession(r)
 
 	if r.Method == http.MethodPost {
 		if err := r.ParseForm(); err != nil {
@@ -218,11 +205,6 @@ func Signin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	geoIP, err := GeoIPContext(r)
-	if err != nil {
-		fmt.Printf("error obtaining geoip context: %s", err)
-	}
-
 	template, err := util.SiteTemplate("/signin.html")
 	//template := "templates/signin.html"
 	tmpl := pongo2.Must(pongo2.FromFile(template))
@@ -230,8 +212,8 @@ func Signin(w http.ResponseWriter, r *http.Request) {
 	out, err := tmpl.Execute(pongo2.Context{
 		"title":    "Index",
 		"greating": "Hello",
-		"pagekey":  geoIP.PageID,
 		"user":     sess.User,
+		"pagekey":  GetPageID(r),
 		"token":    sess.SessionToken,
 	})
 	if err != nil {
@@ -245,11 +227,7 @@ func Signin(w http.ResponseWriter, r *http.Request) {
 // AdminHome admin home page
 func AdminHome(w http.ResponseWriter, r *http.Request) {
 
-	var sess session.Session
-	err := sess.Session(r, w)
-	if err != nil {
-		fmt.Printf("Session not available %s", err)
-	}
+	sess := GetSession(r)
 
 	geoIP, err := GeoIPContext(r)
 	if err != nil {
@@ -278,16 +256,7 @@ func AdminHome(w http.ResponseWriter, r *http.Request) {
 // AboutHandler about page
 func AboutHandler(w http.ResponseWriter, r *http.Request) {
 
-	var sess session.Session
-	err := sess.Session(r, w)
-	if err != nil {
-		fmt.Printf("Session not available %s", err)
-	}
-
-	geoIP, err := GeoIPContext(r)
-	if err != nil {
-		fmt.Printf("error obtaining geoip context: %s", err)
-	}
+	sess := GetSession(r)
 
 	template, err := util.SiteTemplate("/about.html")
 	//template := "templates/about.html"
@@ -297,7 +266,8 @@ func AboutHandler(w http.ResponseWriter, r *http.Request) {
 		"title":    "Index",
 		"greating": "Hello",
 		"user":     sess.User,
-		"pagekey":  geoIP.PageID,
+		"pagekey":  GetPageID(r),
+		"token":    sess.SessionToken,
 	})
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -321,11 +291,6 @@ func ContactHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Printf("Session not available %s", err)
 	}
 
-	geoIP, err := GeoIPContext(r)
-	if err != nil {
-		fmt.Printf("error obtaining geoip context: %s", err)
-	}
-
 	template, err := util.SiteTemplate("/contact.html")
 	//template := "templates/about.html"
 	tmpl := pongo2.Must(pongo2.FromFile(template))
@@ -334,7 +299,7 @@ func ContactHandler(w http.ResponseWriter, r *http.Request) {
 		"title":    "Index",
 		"greating": "Hello",
 		"user":     sess.User,
-		"pagekey":  geoIP.PageID,
+		"pagekey":  GetPageID(r),
 		"token":    sess.SessionToken,
 	})
 	if err != nil {
@@ -435,11 +400,7 @@ func SiteMap(w http.ResponseWriter, r *http.Request) {
 // WPLoginHandler handles fake wordpress login requests.  Log the request
 // to process for adding to permenant block list
 func WPLoginHandler(w http.ResponseWriter, r *http.Request) {
-	var sess session.Session
-	err := sess.Session(r, w)
-	if err != nil {
-		fmt.Printf("Session not available %s", err)
-	}
+	sess := GetSession(r)
 
 	cfg, err := config.GetConfig()
 	if err != nil {
@@ -479,10 +440,6 @@ func WPLoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 
 	}
-	geoIP, err := GeoIPContext(r)
-	if err != nil {
-		fmt.Printf("error obtaining geoip context: %s", err)
-	}
 
 	template, err := util.SiteTemplate("/evil/wp-login.html")
 	tmpl := pongo2.Must(pongo2.FromFile(template))
@@ -491,7 +448,7 @@ func WPLoginHandler(w http.ResponseWriter, r *http.Request) {
 		"title":   "WP-Login",
 		"site":    cfg.Site,
 		"user":    sess.User,
-		"pagekey": geoIP.PageID,
+		"pagekey": GetPageID(r),
 		"token":   sess.SessionToken,
 	})
 
@@ -505,16 +462,7 @@ func WPLoginHandler(w http.ResponseWriter, r *http.Request) {
 
 // WPAdminHandler provides fake admin page
 func WPAdminHandler(w http.ResponseWriter, r *http.Request) {
-	var sess session.Session
-	err := sess.Session(r, w)
-	if err != nil {
-		fmt.Printf("Session not available %s", err)
-	}
-
-	geoIP, err := GeoIPContext(r)
-	if err != nil {
-		fmt.Printf("error obtaining geoip context: %s", err)
-	}
+	sess := GetSession(r)
 
 	template, err := util.SiteTemplate("/evil/wp-admin.html")
 	tmpl := pongo2.Must(pongo2.FromFile(template))
@@ -523,7 +471,7 @@ func WPAdminHandler(w http.ResponseWriter, r *http.Request) {
 		"title":     "WP-Login",
 		"sessionid": sess.SessionToken,
 		"user":      sess.User,
-		"pagekey":   geoIP.PageID,
+		"pagekey":   GetPageID(r),
 		"token":     sess.SessionToken,
 	})
 
@@ -538,32 +486,12 @@ func WPAdminHandler(w http.ResponseWriter, r *http.Request) {
 // RequestBotAPI attempts to update additional information about the bot
 func RequestBotAPI(w http.ResponseWriter, r *http.Request) {
 
-	type BrowserData struct {
-		FunctionalBrowser string `json:"functionalbrowser"`
-		Sessionid         string `json:"sessionid"`
-		OSVersion         string `json:"osversion"`
-		OS                string `json:"os"`
-		UserAgent         string `json:"useragent"`
-		NavAppVersion     string `json:"navappversion"`
-		NavPlatform       string `json:"navplatform"`
-		NavBrowser        string `json:"navbrowser"`
-		BrowserVersion    string `json:"browserversion"`
-		PTag              string `json:"ptag"`
-	}
-
 	errorMessage := "{\"status\":\"error\", \"message\": \"error: %s in %s\",\"file\":\"error\"}\n"
 
-	var sess session.Session
-	err := sess.Session(r, w)
-	if err != nil {
-		w.WriteHeader(http.StatusOK)
-		w.Header().Set("Content-Type", "application/json")
-		fmt.Fprintf(w, errorMessage, err, "getting session")
-		return
-	}
+	sess := GetSession(r)
 
 	var d models.RequestView
-	err = json.NewDecoder(r.Body).Decode(&d)
+	err := json.NewDecoder(r.Body).Decode(&d)
 	if err != nil {
 		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json")
@@ -592,7 +520,7 @@ func RequestBotAPI(w http.ResponseWriter, r *http.Request) {
 		fmt.Printf("error udating requestview: %s", err)
 	}
 
-	fmt.Println(d)
+	//fmt.Println(d)
 	// Need to do some database work here and interface with pageview model
 
 	w.WriteHeader(http.StatusOK)

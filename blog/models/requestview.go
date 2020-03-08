@@ -107,7 +107,9 @@ func (r *RequestView) UpdateRequestView() error {
 		return err
 	}
 
-	fmt.Printf("Found and updated %d requestview record(s)", updateResult.MatchedCount)
+	if updateResult != nil && updateResult.MatchedCount == 0 {
+		fmt.Printf("could not find any requestview records to update for ptag valute %s", r.PTag)
+	}
 
 	return nil
 }

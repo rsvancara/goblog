@@ -181,7 +181,7 @@ $( document ).ready(function() {
   }
 
   $.ajax({
-      url: '/request/api/v1',
+      url: '/api/request/v1',
       type: 'post',
       contentType: 'application/json; charset=utf-8',
       data: JSON.stringify(bdata),

@@ -11,11 +11,16 @@ import (
 // FilterHandler View File
 func FilterHandler(w http.ResponseWriter, r *http.Request) {
 
+	sess := GetSession(r)
+
 	template, err := util.SiteTemplate("/admin/filters.html")
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
 	out, err := tmpl.Execute(pongo2.Context{
-		"title": "View Media",
+		"title":   "View Media",
+		"user":    sess.User,
+		"pagekey": GetPageID(r),
+		"token":   sess.SessionToken,
 	})
 
 	if err != nil {

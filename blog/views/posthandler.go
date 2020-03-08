@@ -24,11 +24,7 @@ func PhotoView(w http.ResponseWriter, r *http.Request) {
 
 	var media models.MediaModel
 
-	var sess session.Session
-	err := sess.Session(r, w)
-	if err != nil {
-		fmt.Printf("Session not available %s", err)
-	}
+	sess := GetSession(r)
 
 	// HTTP URL Parameters
 	vars := mux.Vars(r)
@@ -39,15 +35,10 @@ func PhotoView(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Load Media
-	err = media.GetMediaBySlug(vars["id"])
+	err := media.GetMediaBySlug(vars["id"])
 	if err != nil {
 		fmt.Println(err)
 		return
-	}
-
-	geoIP, err := GeoIPContext(r)
-	if err != nil {
-		fmt.Printf("error obtaining geoip context: %s", err)
 	}
 
 	template, err := util.SiteTemplate("/mediaview.html")
@@ -60,8 +51,8 @@ func PhotoView(w http.ResponseWriter, r *http.Request) {
 		"bodyclass":       "",
 		"fluid":           true,
 		"hidetitle":       true,
-		"pagekey":         geoIP.PageID,
 		"exposureprogram": media.GetExposureProgramTranslated(),
+		"pagekey":         GetPageID(r),
 		"token":           sess.SessionToken,
 	})
 
@@ -78,13 +69,6 @@ func GetMediaAPI(w http.ResponseWriter, r *http.Request) {
 
 	errorMessage := "{\"status\":\"error\", \"message\": \"error: %s in %s\",\"image\":\"error\",\"url\":\"/static/no-image.svg\",\"refurl\":\"#\"}\n"
 
-	//http Session
-	var sess session.Session
-	err := sess.Session(r, w)
-	if err != nil {
-		fmt.Printf("Session not available %s\n", err)
-	}
-
 	// HTTP URL Parameters
 	vars := mux.Vars(r)
 	if _, ok := vars["id"]; ok {
@@ -99,7 +83,7 @@ func GetMediaAPI(w http.ResponseWriter, r *http.Request) {
 	// Media Object
 	var media models.MediaModel
 
-	err = media.GetMedia(vars["id"])
+	err := media.GetMedia(vars["id"])
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusOK)
@@ -121,11 +105,7 @@ func GetMediaAPI(w http.ResponseWriter, r *http.Request) {
 // PostView Home page
 func PostView(w http.ResponseWriter, r *http.Request) {
 
-	var sess session.Session
-	err := sess.Session(r, w)
-	if err != nil {
-		fmt.Printf("Session not available %s\n", err)
-	}
+	sess := GetSession(r)
 
 	// HTTP URL Parameters
 	vars := mux.Vars(r)
@@ -139,7 +119,7 @@ func PostView(w http.ResponseWriter, r *http.Request) {
 	var pm models.PostModel
 
 	// Load Model
-	err = pm.GetPostBySlug(vars["id"])
+	err := pm.GetPostBySlug(vars["id"])
 	if err != nil {
 		fmt.Printf("Error getting object from database: %s", err)
 	}
@@ -163,11 +143,6 @@ func PostView(w http.ResponseWriter, r *http.Request) {
 		fmt.Printf("Error rendering markdown: %s", err)
 	}
 
-	geoIP, err := GeoIPContext(r)
-	if err != nil {
-		fmt.Printf("error obtaining geoip context: %s", err)
-	}
-
 	template, err := util.SiteTemplate("/post.html")
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
@@ -176,7 +151,7 @@ func PostView(w http.ResponseWriter, r *http.Request) {
 		"post":    pm,
 		"content": buf.String(),
 		"user":    sess.User,
-		"pagekey": geoIP.PageID,
+		"pagekey": GetPageID(r),
 		"token":   sess.SessionToken,
 	})
 
@@ -190,11 +165,7 @@ func PostView(w http.ResponseWriter, r *http.Request) {
 
 // Post post
 func Post(w http.ResponseWriter, r *http.Request) {
-	var sess session.Session
-	err := sess.Session(r, w)
-	if err != nil {
-		fmt.Printf("Session not availab le %s\n", err)
-	}
+	sess := GetSession(r)
 
 	// Create Record
 	posts, err := models.AllPostsSortedByDate()
@@ -206,10 +177,11 @@ func Post(w http.ResponseWriter, r *http.Request) {
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
 	out, err := tmpl.Execute(pongo2.Context{
-		"title": "Index",
-		"posts": posts,
-		"user":  sess.User,
-		"token": sess.SessionToken,
+		"title":   "Index",
+		"posts":   posts,
+		"user":    sess.User,
+		"pagekey": GetPageID(r),
+		"token":   sess.SessionToken,
 	})
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -236,12 +208,7 @@ func PostEdit(w http.ResponseWriter, r *http.Request) {
 	postKeywordsMessage := ""
 	postKeywordsMessageError := false
 
-	//http Session
-	var sess session.Session
-	err := sess.Session(r, w)
-	if err != nil {
-		fmt.Printf("Session not available %s", err)
-	}
+	sess := GetSession(r)
 
 	// HTTP URL Parameters
 	vars := mux.Vars(r)
@@ -254,7 +221,10 @@ func PostEdit(w http.ResponseWriter, r *http.Request) {
 	var pm models.PostModel
 
 	// Load Model
-	pm.GetPost(vars["id"])
+	err := pm.GetPost(vars["id"])
+	if err != nil {
+		fmt.Printf("error getting post from database for id %s with error %s", vars["id"], err)
+	}
 
 	// Test if we are a POST to capture form submission
 	if r.Method == http.MethodPost {
@@ -344,6 +314,8 @@ func PostEdit(w http.ResponseWriter, r *http.Request) {
 		"postTeaserMessageError":   postTeaserMessageError,
 		"postKeywordsMessage":      postKeywordsMessage,
 		"postKeywordsMessageError": postKeywordsMessageError,
+		"pagekey":                  GetPageID(r),
+		"token":                    sess.SessionToken,
 	})
 
 	if err != nil {
@@ -404,6 +376,8 @@ func PostAdminView(w http.ResponseWriter, r *http.Request) {
 		"post":    pm,
 		"content": buf.String,
 		"user":    sess.User,
+		"pagekey": GetPageID(r),
+		"token":   sess.SessionToken,
 	})
 
 	if err != nil {
@@ -530,6 +504,8 @@ func PostAdd(w http.ResponseWriter, r *http.Request) {
 		"postTeaserMessageError":   postTeaserMessageError,
 		"postKeywordsMessage":      postKeywordsMessage,
 		"postKeywordsMessageError": postKeywordsMessageError,
+		"pagekey":                  GetPageID(r),
+		"token":                    sess.SessionToken,
 	})
 
 	if err != nil {
@@ -542,13 +518,6 @@ func PostAdd(w http.ResponseWriter, r *http.Request) {
 
 // PostDelete delete post
 func PostDelete(w http.ResponseWriter, r *http.Request) {
-
-	//http Session
-	var sess session.Session
-	err := sess.Session(r, w)
-	if err != nil {
-		fmt.Printf("Session not available %s", err)
-	}
 
 	// HTTP URL Parameters
 	vars := mux.Vars(r)
