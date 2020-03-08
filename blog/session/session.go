@@ -365,6 +365,8 @@ func (s *Session) Session(r *http.Request, w http.ResponseWriter) error {
 			user.Username = "anonymous"
 			user.IsAuth = false
 
+			var geoIP requestfilter.GeoIP
+
 			// The context may exist, but maybe not....Try to get information from the context, if
 			// not found then extract it manually by calling the API.  There are conditions
 			// where this can be pulled from the context, but most likely you can not.  Maybe
