@@ -69,7 +69,7 @@ func GeoFilterMiddleware(next http.Handler) http.Handler {
 		var geoIP requestfilter.GeoIP
 
 		ipaddress, _ := requestfilter.GetIPAddress(r)
-		fmt.Printf("IP Address: %s | request: %s\n", ipaddress, r.RequestURI)
+		//fmt.Printf("IP Address: %s | request: %s\n", ipaddress, r.RequestURI)
 
 		// for testing...we inject an IP Address
 		//if ipaddress == "" {

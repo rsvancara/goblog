@@ -365,15 +365,14 @@ func (s *Session) Session(r *http.Request, w http.ResponseWriter) error {
 			user.Username = "anonymous"
 			user.IsAuth = false
 
-			// Attempt to extract additional information from a context
+			// The context may exist, but maybe not....Try to get information from the context, if
+			// not found then extract it manually by calling the API.  There are conditions
+			// where this can be pulled from the context, but most likely you can not.  Maybe
+			// we do not use the context route, since sessions come first...
 			var ctxKey util.CtxKey
 			ctxKey = "geoip"
 
 			if result := r.Context().Value(ctxKey); result != nil {
-
-				//fmt.Println("Found context")
-				//fmt.Println(result)
-				// Type Assertion....
 				geoIP, ok := result.(requestfilter.GeoIP)
 				if !ok {
 					fmt.Println("Could not perform type assertion on result to GeoIP type")
@@ -384,7 +383,16 @@ func (s *Session) Session(r *http.Request, w http.ResponseWriter) error {
 				user.Country = geoIP.CountryName
 				user.IPAddress = geoIP.IPAddress.String()
 			} else {
-				fmt.Printf("Could not find ctxkey: geoip during session %s\n", s.SessionToken)
+				fmt.Printf("Could not find ctxkey geoip during session %s, performing manual lookup\n", s.SessionToken)
+				ipaddress, _ := requestfilter.GetIPAddress(r)
+				err := geoIP.Search(ipaddress)
+				if err != nil {
+					fmt.Printf("Error IP Address not found in the database for IP Address: %s with error %s\n", ipaddress, err)
+				}
+				user.City = geoIP.City
+				user.TimeZone = geoIP.TimeZone
+				user.Country = geoIP.CountryName
+				user.IPAddress = geoIP.IPAddress.String()
 			}
 
 			//TODO: Set the user
