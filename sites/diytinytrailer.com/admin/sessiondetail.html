@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+ 
+{% block title  %}Details for Session {{ sessionid }}{% endblock %}
+
+{% block headertitle %}<h3>Details for Session {{ sessionid }}</h3>{% endblock %}
+ 
+{% block body %}
+
+<table class="table">
+    <tr>
+        <th>Page ID</th>
+        <th>URL</th>
+        <th>Browser</th>
+        <th>OS</th>
+        <th>IP</th>
+        <th>City</th>
+        <th>Country</th>
+    </tr>
+    {% for r in requestviews %}
+    <tr>
+        <td>
+            {{ r.RequestURL}}
+        </td>
+        <td>
+            {{ r.HeaderUserAgent }}
+        </td>
+        <td>
+           {{ r.FunctionalBrowser}}
+        </td>
+        <td>
+            {{ r.OS }}
+        </td>
+        <td>
+            {{ r.IPAddress }}
+        </td>
+        <td>
+            {{ r.City }}
+        </td>
+        <td>
+            {{ r.Country }}
+        </td>
+        <td>
+            
+        </td>
+    </tr>
+    
+    {% endfor %}
+
+</table>
+{% endblock %}
+

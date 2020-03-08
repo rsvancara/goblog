@@ -193,6 +193,7 @@ func GetRoutes() *mux.Router {
 				views.GeoFilterMiddleware(
 					views.AuthHandler(
 						http.HandlerFunc(views.PostAdminView)))))).Methods("GET")
+
 	r.Handle(
 		"/admin/post/edit/{id}",
 		handlers.LoggingHandler(
@@ -200,6 +201,7 @@ func GetRoutes() *mux.Router {
 			views.SessionHandler(
 				views.GeoFilterMiddleware(
 					views.AuthHandler(http.HandlerFunc(views.PostEdit)))))).Methods("GET", "POST")
+
 	r.Handle(
 		"/admin/post/delete/{id}",
 		handlers.LoggingHandler(
@@ -208,6 +210,7 @@ func GetRoutes() *mux.Router {
 				views.GeoFilterMiddleware(
 					views.AuthHandler(
 						http.HandlerFunc(views.PostDelete)))))).Methods("GET")
+
 	r.Handle(
 		"/admin/sessions",
 		handlers.LoggingHandler(
@@ -216,6 +219,15 @@ func GetRoutes() *mux.Router {
 				views.GeoFilterMiddleware(
 					views.AuthHandler(
 						http.HandlerFunc(views.SessionReportHandler)))))).Methods("GET")
+
+	r.Handle(
+		"/admin/session/details/{id}",
+		handlers.LoggingHandler(
+			os.Stdout,
+			views.SessionHandler(
+				views.GeoFilterMiddleware(
+					views.AuthHandler(
+						http.HandlerFunc(views.SessionDetailsReportHandler)))))).Methods("GET")
 
 	r.Handle(
 		"/admin/filters",

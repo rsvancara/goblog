@@ -130,7 +130,7 @@ func (r *RequestView) GetRequestViewByPTAG(id string) error {
 }
 
 // GetRequestViewsBySessionID get a list of requestviews by sessionid
-func GetRequestViewsBySessionID(id string) ([]RequestView, error) {
+func (r *RequestView) GetRequestViewsBySessionID(id string) ([]RequestView, error) {
 
 	var db db.Session
 
@@ -154,7 +154,7 @@ func GetRequestViewsBySessionID(id string) ([]RequestView, error) {
 	// Sort by `_id` field descending
 	options.SetSort(map[string]int{"created_at": -1})
 
-	cur, err := db.Client.Database(getPostDB()).Collection("posts").Find(context.TODO(), filter, options)
+	cur, err := db.Client.Database(getRequestViewDB()).Collection("requestview").Find(context.TODO(), filter, options)
 	if err != nil {
 		return nil, err
 	}

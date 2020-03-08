@@ -7,7 +7,16 @@
 {% block body %}
 
 <table class="table">
-    <tr><th>Session ID</th><th>Authenticated</th><th>User</th><th>IP Address</th><th>City</th><th>Country</th></tr>
+    <tr>
+        <th>ID</th>
+        <th>Auth</th>
+        <th>User</th>
+        <th>IP</th>
+        <th>City</th>
+        <th>Country</th>
+        <th></th>
+        <th></th>
+    </tr>
     {% for s in sessions %}
     <tr>
         <td>
@@ -20,13 +29,16 @@
             {{ s.User.Username }}
         </td>
         <td>
-            IP: {{ s.User.IPAddress }}
+            {{ s.User.IPAddress }}
         </td>
         <td>
             {{ s.User.City }}
         </td>
         <td>
             {{ s.User.Country }}
+        </td>
+        <td>
+            <a class="btn btn-primary" href="/admin/session/details/{{ s.SessionToken }}">Details</a>
         </td>
         <td>
             <a class="btn btn-primary" href="/admin/session/delete/{{ s.SessionToken }}">Remove</a>
