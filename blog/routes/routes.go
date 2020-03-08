@@ -230,6 +230,15 @@ func GetRoutes() *mux.Router {
 						http.HandlerFunc(views.SessionDetailsReportHandler)))))).Methods("GET")
 
 	r.Handle(
+		"/admin/session/inspector/{id}",
+		handlers.LoggingHandler(
+			os.Stdout,
+			views.SessionHandler(
+				views.GeoFilterMiddleware(
+					views.AuthHandler(
+						http.HandlerFunc(views.RequestInspectorReportHandler)))))).Methods("GET")
+
+	r.Handle(
 		"/admin/filters",
 		handlers.LoggingHandler(
 			os.Stdout,

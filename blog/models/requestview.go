@@ -33,6 +33,7 @@ type RequestView struct {
 	RequestURL        string             `json:"request_url" bson:"request_url"`
 	City              string             `json:"city" bson:"city"`
 	Country           string             `json:"country" bson:"country"`
+	RawRequest        string             `json:"raw_request" bson:"raw_request"`
 }
 
 //CreateRequestView create a new requestview

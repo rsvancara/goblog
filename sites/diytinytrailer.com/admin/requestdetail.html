@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+ 
+{% block title  %}Details for Session {{ req.PTag }}{% endblock %}
+
+{% block headertitle %}<h3>Details for Request {{ req.PTag }}</h3>{% endblock %}
+ 
+{% block body %}
+<style>
+    .result-list {
+        list-style-type:none;
+        margin-left: 0px;
+        padding-left: 0px;
+    }
+
+    .result-item {
+        padding-top: 5px;
+        padding-bottom: 2px;
+    }
+
+    .rlabel {
+        display: inline-block;
+        width: 200px;
+        font-weight: bold;
+    }
+</style>
+<div class="row">
+    <div class="col-md-12">
+        <ul class="result-list">
+        <li class="result-item"><span class="rlabel">ID:</span> {{ req.RequestViewID }}</li>
+        <li class="result-item"><span class="rlabel">Functional Browser:</span> {{ req.FunctionalBrowser }}</li>
+        <li class="result-item"><span class="rlabel">Session ID:</span> {{ req.SessionID }}</li>
+        <li class="result-item"><span class="rlabel">OS Version:</span> {{ req.OSVersion }}</li>
+        <li class="result-item"><span class="rlabel">OS:</span> {{ req.OS }}</li>
+        <li class="result-item"><span class="rlabel">Javascript User Agent:</span> {{ req.UserAgent }}</li>
+        <li class="result-item"><span class="rlabel">App Version:</span> {{ req.NavAppVersion }}</li>
+        <li class="result-item"><span class="rlabel">Platform:</span> {{ req.NavPlatform }}</li>
+        <li class="result-item"><span class="rlabel">Browser:</span> {{ req.NavBrowser }}</li>
+        <li class="result-item"><span class="rlabel">Browser Version:</span> {{ req.BrowserVersion }}</li>
+        <li class="result-item"><span class="rlabel">Page Tag:</span> {{ req.PTag }}</li>
+        <li class="result-item"><span class="rlabel">Created At:</span> {{ req.CreatedAt }}</li>
+        <li class="result-item"><span class="rlabel">Udated At:</span> {{ req.UpdatedAt }}</li>
+        <li class="result-item"><span class="rlabel">Request User Agent:</span> {{ req.HeaderUserAgent }}</li>
+        <li class="result-item"><span class="rlabel">IP Address:</span> {{ req.IPAddress }}</li>
+        <li class="result-item"><span class="rlabel">Request URL:</span> {{ req.RequestURL }}</li>
+        <li class="result-item"><span class="rlabel">City:</span> {{ req.City }}</li>
+        <li class="result-item"><span class="rlabel">Country:</span> {{ req.Country }}
+        </ul>
+
+
+
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-12">
+        <pre>
+{{ req.RawRequest }}
+        </pre>
+    </div>
+</div>
+
+{% endblock %}
+

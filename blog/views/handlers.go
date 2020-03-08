@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/http/httputil"
 	"strings"
 
 	//"bf.go/blog/mongo"
@@ -118,6 +119,13 @@ func GeoFilterMiddleware(next http.Handler) http.Handler {
 
 		//fmt.Printf("Found a context for session in geo module %s\n", sess.SessionToken)
 
+		// Save a copy of this request for debugging.
+		requestDump, err := httputil.DumpRequest(r, true)
+		if err != nil {
+			fmt.Printf("error getting raw request: %s", err)
+		}
+		rawRequest := string(requestDump)
+
 		var rv models.RequestView
 		rv.IPAddress = geoIP.IPAddress.String()
 		rv.HeaderUserAgent = r.Header.Get("User-Agent")
@@ -126,6 +134,7 @@ func GeoFilterMiddleware(next http.Handler) http.Handler {
 		rv.SessionID = sess.SessionToken
 		rv.City = geoIP.City
 		rv.Country = geoIP.CountryName
+		rv.RawRequest = rawRequest
 		err = rv.CreateRequestView()
 		if err != nil {
 			fmt.Printf("error creating requestview: %s\n", err)

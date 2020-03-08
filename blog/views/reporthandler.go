@@ -109,3 +109,47 @@ func SessionDeleteHandler(w http.ResponseWriter, r *http.Request) {
 
 	return
 }
+
+// RequestInspectorReportHandler Get details of a request
+func RequestInspectorReportHandler(w http.ResponseWriter, r *http.Request) {
+	sess := GetSession(r)
+
+	// HTTP URL Parameters
+	vars := mux.Vars(r)
+	if val, ok := vars["id"]; ok {
+
+	} else {
+		fmt.Printf("Error getting url variable, id: %s", val)
+		return
+	}
+
+	var rv models.RequestView
+	err := rv.GetRequestViewByPTAG(vars["id"])
+	if err != nil {
+		fmt.Printf("Error getting session details for %s with error %s", vars["id"], err)
+	}
+
+	template, err := util.SiteTemplate("/admin/requestdetail.html")
+	//template := "templates/admin/media.html"
+	tmpl := pongo2.Must(pongo2.FromFile(template))
+
+	out, err := tmpl.Execute(pongo2.Context{
+		"title":     "Request View",
+		"req":       rv,
+		"user":      sess.User,
+		"sessionid": vars["id"],
+		"bodyclass": "",
+		"hidetitle": true,
+		"pagekey":   GetPageID(r),
+		"token":     sess.SessionToken,
+	})
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		fmt.Println(err)
+	}
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintf(w, out)
+
+	return
+}
