@@ -31,6 +31,8 @@ type RequestView struct {
 	HeaderUserAgent   string             `json:"header_user_agent" bson:"header_user_agent"`
 	IPAddress         string             `json:"ipaddress" bson:"ipaddress"`
 	RequestURL        string             `json:"request_url" bson:"request_url"`
+	City              string             `json:"city" bson:"city"`
+	Country           string             `json:"country" bson:"country"`
 }
 
 //CreateRequestView create a new requestview

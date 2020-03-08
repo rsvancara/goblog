@@ -124,6 +124,8 @@ func GeoFilterMiddleware(next http.Handler) http.Handler {
 		rv.PTag = geoIP.PageID
 		rv.RequestURL = r.RequestURI
 		rv.SessionID = sess.SessionToken
+		rv.City = geoIP.City
+		rv.Country = geoIP.CountryName
 		err = rv.CreateRequestView()
 		if err != nil {
 			fmt.Printf("error creating requestview: %s\n", err)
