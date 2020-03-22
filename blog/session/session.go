@@ -10,7 +10,6 @@ import (
 	"blog/blog/cache"
 	"blog/blog/config"
 	"blog/blog/requestfilter"
-	"blog/blog/util"
 
 	"github.com/gomodule/redigo/redis"
 	uuid "github.com/satori/go.uuid"
@@ -176,13 +175,13 @@ func (s *Session) Authenticate(creds Credentials, r *http.Request, w http.Respon
 
 	// Attempt to extract additional information from a context
 	//var geoIP requestfilter.GeoIP
-	var ctxKey util.CtxKey
+	// CtxKey Context Key
+	type contextKey string
+	var ctxKey contextKey
 	ctxKey = "geoip"
 
 	if result := r.Context().Value(ctxKey); result != nil {
 
-		//fmt.Println("Found context")
-		//fmt.Println(result)
 		// Type Assertion....
 		geoIP, ok := result.(requestfilter.GeoIP)
 		if !ok {
@@ -211,8 +210,6 @@ func (s *Session) Authenticate(creds Credentials, r *http.Request, w http.Respon
 	if err != nil {
 		return false, fmt.Errorf("Error removing session in redis: %s", err)
 	}
-
-	//fmt.Printf("Session Timeout in authentication %s", cfg.GetSessionTimeout())
 
 	// Set/Replace the token in the cache, along with t he user whom it represents
 	// The token has an expiry time of 120 seconds
@@ -371,7 +368,8 @@ func (s *Session) Session(r *http.Request, w http.ResponseWriter) error {
 			// not found then extract it manually by calling the API.  There are conditions
 			// where this can be pulled from the context, but most likely you can not.  Maybe
 			// we do not use the context route, since sessions come first...
-			var ctxKey util.CtxKey
+			type contextKey string
+			var ctxKey contextKey
 			ctxKey = "geoip"
 
 			if result := r.Context().Value(ctxKey); result != nil {

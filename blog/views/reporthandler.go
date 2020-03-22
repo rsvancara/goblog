@@ -14,7 +14,7 @@ import (
 // SessionReportHandler build a list of current user sessions
 func SessionReportHandler(w http.ResponseWriter, r *http.Request) {
 
-	sess := GetSession(r)
+	sess := util.GetSession(r)
 
 	var sessions []session.Session
 	sessions, err := session.GetAllSessions()
@@ -29,7 +29,7 @@ func SessionReportHandler(w http.ResponseWriter, r *http.Request) {
 		"user":      sess.User,
 		"bodyclass": "",
 		"hidetitle": true,
-		"pagekey":   GetPageID(r),
+		"pagekey":   util.GetPageID(r),
 		"token":     sess.SessionToken,
 	})
 
@@ -46,7 +46,7 @@ func SessionReportHandler(w http.ResponseWriter, r *http.Request) {
 // SessionDetailsReportHandler build a list of current user sessions
 func SessionDetailsReportHandler(w http.ResponseWriter, r *http.Request) {
 
-	sess := GetSession(r)
+	sess := util.GetSession(r)
 
 	// HTTP URL Parameters
 	vars := mux.Vars(r)
@@ -74,7 +74,7 @@ func SessionDetailsReportHandler(w http.ResponseWriter, r *http.Request) {
 		"sessionid":    vars["id"],
 		"bodyclass":    "",
 		"hidetitle":    true,
-		"pagekey":      GetPageID(r),
+		"pagekey":      util.GetPageID(r),
 		"token":        sess.SessionToken,
 	})
 
@@ -112,7 +112,7 @@ func SessionDeleteHandler(w http.ResponseWriter, r *http.Request) {
 
 // RequestInspectorReportHandler Get details of a request
 func RequestInspectorReportHandler(w http.ResponseWriter, r *http.Request) {
-	sess := GetSession(r)
+	sess := util.GetSession(r)
 
 	// HTTP URL Parameters
 	vars := mux.Vars(r)
@@ -140,7 +140,7 @@ func RequestInspectorReportHandler(w http.ResponseWriter, r *http.Request) {
 		"sessionid": vars["id"],
 		"bodyclass": "",
 		"hidetitle": true,
-		"pagekey":   GetPageID(r),
+		"pagekey":   util.GetPageID(r),
 		"token":     sess.SessionToken,
 	})
 

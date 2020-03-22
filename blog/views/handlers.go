@@ -112,7 +112,7 @@ func GeoFilterMiddleware(next http.Handler) http.Handler {
 		ctxKey = "geoip"
 		ctx := context.WithValue(r.Context(), ctxKey, geoIP)
 
-		sess, err := SessionContext(r)
+		sess, err := util.SessionContext(r)
 		if err != nil {
 			fmt.Printf("Error getting session from context: %s\n", err)
 		}
@@ -120,7 +120,7 @@ func GeoFilterMiddleware(next http.Handler) http.Handler {
 		//fmt.Printf("Found a context for session in geo module %s\n", sess.SessionToken)
 
 		// Save a copy of this request for debugging.
-		requestDump, err := httputil.DumpRequest(r, true)
+		requestDump, err := httputil.DumpRequest(r, false)
 		if err != nil {
 			fmt.Printf("error getting raw request: %s", err)
 		}
@@ -146,7 +146,7 @@ func GeoFilterMiddleware(next http.Handler) http.Handler {
 
 // HomeHandler Home page
 func HomeHandler(w http.ResponseWriter, r *http.Request) {
-	sess := GetSession(r)
+	sess := util.GetSession(r)
 
 	// Get List
 	posts, err := models.AllPostsSortedByDate()
@@ -164,7 +164,7 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 		"user":      sess.User,
 		"bodyclass": "frontpage",
 		"hidetitle": true,
-		"pagekey":   GetPageID(r),
+		"pagekey":   util.GetPageID(r),
 		"token":     sess.SessionToken,
 	})
 
@@ -179,7 +179,7 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 // Signin Sign into the application
 func Signin(w http.ResponseWriter, r *http.Request) {
 
-	sess := GetSession(r)
+	sess := util.GetSession(r)
 
 	if r.Method == http.MethodPost {
 		if err := r.ParseForm(); err != nil {
@@ -222,7 +222,7 @@ func Signin(w http.ResponseWriter, r *http.Request) {
 		"title":    "Index",
 		"greating": "Hello",
 		"user":     sess.User,
-		"pagekey":  GetPageID(r),
+		"pagekey":  util.GetPageID(r),
 		"token":    sess.SessionToken,
 	})
 	if err != nil {
@@ -236,9 +236,9 @@ func Signin(w http.ResponseWriter, r *http.Request) {
 // AdminHome admin home page
 func AdminHome(w http.ResponseWriter, r *http.Request) {
 
-	sess := GetSession(r)
+	sess := util.GetSession(r)
 
-	geoIP, err := GeoIPContext(r)
+	geoIP, err := util.GeoIPContext(r)
 	if err != nil {
 		fmt.Printf("error obtaining geoip context: %s", err)
 	}
@@ -265,7 +265,7 @@ func AdminHome(w http.ResponseWriter, r *http.Request) {
 // AboutHandler about page
 func AboutHandler(w http.ResponseWriter, r *http.Request) {
 
-	sess := GetSession(r)
+	sess := util.GetSession(r)
 
 	template, err := util.SiteTemplate("/about.html")
 	//template := "templates/about.html"
@@ -275,7 +275,7 @@ func AboutHandler(w http.ResponseWriter, r *http.Request) {
 		"title":    "Index",
 		"greating": "Hello",
 		"user":     sess.User,
-		"pagekey":  GetPageID(r),
+		"pagekey":  util.GetPageID(r),
 		"token":    sess.SessionToken,
 	})
 	if err != nil {
@@ -308,7 +308,7 @@ func ContactHandler(w http.ResponseWriter, r *http.Request) {
 		"title":    "Index",
 		"greating": "Hello",
 		"user":     sess.User,
-		"pagekey":  GetPageID(r),
+		"pagekey":  util.GetPageID(r),
 		"token":    sess.SessionToken,
 	})
 	if err != nil {
@@ -409,7 +409,7 @@ func SiteMap(w http.ResponseWriter, r *http.Request) {
 // WPLoginHandler handles fake wordpress login requests.  Log the request
 // to process for adding to permenant block list
 func WPLoginHandler(w http.ResponseWriter, r *http.Request) {
-	sess := GetSession(r)
+	sess := util.GetSession(r)
 
 	cfg, err := config.GetConfig()
 	if err != nil {
@@ -457,7 +457,7 @@ func WPLoginHandler(w http.ResponseWriter, r *http.Request) {
 		"title":   "WP-Login",
 		"site":    cfg.Site,
 		"user":    sess.User,
-		"pagekey": GetPageID(r),
+		"pagekey": util.GetPageID(r),
 		"token":   sess.SessionToken,
 	})
 
@@ -471,7 +471,7 @@ func WPLoginHandler(w http.ResponseWriter, r *http.Request) {
 
 // WPAdminHandler provides fake admin page
 func WPAdminHandler(w http.ResponseWriter, r *http.Request) {
-	sess := GetSession(r)
+	sess := util.GetSession(r)
 
 	template, err := util.SiteTemplate("/evil/wp-admin.html")
 	tmpl := pongo2.Must(pongo2.FromFile(template))
@@ -480,7 +480,7 @@ func WPAdminHandler(w http.ResponseWriter, r *http.Request) {
 		"title":     "WP-Login",
 		"sessionid": sess.SessionToken,
 		"user":      sess.User,
-		"pagekey":   GetPageID(r),
+		"pagekey":   util.GetPageID(r),
 		"token":     sess.SessionToken,
 	})
 
@@ -497,7 +497,7 @@ func RequestBotAPI(w http.ResponseWriter, r *http.Request) {
 
 	errorMessage := "{\"status\":\"error\", \"message\": \"error: %s in %s\",\"file\":\"error\"}\n"
 
-	sess := GetSession(r)
+	sess := util.GetSession(r)
 
 	var d models.RequestView
 	err := json.NewDecoder(r.Body).Decode(&d)

@@ -248,6 +248,24 @@ func GetRoutes() *mux.Router {
 						http.HandlerFunc(views.FilterHandler)))))).Methods("GET")
 
 	r.Handle(
+		"/admin/filters/create",
+		handlers.LoggingHandler(
+			os.Stdout,
+			views.SessionHandler(
+				views.GeoFilterMiddleware(
+					views.AuthHandler(
+						http.HandlerFunc(views.CreateFilterHandler)))))).Methods("GET")
+
+	r.Handle(
+		"/api/v1/filters/create",
+		handlers.LoggingHandler(
+			os.Stdout,
+			views.SessionHandler(
+				views.GeoFilterMiddleware(
+					views.AuthHandler(
+						http.HandlerFunc(views.CreateAPIFilterHandler)))))).Methods("GET")
+
+	r.Handle(
 		"/admin/affiliates",
 		handlers.LoggingHandler(
 			os.Stdout,

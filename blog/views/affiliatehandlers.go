@@ -14,7 +14,7 @@ import (
 // AffiliateHandler view list of affiliates
 func AffiliateHandler(w http.ResponseWriter, r *http.Request) {
 
-	sess := GetSession(r)
+	sess := util.GetSession(r)
 
 	// Create Record
 	affiliates, err := models.GetAllAffiliateOrderByDate()
@@ -29,7 +29,7 @@ func AffiliateHandler(w http.ResponseWriter, r *http.Request) {
 		"user":       sess.User,
 		"title":      "Affiliates",
 		"affiliates": affiliates,
-		"pagekey":    GetPageID(r),
+		"pagekey":    util.GetPageID(r),
 		"token":      sess.SessionToken,
 	})
 
@@ -44,7 +44,7 @@ func AffiliateHandler(w http.ResponseWriter, r *http.Request) {
 
 // AffiliateAddHandler view list of affiliates
 func AffiliateAddHandler(w http.ResponseWriter, r *http.Request) {
-	sess := GetSession(r)
+	sess := util.GetSession(r)
 
 	var af models.Affiliate
 	// Form Variables
@@ -114,7 +114,7 @@ func AffiliateAddHandler(w http.ResponseWriter, r *http.Request) {
 		"titleMessageError":    titleMessageError,
 		"categoryMessage":      categoryMessage,
 		"categoryMessageError": categoryMessageError,
-		"pagekey":              GetPageID(r),
+		"pagekey":              util.GetPageID(r),
 		"token":                sess.SessionToken,
 	})
 
@@ -129,7 +129,7 @@ func AffiliateAddHandler(w http.ResponseWriter, r *http.Request) {
 
 // AffiliateEditHandler view list of affiliates
 func AffiliateEditHandler(w http.ResponseWriter, r *http.Request) {
-	sess := GetSession(r)
+	sess := util.GetSession(r)
 
 	// HTTP URL Parameters
 	vars := mux.Vars(r)
@@ -209,7 +209,7 @@ func AffiliateEditHandler(w http.ResponseWriter, r *http.Request) {
 		"titleMessageError":    titleMessageError,
 		"categoryMessage":      categoryMessage,
 		"categoryMessageError": categoryMessageError,
-		"pagekey":              GetPageID(r),
+		"pagekey":              util.GetPageID(r),
 		"token":                sess.SessionToken,
 	})
 
@@ -224,7 +224,7 @@ func AffiliateEditHandler(w http.ResponseWriter, r *http.Request) {
 
 // AffiliateDeleteHandler view list of affiliates
 func AffiliateDeleteHandler(w http.ResponseWriter, r *http.Request) {
-	//sess := GetSession(r)
+	//sess := util.GetSession(r)
 
 	// HTTP URL Parameters
 	vars := mux.Vars(r)
@@ -252,7 +252,7 @@ func AffiliateDeleteHandler(w http.ResponseWriter, r *http.Request) {
 // AffiliateBouncyHouseHandler view list of affiliates
 func AffiliateBouncyHouseHandler(w http.ResponseWriter, r *http.Request) {
 
-	sess := GetSession(r)
+	sess := util.GetSession(r)
 
 	// HTTP URL Parameters
 	vars := mux.Vars(r)

@@ -6,7 +6,6 @@ import (
 	"blog/blog/util"
 	"bytes"
 	"fmt"
-	"log"
 	"net/http"
 
 	"github.com/flosch/pongo2"
@@ -20,13 +19,10 @@ import (
 // PhotoView View File
 func PhotoView(w http.ResponseWriter, r *http.Request) {
 
-	log.Print("Look at me!")
-
 	var media models.MediaModel
 
-	sess := GetSession(r)
+	sess := util.GetSession(r)
 
-	// HTTP URL Parameters
 	vars := mux.Vars(r)
 	if val, ok := vars["id"]; ok {
 
@@ -52,7 +48,7 @@ func PhotoView(w http.ResponseWriter, r *http.Request) {
 		"fluid":           true,
 		"hidetitle":       true,
 		"exposureprogram": media.GetExposureProgramTranslated(),
-		"pagekey":         GetPageID(r),
+		"pagekey":         util.GetPageID(r),
 		"token":           sess.SessionToken,
 	})
 
@@ -105,7 +101,7 @@ func GetMediaAPI(w http.ResponseWriter, r *http.Request) {
 // PostView Home page
 func PostView(w http.ResponseWriter, r *http.Request) {
 
-	sess := GetSession(r)
+	sess := util.GetSession(r)
 
 	// HTTP URL Parameters
 	vars := mux.Vars(r)
@@ -151,7 +147,7 @@ func PostView(w http.ResponseWriter, r *http.Request) {
 		"post":    pm,
 		"content": buf.String(),
 		"user":    sess.User,
-		"pagekey": GetPageID(r),
+		"pagekey": util.GetPageID(r),
 		"token":   sess.SessionToken,
 	})
 
@@ -165,7 +161,7 @@ func PostView(w http.ResponseWriter, r *http.Request) {
 
 // Post post
 func Post(w http.ResponseWriter, r *http.Request) {
-	sess := GetSession(r)
+	sess := util.GetSession(r)
 
 	// Create Record
 	posts, err := models.AllPostsSortedByDate()
@@ -180,7 +176,7 @@ func Post(w http.ResponseWriter, r *http.Request) {
 		"title":   "Index",
 		"posts":   posts,
 		"user":    sess.User,
-		"pagekey": GetPageID(r),
+		"pagekey": util.GetPageID(r),
 		"token":   sess.SessionToken,
 	})
 	if err != nil {
@@ -208,7 +204,7 @@ func PostEdit(w http.ResponseWriter, r *http.Request) {
 	postKeywordsMessage := ""
 	postKeywordsMessageError := false
 
-	sess := GetSession(r)
+	sess := util.GetSession(r)
 
 	// HTTP URL Parameters
 	vars := mux.Vars(r)
@@ -314,7 +310,7 @@ func PostEdit(w http.ResponseWriter, r *http.Request) {
 		"postTeaserMessageError":   postTeaserMessageError,
 		"postKeywordsMessage":      postKeywordsMessage,
 		"postKeywordsMessageError": postKeywordsMessageError,
-		"pagekey":                  GetPageID(r),
+		"pagekey":                  util.GetPageID(r),
 		"token":                    sess.SessionToken,
 	})
 
@@ -376,7 +372,7 @@ func PostAdminView(w http.ResponseWriter, r *http.Request) {
 		"post":    pm,
 		"content": buf.String,
 		"user":    sess.User,
-		"pagekey": GetPageID(r),
+		"pagekey": util.GetPageID(r),
 		"token":   sess.SessionToken,
 	})
 
@@ -504,7 +500,7 @@ func PostAdd(w http.ResponseWriter, r *http.Request) {
 		"postTeaserMessageError":   postTeaserMessageError,
 		"postKeywordsMessage":      postKeywordsMessage,
 		"postKeywordsMessageError": postKeywordsMessageError,
-		"pagekey":                  GetPageID(r),
+		"pagekey":                  util.GetPageID(r),
 		"token":                    sess.SessionToken,
 	})
 

@@ -37,7 +37,7 @@ type jsonErrorMessage struct {
 
 // Media media
 func Media(w http.ResponseWriter, r *http.Request) {
-	sess := GetSession(r)
+	sess := util.GetSession(r)
 
 	// Get List
 	media, err := models.AllMediaSortedByDate()
@@ -55,7 +55,7 @@ func Media(w http.ResponseWriter, r *http.Request) {
 		"user":      sess.User,
 		"bodyclass": "",
 		"hidetitle": true,
-		"pagekey":   GetPageID(r),
+		"pagekey":   util.GetPageID(r),
 		"token":     sess.SessionToken,
 	})
 
@@ -72,7 +72,7 @@ func ViewMedia(w http.ResponseWriter, r *http.Request) {
 
 	var media models.MediaModel
 
-	sess := GetSession(r)
+	sess := util.GetSession(r)
 
 	// HTTP URL Parameters
 	vars := mux.Vars(r)
@@ -101,7 +101,7 @@ func ViewMedia(w http.ResponseWriter, r *http.Request) {
 		"fluid":           true,
 		"hidetitle":       true,
 		"exposureprogram": media.GetExposureProgramTranslated(),
-		"pagekey":         GetPageID(r),
+		"pagekey":         util.GetPageID(r),
 		"token":           sess.SessionToken,
 	})
 
@@ -264,7 +264,7 @@ func MediaEdit(w http.ResponseWriter, r *http.Request) {
 	formLocation := ""
 	formLocationError := false
 
-	sess := GetSession(r)
+	sess := util.GetSession(r)
 
 	// HTTP URL Parameters
 	vars := mux.Vars(r)
@@ -361,7 +361,7 @@ func MediaEdit(w http.ResponseWriter, r *http.Request) {
 		"formCategoryError":    formCategoryError,
 		"formLocation":         formLocation,
 		"formLocationError":    formLocationError,
-		"pagekey":              GetPageID(r),
+		"pagekey":              util.GetPageID(r),
 		"token":                sess.SessionToken,
 	})
 
@@ -377,7 +377,7 @@ func MediaEdit(w http.ResponseWriter, r *http.Request) {
 // MediaDelete Delete media from the database and s3
 func MediaDelete(w http.ResponseWriter, r *http.Request) {
 
-	//sess := GetSession(r)
+	//sess := util.GetSession(r)
 
 	// HTTP URL Parameters
 	vars := mux.Vars(r)

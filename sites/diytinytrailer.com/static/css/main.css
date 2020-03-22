@@ -23,13 +23,13 @@ body.frontpage {
     /*
     background: url('https://vi-goblog.s3-us-west-2.amazonaws.com/media/2015/10/4/7/51/46/1WkWQz4lQ0ubDAO2ZUlBx7kp1si/largeview.jpeg') no-repeat center center fixed;
     */
-    background: url(/images/glass_metal_tile.jpg) no-repeat center center fixed; 
+    background: #000000 url(/images/background01.jpg) no-repeat center center fixed; 
     -webkit-background-size: cover;
     -moz-background-size: cover;
     -o-background-size: cover;
     background-size: cover;
 }
-
+    
 .bg-light {
     background-color: #a7a7a7!important;
 }

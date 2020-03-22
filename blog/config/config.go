@@ -21,6 +21,7 @@ type AppConfig struct {
 	SessionTimeout string `envconfig:"SESSION_TIMEOUT"` // defines session timeout
 	MongoDatabase  string `envconfig:"MONGO_DATABASE"`  // Defines mongo database
 	RedisDB        string `envconfig:"REDIS_DB"`        // Defines logical redis database
+	RedisFilterDB  string `envconfig:"REDISFILTER_DB"`  // Defines logical redis filter database
 }
 
 //GetCacheURI returs cache uri for redis
