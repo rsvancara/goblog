@@ -345,6 +345,42 @@ func GetRoutes() *mux.Router {
 					http.HandlerFunc(views.WPAdminHandler))))).Methods("GET", "POST")
 
 	r.Handle(
+		"/admin/searchindex",
+		handlers.LoggingHandler(
+			os.Stdout,
+			views.SessionHandler(
+				views.GeoFilterMiddleware(
+					views.AuthHandler(
+						http.HandlerFunc(views.SearchIndexListHandler)))))).Methods("GET", "POST")
+
+	r.Handle(
+		"/admin/buildmediaindex",
+		handlers.LoggingHandler(
+			os.Stdout,
+			views.SessionHandler(
+				views.GeoFilterMiddleware(
+					views.AuthHandler(
+						http.HandlerFunc(views.SearchIndexBuildTagsHandler)))))).Methods("GET", "POST")
+
+	r.Handle(
+		"/admin/buildmediaindexgo",
+		handlers.LoggingHandler(
+			os.Stdout,
+			views.SessionHandler(
+				views.GeoFilterMiddleware(
+					views.AuthHandler(
+						http.HandlerFunc(views.SearchIndexBuilderMediaHandler)))))).Methods("GET", "POST")
+
+	r.Handle(
+		"/admin/api/search-media-tags-by-name/{name}",
+		handlers.LoggingHandler(
+			os.Stdout,
+			views.SessionHandler(
+				views.GeoFilterMiddleware(
+					views.AuthHandler(
+						http.HandlerFunc(views.SearchIndexMediaTagsAPI)))))).Methods("GET", "POST")
+
+	r.Handle(
 		"/api/request/v1",
 		handlers.LoggingHandler(
 			os.Stdout,
