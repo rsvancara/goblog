@@ -1,7 +1,7 @@
 $(document).ready(function(){ 
 
   var selectorType = ""
-  
+
   console.log("editor loaded");
 
   $("#butt_h1").click(function() {
@@ -22,6 +22,13 @@ $(document).ready(function(){
   $("button.img-select").click(function(e){
     e.preventDefault()
   });
+
+  $("#teaser-butt").click(function(e){
+    e.preventDefault()
+    selectorType = "teaser"
+  });
+
+  
 
   $("#search").click(function(e) {
 
@@ -55,7 +62,7 @@ $(document).ready(function(){
                 $.each(response['tags'], function(k){
                   console.log('result: ' + response['tags'][k]['document_id'] + " - " + response['tags'][k]['small_image_url']);
                   console.log('adding ' +response['tags'][k]['small_image_url'] );
-                  $('#searchresult').append('<div class="img-result"><input name="img" type="radio" data-title="' + response['tags'][k]['title'] + '"value="' + response['tags'][k]['document_id'] + '"/> <img src="/' + response['tags'][k]['small_image_url'] + '" style="width: 50px; height: 50px;" /><span class="img-title">' + response['tags'][k]['title']  + '</span></div>');
+                  $('#searchresult').append('<div class="img-result"><input name="img" type="radio" data-img="/'+ response['tags'][k]['small_image_url'] + '" data-title="' + response['tags'][k]['title'] + '"value="' + response['tags'][k]['document_id'] + '"/> <img src="/' + response['tags'][k]['small_image_url'] + '" style="width: 50px; height: 50px;" /><span class="img-title">' + response['tags'][k]['title']  + '</span></div>');
 
                 });
               }else {
@@ -78,22 +85,29 @@ $(document).ready(function(){
   });
 
   $("#buttonSelect").click(function() {
-    var cursorPos = $('#mainContent').prop('selectionStart');
-    console.log(cursorPos);
-    var v = $('#mainContent').val();
-    if (cursorPos == 0) {
-      cursorPos = v.length;
-    }
-    console.log(v);
-    var textBefore = v.substring(0,  cursorPos);
-    var textAfter  = v.substring(cursorPos, v.length);
 
     var radioValue = $("input[name='img']:checked"). val();
     var radioTitle = $("input[name='img']:checked").attr('data-title');
+    var radioURL = $("input[name='img']:checked").attr('data-img');
 
-    console.log(radioValue);
+    console.log(radioValue + ' ' + radioURL );
+    if (selectorType == "teaser"){
+      $('#inputTeaserImage').val(radioValue);
+      $('#imgviewer').html('<img src="' + radioURL + '" />');
+    } else {
+      var cursorPos = $('#mainContent').prop('selectionStart');
+      console.log(cursorPos);
+      var v = $('#mainContent').val();
+      if (cursorPos == 0) {
+        cursorPos = v.length;
+      }
+      console.log(v);
+      var textBefore = v.substring(0,  cursorPos);
+      var textAfter  = v.substring(cursorPos, v.length);
+      $('#mainContent').val(textBefore + ' <div class="load-image" data-id="' + radioValue + '">' + radioTitle + '</div>' + textAfter);
+    }
 
-    $('#mainContent').val(textBefore + ' <div class="load-image" data-id="' + radioValue + '">' + radioTitle + '</div>' + textAfter);
+    selectorType = ""
 
     $('#imageSelectModal').modal('hide');
   })
