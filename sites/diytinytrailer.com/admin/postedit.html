@@ -119,6 +119,9 @@
     <label for="inputTeaserImage">Teaser Image</label>
     <input type="hidden" class="form-control" id="inputTeaserImage" name="inputTeaserImage" value="{{ post.TeaserImage }}"/>
     <div id="imgviewer">
+        {% if teaserImageUrl %}
+            <img src="/image/{{ teaserImageUrl }}/thumb" />
+        {% endif %}
 
 
     </div>
