@@ -1,4 +1,4 @@
-adsfdsfadsfdsfdfsadsfdsfadsfdsfsdfpackage models
+package models
 
 import (
 	"fmt"

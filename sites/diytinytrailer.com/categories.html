@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title  %}{{ title }}{% endblock %}
+
+{% block headertitle %}<h2>{{ title }}</h2>{% endblock %}
+{% block stylesheet %}
+{% endblock %}
+{% block body %} 
+<div class="row">
+  <div class="col-lg-12">
+    {% for m in medialist %}
+      <a href="/category/{{ m }}">{{ m }}</a>
+    {% endfor %}
+ 
+  </div>
+</div>
+
+{% endblock %}
+
+{% block script %}
+
+{% endblock %}
+

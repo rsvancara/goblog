@@ -10,8 +10,8 @@ import (
 	"github.com/gorilla/mux"
 )
 
-// ViewPortfolio View the media
-func ViewPortfolio(w http.ResponseWriter, r *http.Request) {
+// ViewCategoryHandler View the media
+func ViewCategoryHandler(w http.ResponseWriter, r *http.Request) {
 
 	var media models.MediaModel
 	var medialist []models.MediaModel
@@ -31,7 +31,7 @@ func ViewPortfolio(w http.ResponseWriter, r *http.Request) {
 		fmt.Printf("Error getting url variable, category: %s", val)
 	}
 
-	template, err := util.SiteTemplate("/portfolio.html")
+	template, err := util.SiteTemplate("/category.html")
 	//template := "templates/admin/mediaview.html"
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
@@ -52,4 +52,39 @@ func ViewPortfolio(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprintf(w, out)
+}
+
+//ViewCategoriesHandler view all categories
+func ViewCategoriesHandler(w http.ResponseWriter, r *http.Request) {
+
+	sess := util.GetSession(r)
+
+	medialist, err := models.AllCategories()
+	if err != nil {
+		fmt.Printf("Error getting media list with error %s", err)
+	}
+
+	fmt.Println(medialist)
+
+	template, err := util.SiteTemplate("/categories.html")
+	//template := "templates/admin/mediaview.html"
+	tmpl := pongo2.Must(pongo2.FromFile(template))
+
+	out, err := tmpl.Execute(pongo2.Context{
+		"title":     fmt.Sprintf("Categories"),
+		"user":      sess.User,
+		"bodyclass": "",
+		"fluid":     true,
+		"hidetitle": true,
+		"medialist": medialist,
+		"pagekey":   util.GetPageID(r),
+		"token":     sess.SessionToken,
+	})
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		fmt.Println(err)
+	}
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintf(w, out)
+
 }
