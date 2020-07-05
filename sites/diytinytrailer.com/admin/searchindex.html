@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+ 
+{% block title  %}Search Index{% endblock %}
+
+{% block headertitle %}<h1>Search Index</h1>{% endblock %}
+ 
+{% block body %}
+<div class="row">
+  <div class="col-sm-4">
+    Media Tag Index
+  </div>
+  <div class="col-sm-2">
+    {{ mediatags }} documents
+  </div>
+  <div class="col-sm-6">
+    <a href="/admin/buildmediaindex"><button id="rebuildTags" class="btn btn-primary">Manage Index</button></a>
+  </div>
+</div>
+<div style="height: 5px;"></div>
+<div class="row">
+  <div class="col-sm-6">
+    Post Tag Index
+  </div>
+  <div class="col-sm-6">
+    <a href="/admin/buildpostindex"><button id="rebuildTags" class="btn btn-primary">Manage Index</button></a>
+  </div>
+</div>
+{% endblock %}

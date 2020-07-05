@@ -56,6 +56,16 @@ func GetRoutes() *mux.Router {
 				views.GeoFilterMiddleware(
 					http.HandlerFunc(views.PostView))))).Methods(("GET"))
 
+	// Portfolio
+
+	r.Handle(
+		"/portfolio/{category}",
+		handlers.LoggingHandler(
+			os.Stdout,
+			views.SessionHandler(
+				views.GeoFilterMiddleware(
+					http.HandlerFunc(views.ViewPortfolio))))).Methods("GET")
+
 	// Photo
 	r.Handle(
 		"/photo/{id}",
@@ -343,6 +353,42 @@ func GetRoutes() *mux.Router {
 			views.SessionHandler(
 				views.GeoFilterMiddleware(
 					http.HandlerFunc(views.WPAdminHandler))))).Methods("GET", "POST")
+
+	r.Handle(
+		"/admin/searchindex",
+		handlers.LoggingHandler(
+			os.Stdout,
+			views.SessionHandler(
+				views.GeoFilterMiddleware(
+					views.AuthHandler(
+						http.HandlerFunc(views.SearchIndexListHandler)))))).Methods("GET", "POST")
+
+	r.Handle(
+		"/admin/buildmediaindex",
+		handlers.LoggingHandler(
+			os.Stdout,
+			views.SessionHandler(
+				views.GeoFilterMiddleware(
+					views.AuthHandler(
+						http.HandlerFunc(views.SearchIndexBuildTagsHandler)))))).Methods("GET", "POST")
+
+	r.Handle(
+		"/admin/buildmediaindexgo",
+		handlers.LoggingHandler(
+			os.Stdout,
+			views.SessionHandler(
+				views.GeoFilterMiddleware(
+					views.AuthHandler(
+						http.HandlerFunc(views.SearchIndexBuilderMediaHandler)))))).Methods("GET", "POST")
+
+	r.Handle(
+		"/admin/api/search-media-tags-by-name/{name}",
+		handlers.LoggingHandler(
+			os.Stdout,
+			views.SessionHandler(
+				views.GeoFilterMiddleware(
+					views.AuthHandler(
+						http.HandlerFunc(views.SearchIndexMediaTagsAPI)))))).Methods("GET", "POST")
 
 	r.Handle(
 		"/api/request/v1",

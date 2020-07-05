@@ -327,6 +327,7 @@ func MediaEdit(w http.ResponseWriter, r *http.Request) {
 			formLocationError = true
 		}
 
+		fmt.Println(validate)
 		if validate == true {
 
 			// Create Record
@@ -520,7 +521,7 @@ func addFileToS3(filepath string, media models.MediaModel) {
 
 	file, err := os.OpenFile(dThumb, os.O_RDONLY, 0666)
 	if err != nil {
-		fmt.Printf("Error uploading file %s to s3 with error %s\n", dThumb, err)
+		fmt.Printf("Error uploading file %s to s3 bucket %s with error %s\n", dThumb, cfg.S3Bucket, err)
 		return
 	}
 	defer file.Close()
@@ -545,7 +546,7 @@ func addFileToS3(filepath string, media models.MediaModel) {
 	})
 
 	if err != nil {
-		fmt.Printf("Error uploading file %s to s3 with error %s\n", filepath, err)
+		fmt.Printf("Error uploading file %s to s3 bucket %s with error %s\n", filepath, cfg.S3Bucket, err)
 		return
 	}
 
