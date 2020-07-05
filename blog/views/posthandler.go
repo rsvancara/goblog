@@ -230,9 +230,7 @@ func PostEdit(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			fmt.Printf("error getting image from database for id %s with error %s", pm.TeaserImage, err)
 		}
-		fmt.Println(mm.Slug)
 		teaserImageURL = mm.Slug
-		fmt.Println(teaserImageURL)
 	}
 
 	// Test if we are a POST to capture form submission
@@ -248,6 +246,12 @@ func PostEdit(w http.ResponseWriter, r *http.Request) {
 		pm.PostTeaser = r.FormValue("inputPostTeaser")
 		pm.Keywords = r.FormValue("inputKeywords")
 		pm.TeaserImage = r.FormValue("inputTeaserImage")
+
+		var mm models.MediaModel
+		if pm.TeaserImage != "" {
+			mm.GetMedia(pm.TeaserImage)
+			pm.TeaserImageSlug = mm.Slug
+		}
 
 		// Do validation here
 		validate := true
@@ -402,7 +406,9 @@ func PostAdminView(w http.ResponseWriter, r *http.Request) {
 // PostAdd add post
 func PostAdd(w http.ResponseWriter, r *http.Request) {
 
+	var teaserImageURL string
 	var pm models.PostModel
+
 	// Form Variables
 	titleMessage := ""
 	titleMessageError := false
@@ -436,7 +442,14 @@ func PostAdd(w http.ResponseWriter, r *http.Request) {
 		pm.Featured = r.FormValue("inputFeatured")
 		pm.PostTeaser = r.FormValue("inputPostTeaser")
 		pm.Keywords = r.FormValue("inputKeywords")
-		pm.PostTeaser = r.FormValue("inputTeaserImage")
+		pm.PostTeaser = r.FormValue("inputPostTeaser")
+		pm.TeaserImage = r.FormValue("inputTeaserImage")
+
+		var mm models.MediaModel
+		if pm.TeaserImage != "" {
+			mm.GetMedia(pm.TeaserImage)
+			pm.TeaserImageSlug = mm.Slug
+		}
 
 		if err != nil {
 			fmt.Printf("Error converting status to integer in post form: %s\n", err)
@@ -518,6 +531,7 @@ func PostAdd(w http.ResponseWriter, r *http.Request) {
 		"postKeywordsMessageError": postKeywordsMessageError,
 		"pagekey":                  util.GetPageID(r),
 		"token":                    sess.SessionToken,
+		"teaserImageUrl":           teaserImageURL,
 	})
 
 	if err != nil {

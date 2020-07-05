@@ -28,7 +28,12 @@
                     </div>
                     <div class="blog-item-content">
                         {{ p.PostTeaser }} ... <a href="/stories/{{ p.Slug }}">Read More</a>
-                    </div>  
+                    </div>
+                    <div class="blog-teaser-img">
+                        {% if p.TeaserImageSlug != "" %}
+                          <a href="/stories/{{ p.Slug }}"><img class="teaser-image-frontpage" src="/image/{{ p.TeaserImageSlug}}/large" /></a>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
         </div>

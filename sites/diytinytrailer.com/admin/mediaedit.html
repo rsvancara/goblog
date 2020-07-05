@@ -11,28 +11,27 @@
     <label for="title">Title</label>
     <input type="input" class="form-control" name="title" id="title" aria-describedby="emailHelp" value="{{ media.Title }}" placeholder="Title" />
 </div>
-{% if formTitle == true %}
+{% if formTitleError == true %}
 <div class="alert alert-warning" role="alert">
-    {{ formTitleError }}
+    {{ formTitle }}
 </div>
 {% endif %}
 <div class="form-group">
     <label for="category">Category</label>
     <input type="input" class="form-control" id="category" name="category" value="{{ media.Category }}" placeholder="Category"/>
 </div>
-{% if formCategory == true %}
+{% if formCategoryError == true %}
 <div class="alert alert-warning" role="alert">
-    {{ formCategoryError }}
+    {{ formCategory }}
 </div>
 {% endif %}
-
 <div class="form-group">
     <label for="keywords">Keywords</label>
     <input type="input" class="form-control" id="keywords" name="keywords" value="{{ media.Keywords }}" placeholder="Keywords"/>
 </div>
-{% if formKeywords == true %}
+{% if formKeywordsError == true %}
 <div class="alert alert-warning" role="alert">
-    {{ formKeywordsError }}
+    {{ formKeywords }}
 </div>
 {% endif %}
 
@@ -40,9 +39,9 @@
     <label for="keywords">Location</label>
     <input type="input" class="form-control" id="location" name="location" value="{{ media.Location }}" placeholder="Location"/>
 </div>
-{% if formLocation == true %}
+{% if formLocationError == true %}
 <div class="alert alert-warning" role="alert">
-    {{ formLocationError }}
+    {{ formLocation }}
 </div>
 {% endif %}
 
@@ -50,9 +49,9 @@
     <label for="inputPost">Description</label>
     <textarea class="form-control" id="description" name="description" rows="20">{{ media.Description }}</textarea>
 </div>
-{% if formDescription == true %}
+{% if formDescriptionError == true %}
 <div class="alert alert-warning" role="alert">
-    {{ formDescriptionError }}
+    {{ formDescription }}
 </div>
 {% endif %}
 

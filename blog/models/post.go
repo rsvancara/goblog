@@ -16,19 +16,20 @@ import (
 
 // PostModel post
 type PostModel struct {
-	ID          primitive.ObjectID `json:"_id" bson:"_id,omitempty"`
-	PostID      string             `json:"postid" bson:"postid,omitempty"`
-	Slug        string             `json:"slug" bson:"slug,omitempty"`
-	Post        string             `json:"post" bson:"post,omitempty"`
-	PostTeaser  string             `json:"post_teaser" bson:"post_teaser,omitempty"`
-	TeaserImage string             `json:"teaser_image" bson:"teaser_image,omitempty"`
-	Title       string             `json:"title" bson:"title,omitempty"`
-	Keywords    string             `json:"keywords" bson:"keywords,omitempty"`
-	Tags        []Tag              `json:"tags" bson:"tags,omitempty"`
-	Status      string             `json:"status" bson:"status,omitempty"`
-	Featured    string             `json:"featured" bson:"featured,omitempty"`
-	CreatedAt   time.Time          `json:"created_at" bson:"created_at"`
-	UpdatedAt   time.Time          `json:"updated_at" bson:"updated_at"`
+	ID              primitive.ObjectID `json:"_id" bson:"_id,omitempty"`
+	PostID          string             `json:"postid" bson:"postid,omitempty"`
+	Slug            string             `json:"slug" bson:"slug,omitempty"`
+	Post            string             `json:"post" bson:"post,omitempty"`
+	PostTeaser      string             `json:"post_teaser" bson:"post_teaser,omitempty"`
+	TeaserImage     string             `json:"teaser_image" bson:"teaser_image,omitempty"`
+	TeaserImageSlug string             `json:"teaser_image_slug" bson:"teaser_image_slug,omitempty"`
+	Title           string             `json:"title" bson:"title,omitempty"`
+	Keywords        string             `json:"keywords" bson:"keywords,omitempty"`
+	Tags            []Tag              `json:"tags" bson:"tags,omitempty"`
+	Status          string             `json:"status" bson:"status,omitempty"`
+	Featured        string             `json:"featured" bson:"featured,omitempty"`
+	CreatedAt       time.Time          `json:"created_at" bson:"created_at"`
+	UpdatedAt       time.Time          `json:"updated_at" bson:"updated_at"`
 }
 
 // GetPost populate the post object based on ID
@@ -130,16 +131,17 @@ func (p *PostModel) UpdatePost() error {
 
 	update := bson.M{
 		"$set": bson.M{
-			"title":        p.Title,
-			"post":         p.Post,
-			"updated_at":   p.UpdatedAt,
-			"status":       p.Status,
-			"post_teaser":  p.PostTeaser,
-			"featured":     p.Featured,
-			"slug":         p.Slug,
-			"keywords":     p.Keywords,
-			"tags":         p.Tags,
-			"teaser_image": p.TeaserImage,
+			"title":             p.Title,
+			"post":              p.Post,
+			"updated_at":        p.UpdatedAt,
+			"status":            p.Status,
+			"post_teaser":       p.PostTeaser,
+			"featured":          p.Featured,
+			"slug":              p.Slug,
+			"keywords":          p.Keywords,
+			"tags":              p.Tags,
+			"teaser_image":      p.TeaserImage,
+			"teaser_image_slug": p.TeaserImageSlug,
 		},
 	}
 

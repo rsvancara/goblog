@@ -56,6 +56,16 @@ func GetRoutes() *mux.Router {
 				views.GeoFilterMiddleware(
 					http.HandlerFunc(views.PostView))))).Methods(("GET"))
 
+	// Portfolio
+
+	r.Handle(
+		"/portfolio/{category}",
+		handlers.LoggingHandler(
+			os.Stdout,
+			views.SessionHandler(
+				views.GeoFilterMiddleware(
+					http.HandlerFunc(views.ViewPortfolio))))).Methods("GET")
+
 	// Photo
 	r.Handle(
 		"/photo/{id}",

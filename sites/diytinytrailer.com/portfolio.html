@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+
+{% block title  %}{{ title }}{% endblock %}
+
+{% block headertitle %}<h2>{{ title }}</h2>{% endblock %}
+{% block stylesheet %}
+<link rel="stylesheet" href="/css/portfolio.css" />
+{% endblock %}
+{% block body %} 
+<style>
+
+</style>
+<div class="row">
+  <div class="col-lg-12">
+    <div class="gallery-wrapper clearfix">
+      <div class="col-lg-6 grid-sizer"></div>
+{% for m in medialist %}
+        <div class="col-lg-6 grid-item" ">
+          <div class="img-container" id="{{ m.Slug }}"">
+          <a href="/photo/{{ m.Slug }}">
+          <img class="img-fluid" data-src="/image/{{ m.Slug }}/large" src="/image/{{ m.Slug }}/large" alt="{{ m.Title }}"/></a>
+          <div class="pinfo portfolio-mobile">
+            <div class="button-bar">
+              <a class="pinfo-title" href="/Photo/{{ m.Slug }}">{{ m.Title }}</a>
+            </div>
+            <hr />
+            <ul class="list-unstyled pinfo-list">
+              <li>
+                <i class="fa fa-circle-o" aria-hidden="true"></i>
+                <span class="pinfo-label">Camera:</span>
+                <span class="pinfo-value">{{ m.Make }}</span>
+              </li>
+              <li>
+                <i class="fa fa-circle-o" aria-hidden="true"></i>
+                <span class="pinfo-label">Model:</span>
+                <span class="pinfo-value">{{ m.Model }}</span>            
+              </li>
+              <li>
+                <i class="fa fa-circle-o" aria-hidden="true"></i>
+                <span class="pinfo-label">Exposure Time:</span>
+                <span class="pinfo-value">{{ m.ExposureTime }}</span>            
+              </li>
+              <li>
+                <i class="fa fa-circle-o" aria-hidden="true"></i>
+                <span class="pinfo-label">F-Stop:</span>
+                <span class="pinfo-value">{{ m.FStopTranslated }}</span>            
+              </li>
+              <li>
+                <i class="fa fa-circle-o" aria-hidden="true"></i>
+                <span class="pinfo-label">ISO:</span>
+                <span class="pinfo-value">{{ m.ISOSpeedRatings }}</span>            
+              </li>
+              <li>
+                <i class="fa fa-circle-o" aria-hidden="true"></i>
+                <span class="pinfo-label">Focal Length:</span>
+                <span class="pinfo-value">{{ m.FocalLengthIn35mmFilm }}</span>            
+              </li>
+              <li>
+                <i class="fa fa-circle-o" aria-hidden="true"></i>
+                <span class="pinfo-label">Exposure Program:</span>
+                <span class="pinfo-value">{{ m.ExposureProgramTranslated }}</span>            
+              </li>
+              <li>
+                <i class="fa fa-circle-o" aria-hidden="true"></i>
+                <span class="pinfo-label">Lens:</span>
+                <span class="pinfo-value">{{ m.LensModel }}</span>            
+              </li>
+              <li>
+                <i class="fa fa-circle-o" aria-hidden="true"></i>
+                <span class="pinfo-label">Software:</span>
+                <span class="pinfo-value">{{ m.Software }}</span>            
+              </li>
+            </ul> 
+          </div>
+          </div>
+        </div>
+{% endfor %}
+      </div>
+</div>
+</div>
+
+{% endblock %}
+
+{% block script %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js"></script>
+<script src="https://unpkg.com/masonry-layout@4/dist/masonry.pkgd.js"></script>
+<script src="https://unpkg.com/imagesloaded@4/imagesloaded.pkgd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
+
+<script>
+    // external js: masonry.pkgd.js, imagesloaded.pkgd.js
+     
+  var $grid = $('.gallery-wrapper').masonry({
+    itemSelector: '.grid-item',
+    columnWidth: '.grid-sizer',
+    percentPosition: true,
+    transitionDuration: 0,
+  });
+
+  $grid.imagesLoaded().progress( function() {
+    $grid.masonry();
+  });
+    console.log("Done");
+    
+    $("div.img-container").mouseover(function() {
+
+      console.log($(this).parent().parent().width())
+      if ($(this).parent().parent().width() > 768 ) {
+        var pinfo = $(this).children('div.pinfo').eq(0);
+        pinfo.width($(this).width())
+        pinfo.height($(this).height())
+        pinfo.show();
+
+      }
+      else
+      {
+        var pinfo = $(this).children('div.pinfo').eq(0);
+        pinfo.hide();
+      }
+      
+    });
+    
+    $("div.img-container").mouseout(function() {
+      var pinfo = $(this).children('div.pinfo').eq(0);
+      pinfo.hide();
+    });
+
+    $("div.img-container").click(function() {
+      var id = $(this).attr('id');
+      window.location.href = "/photo/" + id;
+    });                  
+</script>
+{% endblock %}
+

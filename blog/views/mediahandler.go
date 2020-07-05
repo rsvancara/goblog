@@ -327,6 +327,7 @@ func MediaEdit(w http.ResponseWriter, r *http.Request) {
 			formLocationError = true
 		}
 
+		fmt.Println(validate)
 		if validate == true {
 
 			// Create Record

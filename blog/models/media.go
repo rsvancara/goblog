@@ -20,40 +20,42 @@ import (
 
 // MediaModel post
 type MediaModel struct {
-	ID                    primitive.ObjectID `json:"_id" bson:"_id,omitempty"`
-	MediaID               string             `json:"media_id" bson:"media_id,omitempty"`
-	Slug                  string             `json:"slug" bson:"slug,omitempty"`
-	Keywords              string             `json:"keywords" bson:"keywords,omitempty"`
-	Category              string             `json:"category" bson:"category,omitempty"`
-	Title                 string             `json:"title" bson:"title,omitempty"`
-	FileName              string             `json:"file_name" bson:"file_name,omitempty"`
-	S3Location            string             `json:"s3_location" bson:"s3_location,omitempty"`
-	S3Thumbnail           string             `json:"s3_thumbnail" bson:"s3_thumbnail,omitempty"`
-	S3LargeView           string             `json:"s3_largeview" bson:"s3_largeview,omitempty"`
-	S3Uploaded            string             `json:"s3_uploaded" bson:"s3_uploaded,omitempty"`
-	Description           string             `json:"description" bson:"description,omitempty"`
-	Checksum              string             `json:"checksum" bson:"checksum,omitempty"`
-	CreatedAt             time.Time          `json:"created_at" bson:"created_at"`
-	UpdatedAt             time.Time          `json:"updated_at" bson:"updated_at"`
-	Make                  string             `json:"make" bson:"make,omitempty"`                           //SONY
-	Model                 string             `json:"model" bson:"model,omitempty"`                         //ILCE-7RM3
-	Software              string             `json:"software" bson:"software,omitempty"`                   //ILCE-7RM3 v2.10
-	DateTime              time.Time          `json:"datetime_taken" bson:"datetime_taken"`                 //2019:12:23 18:46:27
-	Artist                string             `json:"artist" bson:"artist,omitempty"`                       //randall svancara
-	Copyright             string             `json:"copyright" bson:"copyright,omitempty"`                 //vi
-	ExposureTime          string             `json:"exposuretime" bson:"exposuretime,omitempty"`           //1/30
-	FNumber               string             `json:"fnumber" bson:"fnumber,omitempty"`                     //14/5
-	ISOSpeedRatings       string             `json:"iso_speed_rating" bson:"iso_speed_rating,omitempty"`   //1600
-	LightSource           string             `json:"light_source" bson:"light_source,omitempty"`           //0
-	FocalLength           string             `json:"focal_length" bson:"focal_length,omitempty"`           //23/1
-	PixelXDimension       string             `json:"pixel_x_dimension" bson:"pixel_x_dimension,omitempty"` //7968
-	PixelYDimension       string             `json:"pixel_y_dimension" bson:"pixel_y_dimension,omitempty"` //5320
-	FocalLengthIn35mmFilm string             `json:"focal_length35" bson:"focal_length35,omitempty"`       //23
-	LensModel             string             `json:"lens_model" bson:"lens_model,omitempty"`               //FE 16-35mm F2.8 GM
-	ExposureProgram       string             `json:"exposure_program" bson:"exposure_program,omitempty"`
-	FStop                 string             `json:"fstop" bson:"fstop,omitempty"`
-	Tags                  []Tag              `json:"tags" bson:"tags"`
-	Location              string             `json:"location" bson:"location,omitempty"`
+	ID                        primitive.ObjectID `json:"_id" bson:"_id,omitempty"`
+	MediaID                   string             `json:"media_id" bson:"media_id,omitempty"`
+	Slug                      string             `json:"slug" bson:"slug,omitempty"`
+	Keywords                  string             `json:"keywords" bson:"keywords,omitempty"`
+	Category                  string             `json:"category" bson:"category,omitempty"`
+	Title                     string             `json:"title" bson:"title,omitempty"`
+	FileName                  string             `json:"file_name" bson:"file_name,omitempty"`
+	S3Location                string             `json:"s3_location" bson:"s3_location,omitempty"`
+	S3Thumbnail               string             `json:"s3_thumbnail" bson:"s3_thumbnail,omitempty"`
+	S3LargeView               string             `json:"s3_largeview" bson:"s3_largeview,omitempty"`
+	S3Uploaded                string             `json:"s3_uploaded" bson:"s3_uploaded,omitempty"`
+	Description               string             `json:"description" bson:"description,omitempty"`
+	Checksum                  string             `json:"checksum" bson:"checksum,omitempty"`
+	CreatedAt                 time.Time          `json:"created_at" bson:"created_at"`
+	UpdatedAt                 time.Time          `json:"updated_at" bson:"updated_at"`
+	Make                      string             `json:"make" bson:"make,omitempty"`                           //SONY
+	Model                     string             `json:"model" bson:"model,omitempty"`                         //ILCE-7RM3
+	Software                  string             `json:"software" bson:"software,omitempty"`                   //ILCE-7RM3 v2.10
+	DateTime                  time.Time          `json:"datetime_taken" bson:"datetime_taken"`                 //2019:12:23 18:46:27
+	Artist                    string             `json:"artist" bson:"artist,omitempty"`                       //randall svancara
+	Copyright                 string             `json:"copyright" bson:"copyright,omitempty"`                 //vi
+	ExposureTime              string             `json:"exposuretime" bson:"exposuretime,omitempty"`           //1/30
+	FNumber                   string             `json:"fnumber" bson:"fnumber,omitempty"`                     //14/5
+	ISOSpeedRatings           string             `json:"iso_speed_rating" bson:"iso_speed_rating,omitempty"`   //1600
+	LightSource               string             `json:"light_source" bson:"light_source,omitempty"`           //0
+	FocalLength               string             `json:"focal_length" bson:"focal_length,omitempty"`           //23/1
+	PixelXDimension           string             `json:"pixel_x_dimension" bson:"pixel_x_dimension,omitempty"` //7968
+	PixelYDimension           string             `json:"pixel_y_dimension" bson:"pixel_y_dimension,omitempty"` //5320
+	FocalLengthIn35mmFilm     string             `json:"focal_length35" bson:"focal_length35,omitempty"`       //23
+	LensModel                 string             `json:"lens_model" bson:"lens_model,omitempty"`               //FE 16-35mm F2.8 GM
+	ExposureProgram           string             `json:"exposure_program" bson:"exposure_program,omitempty"`
+	ExposureProgramTranslated string             `json:"exposure_program_translated" bson:"exposure_program_translated,omitempty"`
+	FStop                     string             `json:"fstop" bson:"fstop,omitempty"`
+	FStopTranslated           string             `json:"fstop_translated" bson:"fstop_translated,omitempty"`
+	Tags                      []Tag              `json:"tags" bson:"tags"`
+	Location                  string             `json:"location" bson:"location,omitempty"`
 }
 
 // Tag stores tag objects
@@ -205,6 +207,11 @@ func (m *MediaModel) GetMedia(id string) error {
 	c := db.Client.Database(getMediaDB()).Collection("media")
 
 	err = c.FindOne(context.TODO(), bson.M{"media_id": id}).Decode(m)
+
+	// Translate special variables
+	m.ExposureProgramTranslated = m.GetExposureProgramTranslated()
+	m.FStopTranslated = m.CalculateFSTOP()
+
 	if err != nil {
 		return err
 	}
@@ -224,6 +231,10 @@ func (m *MediaModel) GetMediaBySlug(slug string) error {
 	c := db.Client.Database(getMediaDB()).Collection("media")
 
 	err = c.FindOne(context.TODO(), bson.M{"slug": slug}).Decode(m)
+	// Translate special variables
+	m.ExposureProgramTranslated = m.GetExposureProgramTranslated()
+	m.FStopTranslated = m.CalculateFSTOP()
+
 	if err != nil {
 		return err
 	}
@@ -436,6 +447,57 @@ func (m *MediaModel) DeleteMedia() error {
 	return nil
 }
 
+//GetMediaListByCategory Obtains the list of media by category sorted by date
+func GetMediaListByCategory(category string) ([]MediaModel, error) {
+	//var config db.Config
+	var db db.Session
+
+	var mediaModels []MediaModel
+	//config.DBUri = "mongodb://host.docker.internal:27017"
+
+	err := db.NewSession()
+	if err != nil {
+		return nil, err
+	}
+	defer db.Close()
+
+	filter := bson.M{"category": category}
+
+	options := options.Find()
+
+	// Sort by `_id` field descending
+	options.SetSort(map[string]int{"created_at": -1})
+
+	cur, err := db.Client.Database(getMediaDB()).Collection("media").Find(context.TODO(), filter, options)
+	if err != nil {
+		return nil, err
+	}
+
+	defer cur.Close(context.TODO())
+
+	for cur.Next(context.TODO()) {
+		var m MediaModel
+		// To decode into a struct, use cursor.Decode()
+		err := cur.Decode(&m)
+
+		// Translate special variables
+		m.ExposureProgramTranslated = m.GetExposureProgramTranslated()
+		m.FStopTranslated = m.CalculateFSTOP()
+
+		if err != nil {
+			return nil, err
+		}
+
+		mediaModels = append(mediaModels, m)
+
+	}
+	if err := cur.Err(); err != nil {
+		return nil, err
+	}
+
+	return mediaModels, nil
+}
+
 //AllMediaSortedByDate retrieve all posts sorted by creation date
 func AllMediaSortedByDate() ([]MediaModel, error) {
 
@@ -469,6 +531,11 @@ func AllMediaSortedByDate() ([]MediaModel, error) {
 		var m MediaModel
 		// To decode into a struct, use cursor.Decode()
 		err := cur.Decode(&m)
+
+		// Translate special variables
+		m.ExposureProgramTranslated = m.GetExposureProgramTranslated()
+		m.FStopTranslated = m.CalculateFSTOP()
+
 		if err != nil {
 			return nil, err
 		}
@@ -483,6 +550,36 @@ func AllMediaSortedByDate() ([]MediaModel, error) {
 	return mediaModels, nil
 }
 
+//AllCategories return a list of categories
+func AllCategories() ([]string, error) {
+	//var config db.Config
+	var db db.Session
+
+	err := db.NewSession()
+	if err != nil {
+		return nil, err
+	}
+	defer db.Close()
+
+	filter := bson.M{}
+
+	options := options.Distinct()
+
+	cur, err := db.Client.Database(getMediaDB()).Collection("media").Distinct(context.TODO(), "category", filter, options)
+	if err != nil {
+		return nil, err
+	}
+
+	var categories []string
+
+	for _, v := range cur {
+		categories = append(categories, v.(string))
+	}
+
+	return categories, nil
+
+}
+
 func getMediaDB() string {
 	cfg, err := config.GetConfig()
 	if err != nil {
@@ -491,5 +588,4 @@ func getMediaDB() string {
 	}
 
 	return cfg.MongoDatabase
-
 }

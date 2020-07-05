@@ -48,10 +48,10 @@
         <div><span class="photo-details">Focal Length: </span>{{ media.FocalLengthIn35mmFilm }}</div>
         <div><span class="photo-details">Lens: </span>{{ media.LensModel }}</div>
         <div><span class="photo-details">Software: </span>{{ media.Software }}</div>
-        {% if media.LightSource == "0" %}
+        {% if media.LightSource == "255" %}
         <div><span class="photo-details">Flash: </span>Did Not Fire</div>
         {% else %}
-        <div><span class="photo-details">Flash: </span>Fired</div>
+        <div><span class="photo-details">Flash: </span>Fired {{ media.LightSource }}</div>
         {% endif %}
     </div>
     <div class="col-md-6">
