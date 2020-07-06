@@ -48,12 +48,18 @@ function getMedia(imgel, id){
                 var mediaurl = response['url'];
                 var refurl = response['refurl'];
                 var title = response['title'];
+                var category = response['category'];
                 if (status == 'error') {
                     console.log(response['message'])
                 }
 
-                imgel.html('<a href="'+ refurl +'"><img src="' + mediaurl + '"/></a>')
-                imgel.append('<div class="image-title-blurb">' +  title  + '</div>')
+                imgel.html('<a href="'+ refurl +'"><img src="' + mediaurl + '"/></a>');
+                var caption = "";
+                caption += '<div class="image-title-blurb">';
+                caption += title
+                caption += ' - Category: <a href="/category/' + category +'">'+ category +'</a>';
+                caption += '</div>'
+                imgel.append(caption);
                 
             },
             complete: function(jqXHR, status) {
