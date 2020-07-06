@@ -36,7 +36,7 @@ func ViewCategoryHandler(w http.ResponseWriter, r *http.Request) {
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
 	out, err := tmpl.Execute(pongo2.Context{
-		"title":     fmt.Sprintf("Portfolio - %s", vars["category"]),
+		"title":     fmt.Sprintf("Category - %s", vars["category"]),
 		"media":     media,
 		"user":      sess.User,
 		"bodyclass": "",
