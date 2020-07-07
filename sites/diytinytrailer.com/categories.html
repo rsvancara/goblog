@@ -8,10 +8,11 @@
 {% block body %} 
 <div class="row">
   <div class="col-lg-12">
+    <ul>
     {% for m in medialist %}
-      <a href="/category/{{ m }}">{{ m }}</a>
+      <li><a href="/category/{{ m }}">{{ m }}</a></li>
     {% endfor %}
- 
+    </ul>
   </div>
 </div>
 
