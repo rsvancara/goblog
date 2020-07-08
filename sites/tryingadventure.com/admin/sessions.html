@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+ 
+{% block title  %}Sessions{% endblock %}
+
+{% block headertitle %}<h1>Sessions</h1>{% endblock %}
+ 
+{% block body %}
+
+<table class="table">
+    <tr>
+        <th>ID</th>
+        <th>TTL</th>
+        <th>Auth</th>
+        <th>User</th>
+        <th>IP</th>
+        <th>City</th>
+        <th>Country</th>
+        <th></th>
+        <th></th>
+    </tr>
+    {% for s in sessions %}
+    <tr>
+        <td>
+            {{ s.SessionToken }}
+        </td>
+        <td>
+            {{ s.TTL }}
+        </td>
+        <td>
+            {{ s.IsAuth }}
+        </td>
+        <td>
+            {{ s.User.Username }}
+        </td>
+        <td>
+            {{ s.User.IPAddress }}
+        </td>
+        <td>
+            {{ s.User.City }}
+        </td>
+        <td>
+            {{ s.User.Country }}
+        </td>
+        <td>
+            <a class="btn btn-primary" href="/admin/session/details/{{ s.SessionToken }}">Details</a>
+        </td>
+        <td>
+            <a class="btn btn-primary" href="/admin/session/delete/{{ s.SessionToken }}">Remove</a>
+        </td>
+    </tr>
+    
+    {% endfor %}
+
+</table>
+{% endblock %}
+

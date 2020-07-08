@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+ 
+{% block title  %}Admin Panel{% endblock %}
+
+{% block headertitle %}<h1>Admin Panel</h1>{% endblock %}
+ 
+{% block body %}
+<div class="row">
+  <div class="col-sm-6">
+    <div class="card" style="">
+      <div class="card-body">
+        <h3 class="card-title">
+            <span style="display: inline-block">
+                <img src="/images/blog.svg" class="card-img-top" alt="media" style="width:36px;height:36px;padding:5px;">
+            </span>
+            Manage Posts
+        </h3>
+        <p class="card-text">Posts include text based content.</p>
+        <a href="/admin/post" class="btn btn-primary">Manage Posts</a>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6">
+    <div class="card" style="">
+      <div class="card-body">
+        <h3 class="card-title">
+            <span style="display: inline-block">
+                <img src="/images/instagram.svg" class="card-img-top" alt="media" style="width:33px;height:33px;padding:5px;">
+            </span>
+            Media
+        </h3>
+        <p class="card-text">Media includes items such as photos.</p>
+        <a href="/admin/media" class="btn btn-primary">Manage Media</a>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="row">
+  <div class="col-sm-6">
+    <div class="card" style="margin-top: 30px;">
+      <div class="card-body">
+        <h3 class="card-title">
+            <span style="display: inline-block">
+                <img src="/images/blog.svg" class="card-img-top" alt="media" style="width:36px;height:36px;padding:5px;">
+            </span>
+            Manage Sessions
+        </h3>
+        <p class="card-text">Manage Sessions.</p>
+        <a href="/admin/sessions" class="btn btn-primary">Manage Sessions</a>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6">
+    <div class="card" style="margin-top: 30px;">
+      <div class="card-body">
+        <h3 class="card-title">
+            <span style="display: inline-block">
+                <img src="/images/blog.svg" class="card-img-top" alt="media" style="width:36px;height:36px;padding:5px;">
+            </span>
+            Manage Filters
+        </h3>
+        <p class="card-text">Filters allow control of content based on characteristics of the client.</p>
+        <a href="/admin/filters" class="btn btn-primary">Manage Filters</a>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="row">
+  <div class="col-sm-6">
+    <div class="card" style="margin-top: 30px;">
+      <div class="card-body">
+        <h3 class="card-title">
+            <span style="display: inline-block">
+                <img src="/images/blog.svg" class="card-img-top" alt="media" style="width:36px;height:36px;padding:5px;">
+            </span>
+            Affiliates
+        </h3>
+        <p class="card-text">Manage affiliate links.</p>
+        <a href="/admin/affiliates" class="btn btn-primary">Affiliates</a>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6">
+    <div class="card" style="margin-top: 30px;">
+      <div class="card-body">
+        <h3 class="card-title">
+            <span style="display: inline-block">
+                <img src="/images/blog.svg" class="card-img-top" alt="media" style="width:36px;height:36px;padding:5px;">
+            </span>
+            Manage Search
+        </h3>
+        <p class="card-text">Manage Tag Index and category index.</p>
+        <a href="/admin/searchindex" class="btn btn-primary">Search Index</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

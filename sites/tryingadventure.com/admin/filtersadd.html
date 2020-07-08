@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+ 
+{% block title  %}Add Filter{% endblock %}
+
+{% block headertitle %}<h1>Add Filter</h1>{% endblock %}
+ 
+{% block body %}
+
+<form id="form" method="post" action="/admin/media/add" enctype="multipart/form-data">
+
+    <div class="form-group">
+        <label for="name">Name</label>
+        <input type="input" class="form-control" id="name" name="name"/>
+    </div>
+    
+    <div class="form-group">
+        <label for="description">Description</label>
+        <input type="input" class="form-control" id="description" name="description"/>
+    </div>
+
+    <div class="form-group">
+        <label for="route">Route</label>
+        <input type="input" class="form-control" id="route" name="route"/>
+    </div>
+
+    <div class="form-group">
+        <label for="action">Action</label>
+        <select class="form-control" id="action" name="action" value="">
+        <option value="block">Block</option>
+        <option value="accept">Accept</option>
+        <option value="redirect">Redirect</option>
+        </select>
+    </div>
+
+    <div class="form-group" style="display:none;>
+        <label for="redirect">Redirect</label>
+        <input type="input" class="form-control" id="redirect" name="redirect" />
+    </div>
+
+
+
+</form>
+
+
+{% endblock %}
+
+
+{% block script %}
+<script>
+$( document ).ready(function() {
+
+    console.log("Firing")
+
+
+});
+
+
+
+
+</script>
+
+
+{% endblock %}

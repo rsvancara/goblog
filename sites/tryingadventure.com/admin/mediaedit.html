@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+ 
+{% block title  %}Edit Media{% endblock %}
+
+{% block headertitle %}<h1>Edit Media</h1>{% endblock %}
+ 
+{% block body %}
+<form method="post" action="/admin/media/edit/{{media.MediaID}}">
+
+<div class="form-group">
+    <label for="title">Title</label>
+    <input type="input" class="form-control" name="title" id="title" aria-describedby="emailHelp" value="{{ media.Title }}" placeholder="Title" />
+</div>
+{% if formTitleError == true %}
+<div class="alert alert-warning" role="alert">
+    {{ formTitle }}
+</div>
+{% endif %}
+<div class="form-group">
+    <label for="category">Category</label>
+    <input type="input" class="form-control" id="category" name="category" value="{{ media.Category }}" placeholder="Category"/>
+</div>
+{% if formCategoryError == true %}
+<div class="alert alert-warning" role="alert">
+    {{ formCategory }}
+</div>
+{% endif %}
+<div class="form-group">
+    <label for="keywords">Keywords</label>
+    <input type="input" class="form-control" id="keywords" name="keywords" value="{{ media.Keywords }}" placeholder="Keywords"/>
+</div>
+{% if formKeywordsError == true %}
+<div class="alert alert-warning" role="alert">
+    {{ formKeywords }}
+</div>
+{% endif %}
+
+<div class="form-group">
+    <label for="keywords">Location</label>
+    <input type="input" class="form-control" id="location" name="location" value="{{ media.Location }}" placeholder="Location"/>
+</div>
+{% if formLocationError == true %}
+<div class="alert alert-warning" role="alert">
+    {{ formLocation }}
+</div>
+{% endif %}
+
+<div class="form-group">
+    <label for="inputPost">Description</label>
+    <textarea class="form-control" id="description" name="description" rows="20">{{ media.Description }}</textarea>
+</div>
+{% if formDescriptionError == true %}
+<div class="alert alert-warning" role="alert">
+    {{ formDescription }}
+</div>
+{% endif %}
+
+<div class="form-group row">
+    <div class="col-sm-10">
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </div>
+</div>
+</form>
+{% endblock %}

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html  lang="en">
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <meta property="og:type" content="website">
+      <meta property="og:title" content="DIY Tiny Trailer">
+      <meta property="og:site_name" content="DIY Tiny Trailer">
+      <meta property="og:url" content="http://diytinytrailer.com/">
+      <meta property="og:description" content="DIY Trailer Building Adventures.">
+      <meta property="og:url" content="https://diytinytrailer.com">
+      <meta name="description" content="DIY Trailer Building Adventures.">
+      <meta name="google-site-verification" content="" />
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+      <meta name="google-site-verification" content="XfT8EDkdhaPdwAAjrSip-i9ClkUnRjvRURwO6d3VZ74" />
+      <link rel="icon" href="/images/fav.png" type="image/x-icon"/>
+      <title>
+             {% block title %}VI{% endblock %}
+      </title>
+      <!-- Latest compiled and minified CSS -->
+      <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+      <link rel="stylesheet" href="/css/main.css" />
+        {% block stylesheet %}
+        {% endblock %}
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-112487731-3"></script>
+        <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+      
+        gtag('config', 'UA-112487731-3');
+        var ptag = '{{ pagekey }}';
+        var stag = '{{ token }}'
+        </script>
+    </head>
+    <body class="page {{ bodyclass }}">
+        <nav class="navbar navbar-expand-lg navbar-light bg-light bd-navbar">
+            <a class="navbar-brand" href="/">DIY Tiny Trailer</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+              <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav mr-auto">
+                  <li class="nav-item">
+                    <a class="nav-link" href="/">Home</a>
+                  </li>
+                  <li class="nav-item">
+                    <a class="nav-link" href="/about">About</a>
+                  </li>
+                </ul>
+            </div>
+        </nav>
+
+        {% if fluid %}
+        <div class="container-fluid">
+        {% else %}
+        <div class="container">
+        {% endif %}
+        {% block headertitle %}
+        
+        {% endblock %}
+
+        {% block body %}Body Default{% endblock %} 
+        </div><!-- /.container -->
+        <footer>
+          <div class="container-fluid footer">
+            <div class="row">
+              <div class="col-md-2">
+                <a href="/contact">Contact</a>
+              </div>
+              <div class="col-md-2">
+    
+              </div>
+              <div class="col-md-2">
+    
+              </div>
+              <div class="col-md-2">
+    
+              </div>
+              <div class="col-md-4">
+                Copyright 2020 DYI Tiny Camper all rights reserved.
+              </div>
+            </div>    
+          </div>
+        </footer>
+    </body>
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+    <script src="/scripts/requests.js"></script>
+    {% block script %}<script></script>{% endblock %}
+</html> 

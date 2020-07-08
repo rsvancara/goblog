@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+ 
+{% block title  %}Add Post{% endblock %}
+
+{% block headertitle %}<h1>Add Post</h1>{% endblock %}
+ 
+{% block body %}
+<style>
+    .img-result {
+        padding-bottom: 3px;
+    }
+
+    .img-title {
+        padding-left: 5px;
+    }
+</style>
+<form method="post" action="/admin/post/add">
+
+<div class="form-group">
+    <label for="inputTitle">Title</label>
+    <input type="input" class="form-control" name="inputTitle" id="inputTitle" aria-describedby="emailHelp" value="{{ post.Title }}"placeholder="Title of your Post">
+</div>
+{% if titleMessageError == true %}
+<div class="alert alert-warning" role="alert">
+    {{ titleMessage }}
+</div>
+{% endif %}
+<div class="form-group">
+    <label for="inputKeywords">Keywords (separated by commas)</label>
+    <input type="input" class="form-control" name="inputKeywords" id="inputKeywords" aria-describedby="keywordsHelp" value="{{ post.Keywords }}"placeholder="Keywords">
+</div>
+{% if postKeywordsMessageError == true %}
+<div class="alert alert-warning" role="alert">
+    {{ postKeywordsMessage }}
+</div>
+{% endif %}
+<div class="form-group">
+    <label for="inputStatus">Status</label>
+    <select class="form-control" id="inputStatus" name="inputStatus" value="{{ post.Status }}">
+    <option value="enabled">Enabled</option>
+    <option value="disabled">Disabled</option>
+    </select>
+</div>
+{% if statusError == true %}
+<div class="alert alert-warning" role="alert">
+    {{ statusMessage }}
+</div>
+{% endif %}
+<div class="form-group">
+    <label for="inputFeatured">Featured</label>
+    <select class="form-control" id="inputFeatured" name="inputFeatured" value="{{ post.Featured }}">
+        <option value="yes">Yes</option>
+        <option value="no">No</option>
+    </select>
+</div>
+{% if featuredMessageError == true %}
+    <div class="alert alert-warning" role="alert">
+        {{ featuredMessage }}
+    </div>
+{% endif %}
+<div class="btn-toolbar" role="toolbar" aria-label="Toolbar with button groups">
+    <div class="btn-group mr-2" role="group" aria-label="First group">
+        <button id="butt_h1" type="button" class="btn btn-secondary">H1</button>
+        <button id="butt_h2" type="button" class="btn btn-secondary">H2</button>
+        <button id="butt_h3" type="button" class="btn btn-secondary">H3</button>
+    </div>
+    <div class="btn-group mr-2" role="group" aria-label="First group">
+      <button id="butt_img" type="button" class="btn btn-secondary" data-toggle="modal" data-target="#imageSelectModal">Insert Image</button>
+    </div>
+</div>
+
+<!-- image modal -->
+<div class="modal fade" id="imageSelectModal" tabindex="-1" role="dialog" aria-labelledby="imageSelectModal" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="imageSelectModalTitle">Media Finder</h5>
+
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body" id="imageModelContent">
+            <input type="text" name="searchbox" id="searchbox" value="">
+            <button id="search" class="btn btn-primary">search</button>
+            <hr />
+            <div id="searchresult">
+
+            </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <button type="button" id="buttonSelect" class="btn btn-primary">Select</button>
+        </div>
+      </div>
+    </div>
+</div>
+<div class="form-group">
+    <!--<label for="inputPost">Post</label>-->
+    <textarea id="mainContent" class="form-control" id="inputPost" name="inputPost" rows="20">{{ post.Post }}</textarea>
+</div>
+{% if postMessageError == true %}
+<div class="alert alert-warning" role="alert">
+    {{ postMessage }}
+</div>
+{% endif %}
+<div class="form-group">
+        <label for="inputPostTeaser">Teaser</label>
+        <textarea class="form-control" id="inputPostTeaser" name="inputPostTeaser" rows="5">{{ post.PostTeaser }}</textarea>
+    </div>
+{% if postTeaserMessageError == true %}
+    <div class="alert alert-warning" role="alert">
+        {{ postTeaserMessage }}
+    </div>
+{% endif %}
+<div class="form-group">
+    <label for="inputTeaserImage">Teaser Image</label>
+    <input type="hidden" class="form-control" id="inputTeaserImage" name="inputTeaserImage" value="{{ post.TeaserImage }}"/>
+    <div id="imgviewer">
+        {% if teaserImageUrl %}
+            <img src="/image/{{ teaserImageUrl }}/thumb" />
+        {% endif %}
+
+
+    </div>
+    <button id="teaser-butt" class="btn btn-secondary" data-toggle="modal" data-target="#imageSelectModal">Teaser Image</button>
+</div>
+<div class="form-group row">
+    <div class="col-sm-10">
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </div>
+</div>
+</form>
+{% endblock %}
+{% block script %}
+<script src="/scripts/editor.js"></script>
+
+
+{% endblock %}

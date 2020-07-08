@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+ 
+{% block title  %}View Media{% endblock %}
+
+{% block stylesheet %}
+<style>
+.container-fluid {
+    padding-left: 0px;
+    padding-right: 0px;
+}
+</style>
+
+{% endblock %}
+
+{% block body %}
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="image-container">
+            <div class="image-box">
+                <img src="/image/{{ media.Slug }}/large" />
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+<div class="container">
+<div class="row">
+    <div class="col-md-12 title-md">
+        <h2>{{ media.Title }}</h2>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-12" style="margin-bottom: 10px;">
+        <span style="width: 20px;height:20px;padding-right: 5px;"><img src="/images/clock.svg" style="width: 20px;height:20px;"/></span> {{ media.CreatedAt |timesince }}
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-6">
+        <h4><span class="icon-h4"><img src="/images/camera.svg" /></span>Photo Details</h4>
+        <div><span class="photo-details">Make: </span>{{ media.Make }}</div>
+        <div><span class="photo-details">Model: </span>{{ media.Model }}</div>
+        <div><span class="photo-details">Date Taken: </span>{{ media.DateTime }}</div>
+        <div><span class="photo-details">FStop: </span>{{ media.FStop }}</div>
+        <div><span class="photo-details">Exposure: </span>{{ media.ExposureTime }}</div>
+        <div><span class="photo-details">ISO: </span>{{ media.ISOSpeedRatings }}</div>
+        <div><span class="photo-details">Exposure Program: </span>{{ exposureprogram }}</div>
+        <div><span class="photo-details">Focal Length: </span>{{ media.FocalLengthIn35mmFilm }}</div>
+        <div><span class="photo-details">Lens: </span>{{ media.LensModel }}</div>
+        <div><span class="photo-details">Software: </span>{{ media.Software }}</div>
+        {% if media.LightSource == "0" %}
+        <div><span class="photo-details">Flash: </span>Did Not Fire</div>
+        {% else %}
+        <div><span class="photo-details">Flash: </span>Fired</div>
+        {% endif %}
+    </div>
+    <div class="col-md-6">
+        <h4><span class="icon-h4"><img src="/images/blog.svg" />Description</h4>
+        <p>{{ media.Description }}</p>
+
+        <div class="tagview">
+            {% for t in media.Tags %}
+                <div class="tag">{{ t.Keyword }}</div>
+            {% endfor %}
+        </div>
+        <div class="category-view">
+            {% if media.Category %}
+            <span>Category: </span> {{ media.Category}}
+            {% endif %}
+        </div>
+        <div class="location-view">
+            {% if media.Location %}
+            <span>Location: </span> {{ media.Location}}
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% if user %}
+<div class="row">
+    <div class="col-md-12 image-view-md">
+        <a href="/admin/media/edit/{{ media.MediaID  }}" class="btn btn-primary">Edit</a>
+        <a href="#" id="media-link" class="btn btn-primary"  data-id="{{ media.MediaID }}" data-title="{{ media.Title }}">Media Link</a>
+    </div>
+</div>
+<div class="row">
+    <div id="media-link-display" class="col-md-12" style="display: none;">
+
+    </div>
+</div>
+{% endif %}
+<div class="row">
+    <div class="col-md-12">
+
+    </div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+$(document).ready(function() { 
+
+    $("#media-link").click((function(e) {
+        e.preventDefault();
+        $('media-link-display').empty();
+        console.log($(this).data('id'));
+        $('#media-link-display').html("<textarea class=\"m-link-textarea\"><div class=\"load-image\" data-id=\"" + $(this).data('id') +  "\">" + $(this).data('title') + "</div></textarea>")
+        $('#media-link-display').css('display','block')
+    }));    
+});
+</script>
+
+{% endblock %}
