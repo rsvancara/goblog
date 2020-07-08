@@ -1,0 +1,130 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "tryingadventure.fullname" . }}
+  labels:
+    {{- include "tryingadventure.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "tryingadventure.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "tryingadventure.selectorLabels" . | nindent 8 }}
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: /metrics
+        prometheus.io/port: "5000"
+    spec:
+    {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      serviceAccountName: {{ include "tryingadventure.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+          - name: S3_BUCKET
+            valueFrom:
+                secretKeyRef:
+                  name: tryingadventure
+                  key: S3_BUCKET
+          - name: AWS_ACCESS_KEY_ID
+            valueFrom:
+                secretKeyRef:
+                  name: tryingadventure
+                  key: AWS_ACCESS_KEY_ID
+          - name: AWS_SECRET_ACCESS_KEY
+            valueFrom:
+                secretKeyRef:
+                  name: tryingadventure
+                  key: AWS_SECRET_ACCESS_KEY
+          - name: AWS_REGION
+            valueFrom:
+                secretKeyRef:
+                  name: tryingadventure
+                  key: AWS_REGION
+          - name: CACHE_URI
+            valueFrom:
+                secretKeyRef:
+                  name: tryingadventure
+                  key: CACHE_URI
+          - name: REDIS_PASSWORD
+            valueFrom:
+                secretKeyRef:
+                  name: tryingadventure
+                  key: REDIS_PASSWORD
+          - name: DB_URI
+            valueFrom:
+                secretKeyRef:
+                  name: tryingadventure
+                  key: DB_URI
+          - name: ENV
+            valueFrom:
+                secretKeyRef:
+                  name: tryingadventure
+                  key: ENV
+          - name: ADMIN_USER
+            valueFrom:
+                secretKeyRef:
+                  name: tryingadventure
+                  key: ADMIN_USER
+          - name: ADMIN_PASSWORD
+            valueFrom:
+                secretKeyRef:
+                  name: tryingadventure
+                  key: ADMIN_PASSWORD
+          - name: SITE
+            valueFrom:
+                secretKeyRef:
+                  name: tryingadventure
+                  key: SITE
+          - name: SESSION_TIMEOUT
+            valueFrom:
+                secretKeyRef:
+                  name: tryingadventure
+                  key: SESSION_TIMEOUT
+          - name: MONGO_DATABASE
+            valueFrom:
+                secretKeyRef:
+                  name: tryingadventure
+                  key: MONGO_DATABASE
+          - name: REDIS_DB
+            valueFrom:
+                secretKeyRef:
+                  name: tryingadventure
+                  key: REDIS_DB
+          ports:
+            - name: http
+              containerPort: 5000
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /healthcheck957873
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /healthcheck957873
+              port: http
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
