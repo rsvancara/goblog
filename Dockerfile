@@ -6,7 +6,7 @@ RUN mkdir /app && \
 RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y wget curl ca-certificates \
     build-essential automake pkg-config libexpat1-dev \
-    libglib2.0-dev fftw3-dev liblcms2-dev libexif-dev libjpeg-dev
+    libglib2.0-dev fftw3-dev liblcms2-dev libexif-dev libjpeg-dev libwebp-dev
 
 ENV LIBVIPS_VERSION_MAJOR 8
 ENV LIBVIPS_VERSION_MINOR 9
@@ -25,7 +25,7 @@ RUN \
   ./configure --prefix=/opt/vips --with-pkg-config -without-gsf --without-orc --without-OpenEXR \
   --without-nifti --without-heif --without-rsvg \
   --without-openslide --without-matio --without-radiance \
-  --without-libwebp --without-tiff --without-giflib \
+  --without-tiff --without-giflib \
   --without-imagequant --without-pangoft2 --enable-debug=no --without-python $1 && \
   make && \
   make install && \
@@ -76,4 +76,4 @@ EXPOSE 5000
 
 ENV LD_LIBRARY_PATH=/opt/vips/lib
     
-CMD ["./dabloog"] 
+CMD ["./dabloog"]

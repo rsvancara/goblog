@@ -7,13 +7,16 @@
 #
 #
 
-set -xe
+set -xe 
 
 # LATEST TAG
 GIT_TAG=$(git describe --abbrev=0 --tags)
 
+# vdub
+/usr/bin/vdub
+
 # COPY Artifacts
-cp /home/artifacts/geoip/*.mmdb db/
+cp /usr/share/GeoIP/*.mmdb db/
 
 # Build the docker image
 docker build -t rsvancara/goblog:${GIT_TAG} --no-cache . 
