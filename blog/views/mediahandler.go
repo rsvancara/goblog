@@ -796,5 +796,6 @@ func ServerImage(wr http.ResponseWriter, req *http.Request) {
 
 	copyHeader(wr.Header(), resp.Header)
 	wr.WriteHeader(resp.StatusCode)
+	wr.Header().Set("Content-Type", "image/jpeg") // <-- set the content-type header
 	io.Copy(wr, resp.Body)
 }
