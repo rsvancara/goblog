@@ -31,7 +31,7 @@
                     </div>
                     <div class="blog-teaser-img">
                         {% if p.TeaserImageSlug != "" %}
-                          <a href="/stories/{{ p.Slug }}"><img class="teaser-image-frontpage" src="/image/{{ p.TeaserImageSlug}}/large" /></a>
+                          <a href="/stories/{{ p.Slug }}"><img alt="{{ p.Title }}" class="teaser-image-frontpage" src="/image/{{ p.TeaserImageSlug}}/large" /></a>
                         {% endif %}
                     </div>
                 </div>
