@@ -4,15 +4,14 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1">
       <meta property="og:type" content="website">
-      <meta property="og:title" content="DIY Tiny Trailer">
-      <meta property="og:site_name" content="DIY Tiny Trailer">
-      <meta property="og:url" content="http://diytinytrailer.com/">
-      <meta property="og:description" content="DIY Trailer Building Adventures.">
-      <meta property="og:url" content="https://diytinytrailer.com">
-      <meta name="description" content="DIY Trailer Building Adventures.">
+      <meta property="og:title" content="Trying Adventure">
+      <meta property="og:site_name" content="Trying Adventure">
+      <meta property="og:url" content="http://tryingadventure.com/">
+      <meta property="og:description" content="Trying Adventure.">
+      <meta property="og:url" content="https://tryingadventure.com">
+      <meta name="description" content="Trying Adventure.">
       <meta name="google-site-verification" content="" />
       <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-      <meta name="google-site-verification" content="XfT8EDkdhaPdwAAjrSip-i9ClkUnRjvRURwO6d3VZ74" />
       <link rel="icon" href="/images/fav.png" type="image/x-icon"/>
       <title>
              {% block title %}{{ affiliate.AffiliateTilte }}{% endblock %}
@@ -29,11 +28,13 @@
         gtag('js', new Date());
       
         gtag('config', 'UA-112487731-3');
-        console.log("google fired")
+        var ptag = '{{ pagekey }}';
+        var stag = '{{ token }}'
         </script>
         
     </head>
     <body></body>
+    <script src="/scripts/requests.js"></script>
     <script>
         window.location.replace("{{ affiliate.AffiliateLink }}");
     </script>
