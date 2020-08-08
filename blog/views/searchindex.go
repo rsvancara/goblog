@@ -167,6 +167,12 @@ func SearchIndexBuilderMediaHandler(w http.ResponseWriter, r *http.Request) {
 // BuildTagsSearchIndex Build search index
 func BuildTagsSearchIndex() error {
 
+	// Clear the Index
+	err := models.DeleteAllTags()
+	if err != nil {
+		fmt.Printf("Error removing all the records with error %s", err)
+	}
+
 	// Get a list of media
 	media, err := models.AllMediaSortedByDate()
 	if err != nil {

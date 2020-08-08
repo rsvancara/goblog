@@ -210,6 +210,26 @@ func SearchMediaTagsByName(name string) ([]MediaTagsModel, error) {
 
 }
 
+//DeleteAllTags Delete all tags, used when index needs to be rebuilt
+func DeleteAllTags() error {
+	//var config db.Config
+	var db db.Session
+	err := db.NewSession()
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+
+	result, err := db.Client.Database(getMediaTagsDB()).Collection("mediatags").DeleteMany(context.TODO(), bson.M{})
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("Deleted %v documents", result.DeletedCount)
+
+	return nil
+}
+
 //AllMediaTags retrieve all media tags
 func AllMediaTags() ([]MediaTagsModel, error) {
 
