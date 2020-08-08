@@ -234,6 +234,12 @@ func PutMedia(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Update Tags
+	err = AddTagsSearchIndex(media)
+	if err != nil {
+		fmt.Println(err)
+	}
+
 	// Get s3 key
 	s3KeyGenerator(&media)
 
@@ -332,6 +338,12 @@ func MediaEdit(w http.ResponseWriter, r *http.Request) {
 
 			// Create Record
 			err = media.UpdateMedia()
+			if err != nil {
+				fmt.Println(err)
+			}
+
+			// Update Tags
+			err = AddTagsSearchIndex(media)
 			if err != nil {
 				fmt.Println(err)
 			}
@@ -798,4 +810,66 @@ func ServerImage(wr http.ResponseWriter, req *http.Request) {
 	wr.WriteHeader(resp.StatusCode)
 	wr.Header().Set("Content-Type", "image/jpeg") // <-- set the content-type header
 	io.Copy(wr, resp.Body)
+}
+
+//AddTagsSearchIndex When images are created, add tags to the tags index
+func AddTagsSearchIndex(media models.MediaModel) error {
+
+	for _, v := range media.Tags {
+		var mtm models.MediaTagsModel
+		count, err := mtm.Exists(v.Keyword)
+		if err != nil {
+			return fmt.Errorf("Error attempting to get record count for keyword %s with error %s", v.Keyword, err)
+		}
+
+		fmt.Printf("Found %v media tag records\n", count)
+
+		// Determine if the document exists already
+		if count == 0 {
+			var newMTM models.MediaTagsModel
+			newMTM.Name = v.Keyword
+			newMTM.TagsID = models.GenUUID()
+			var docs []string
+			docs = append(docs, media.MediaID)
+			newMTM.Documents = docs
+			fmt.Println(newMTM)
+			err = newMTM.InsertMediaTags()
+			if err != nil {
+				return fmt.Errorf("Error inserting new media tag for keyword %s with error %s", v.Keyword, err)
+			}
+			// If not, then we add to existing documents
+		} else {
+			var mtm models.MediaTagsModel
+			err := mtm.GetMediaTagByName(v.Keyword)
+			if err != nil {
+				return fmt.Errorf("Error getting current instance of mediatag for keyword %s with error %s", v.Keyword, err)
+			}
+			fmt.Printf("Found existing mediatag record for %s", mtm.Name)
+			fmt.Println(mtm.Documents)
+
+			// Get the list of documents
+			docs := mtm.Documents
+
+			// For the list of documents, find the document ID we are looking for
+			// If not found, then we update the document list with the document ID
+			f := 0
+			for _, d := range docs {
+				if d == media.MediaID {
+					f = 1
+				}
+			}
+
+			if f == 0 {
+				fmt.Printf("Updating tag, %s with document id %s\n", v.Keyword, media.MediaID)
+				docs = append(docs, media.MediaID)
+				mtm.Documents = docs
+				fmt.Println(mtm)
+				err = mtm.UpdateMediaTags()
+				if err != nil {
+					return fmt.Errorf("Error updating mediatag for keyword %s with error %s", v.Keyword, err)
+				}
+			}
+		}
+	}
+	return nil
 }

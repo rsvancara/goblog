@@ -159,6 +159,14 @@ func SearchIndexMediaTagsAPI(w http.ResponseWriter, r *http.Request) {
 // SearchIndexBuilderMediaHandler builds the tag index for media
 func SearchIndexBuilderMediaHandler(w http.ResponseWriter, r *http.Request) {
 
+	BuildTagsSearchIndex()
+
+	http.Redirect(w, r, "/admin/searchindex", http.StatusSeeOther)
+}
+
+// BuildTagsSearchIndex Build search index
+func BuildTagsSearchIndex() error {
+
 	// Get a list of media
 	media, err := models.AllMediaSortedByDate()
 	if err != nil {
@@ -172,7 +180,6 @@ func SearchIndexBuilderMediaHandler(w http.ResponseWriter, r *http.Request) {
 			// Check to see if the key word exists and if it does not, add it
 			// If it does then update the keyword with the list of new documents
 			fmt.Printf("Looking at tag %s\n", t)
-
 			// Check if the document exists
 			var mtm models.MediaTagsModel
 
@@ -211,9 +218,10 @@ func SearchIndexBuilderMediaHandler(w http.ResponseWriter, r *http.Request) {
 						f = 1
 					}
 				}
-
+				// If not found then update
 				if f == 0 {
 					fmt.Printf("Updating tag, %s with document id %s\n", t.Keyword, v.MediaID)
+
 					docs = append(docs, v.MediaID)
 					mtm.Documents = docs
 					err = mtm.UpdateMediaTags()
@@ -224,6 +232,5 @@ func SearchIndexBuilderMediaHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
-
-	http.Redirect(w, r, "/admin/searchindex", http.StatusSeeOther)
+	return nil
 }
