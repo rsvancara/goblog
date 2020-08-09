@@ -4,6 +4,7 @@ metadata:
   name: {{ include "tryingadventure.fullname" . }}
   labels:
     {{- include "tryingadventure.labels" . | nindent 4 }}
+    app: tryingadventure
 spec:
   type: {{ .Values.service.type }}
   ports:

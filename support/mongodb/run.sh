@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -x
+
 BACKUP_NAME=${HOST}-$(date  +"%Y_%m_%d-%H_%M").dump.gz
 S3PATH="s3://$S3_BUCKET/$S3_FOLDER"
 
