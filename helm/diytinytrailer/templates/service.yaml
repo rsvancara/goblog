@@ -4,6 +4,7 @@ metadata:
   name: {{ include "diytinytrailer.fullname" . }}
   labels:
     {{- include "diytinytrailer.labels" . | nindent 4 }}
+    k8s-app: {{ include "diytinytrailer.fullname" . }}
 spec:
   type: {{ .Values.service.type }}
   ports:

@@ -1,0 +1,17 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: ta-redis-metrics-servicemonitor
+  # Change this to the namespace the Prometheus instance is running in
+  namespace: default
+  labels:
+    app: ta-redis-metrics-servicemonitor
+    k8s-app: redis
+    release: prometheus
+spec:
+  selector:
+    matchLabels:
+      app: redis
+  endpoints:
+  - port: metrics
+    interval: 15s

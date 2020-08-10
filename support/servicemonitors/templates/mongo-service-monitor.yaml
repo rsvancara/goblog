@@ -1,0 +1,17 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: mongodb-metrics-servicemonitor
+  # Change this to the namespace the Prometheus instance is running in
+  namespace: default
+  labels:
+    app: mongodb-metrics-servicemonitor
+    k8s-app: mongodb-metrics
+    release: prometheus
+spec:
+  selector:
+    matchLabels:
+      app: mongodb-metrics
+  endpoints:
+  - port: http-metrics
+    interval: 15s

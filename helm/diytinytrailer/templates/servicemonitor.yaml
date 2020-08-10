@@ -6,6 +6,7 @@ metadata:
   namespace: default
   labels:
     app: {{ include "diytinytrailer.fullname" . }}-metrics-servicemonitor
+    k8s-app: {{ include "diytinytrailer.fullname" . }}
     release: prometheus
 spec:
   selector:
