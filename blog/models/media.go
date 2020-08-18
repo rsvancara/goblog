@@ -30,6 +30,7 @@ type MediaModel struct {
 	S3Location                string             `json:"s3_location" bson:"s3_location,omitempty"`
 	S3Thumbnail               string             `json:"s3_thumbnail" bson:"s3_thumbnail,omitempty"`
 	S3LargeView               string             `json:"s3_largeview" bson:"s3_largeview,omitempty"`
+	S3VeryLarge               string             `json:"s3_verylarge" bson:"s3_verylarge,omitempty"`
 	S3Uploaded                string             `json:"s3_uploaded" bson:"s3_uploaded,omitempty"`
 	Description               string             `json:"description" bson:"description,omitempty"`
 	Checksum                  string             `json:"checksum" bson:"checksum,omitempty"`
@@ -183,6 +184,7 @@ func (m *MediaModel) SetS3Uploaded() error {
 			"s3_location":  m.S3Location,
 			"s3_thumbnail": m.S3Thumbnail,
 			"s3_largeview": m.S3LargeView,
+			"s3_verylarge": m.S3VeryLarge,
 		},
 	}
 

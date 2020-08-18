@@ -414,6 +414,10 @@ func MediaDelete(w http.ResponseWriter, r *http.Request) {
 
 	deleteS3Object(media.S3LargeView)
 
+	deleteS3Object(media.S3LargeView)
+
+	deleteS3Object(media.S3VeryLarge)
+
 	err = media.DeleteMedia()
 	if err != nil {
 		fmt.Println(err)
@@ -490,6 +494,7 @@ func s3KeyGenerator(media *models.MediaModel) {
 	media.S3Location = fmt.Sprintf("/media/%d/%d/%d/%d/%d/%d/%s/%s", year, month, day, hour, minute, second, media.MediaID, media.FileName)
 	media.S3Thumbnail = fmt.Sprintf("/media/%d/%d/%d/%d/%d/%d/%s/thumb.jpeg", year, month, day, hour, minute, second, media.MediaID)
 	media.S3LargeView = fmt.Sprintf("/media/%d/%d/%d/%d/%d/%d/%s/largeview.jpeg", year, month, day, hour, minute, second, media.MediaID)
+	media.S3VeryLarge = fmt.Sprintf("/media/%d/%d/%d/%d/%d/%d/%s/verylargeview.jpeg", year, month, day, hour, minute, second, media.MediaID)
 }
 
 // AddFileToS3 will upload a single file to S3, it will require a pre-built aws session
@@ -614,6 +619,52 @@ func addFileToS3(filepath string, media models.MediaModel) {
 
 	fmt.Printf("Upload of view image %s to s3 was completed in %f seconds\n", media.S3LargeView, elapsed.Seconds())
 
+	// 4K image
+	start = time.Now()
+
+	dlarge := fmt.Sprintf("temp/verylarge-%s.jpeg", randString)
+	err = util.GetVeryLargeImage(filepath, dlarge)
+	if err != nil {
+		fmt.Printf("Error creating view image %s with error %s\n", dlarge, err)
+	}
+
+	file, err = os.OpenFile(dlarge, os.O_RDONLY, 0666)
+	if err != nil {
+		fmt.Printf("Error uploading file %s to s3 with error %s\n", filepath, err)
+		return
+	}
+	defer file.Close()
+
+	// Get file size and read the file content into a buffer
+	fileInfo, _ = file.Stat()
+	size = fileInfo.Size()
+	buffer = make([]byte, size)
+	file.Read(buffer)
+
+	// Config settings: this is where you choose the bucket, filename, content-type etc.
+	// of the file you're uploading.
+	_, err = s3.New(s).PutObject(&s3.PutObjectInput{
+		Bucket:               aws.String(cfg.S3Bucket),
+		Key:                  aws.String(media.S3VeryLarge),
+		ACL:                  aws.String("public-read"),
+		Body:                 bytes.NewReader(buffer),
+		ContentLength:        aws.Int64(size),
+		ContentType:          aws.String(http.DetectContentType(buffer)),
+		ContentDisposition:   aws.String("attachment"),
+		ServerSideEncryption: aws.String("AES256"),
+	})
+
+	if err != nil {
+		fmt.Printf("Error uploading file %s to s3 with error %s\n", filepath, err)
+		return
+	}
+
+	end = time.Now()
+
+	elapsed = end.Sub(start)
+
+	fmt.Printf("Upload of very large image %s to s3 was completed in %f seconds\n", media.S3VeryLarge, elapsed.Seconds())
+
 	// Original Image
 	start = time.Now()
 
@@ -677,6 +728,12 @@ func addFileToS3(filepath string, media models.MediaModel) {
 	err = os.Remove(dView)
 	if err != nil {
 		fmt.Printf("Failed to delete file %s with error: %s\n", dView, err)
+	}
+
+	// Remove the images we do not need
+	err = os.Remove(dlarge)
+	if err != nil {
+		fmt.Printf("Failed to delete file %s with error: %s\n", dlarge, err)
 	}
 
 	return

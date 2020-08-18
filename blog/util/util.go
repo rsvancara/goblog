@@ -50,6 +50,30 @@ func GetViewerBImage(srcFilePath string, dstFilePath string) error {
 
 }
 
+// GetVeryLargeImage 4K image
+func GetVeryLargeImage(srcFilePath string, dstFilePath string) error {
+	// Open a test image.
+	src, err := imaging.Open(srcFilePath)
+	if err != nil {
+		return err
+	}
+
+	// Resize the cropped image to width = 200px preserving the aspect ratio.
+	src = imaging.Resize(src, 3840, 0, imaging.Lanczos)
+
+	// Crop the original image to 300x300px size using the center anchor.
+	//src = imaging.CropAnchor(src, 300, 300, imaging.Center)
+
+	// Save the resulting image as JPEG.
+	err = imaging.Save(src, dstFilePath)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// GetViewerImage 1080P image
 func GetViewerImage(srcFilePath string, dstFilePath string) error {
 	// Open a test image.
 	src, err := imaging.Open(srcFilePath)
@@ -72,6 +96,7 @@ func GetViewerImage(srcFilePath string, dstFilePath string) error {
 	return nil
 }
 
+// GetThumbnail Thumbnail generator
 func GetThumbnail(srcFilePath string, dstFilePath string) error {
 	// Open a test image.
 	src, err := imaging.Open(srcFilePath)
