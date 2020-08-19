@@ -4,6 +4,7 @@ import (
 	"blog/blog/config"
 	"blog/blog/db"
 	"context"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -580,6 +581,71 @@ func AllCategories() ([]string, error) {
 
 	return categories, nil
 
+}
+
+//MediaSearch retrieve all posts sorted by creation date
+func MediaSearch(searchJSON string) ([]MediaModel, error) {
+
+	type search struct {
+	}
+
+	r := strings.NewReader(searchJSON)
+
+	var s search
+
+	err := json.NewDecoder(r).Decode(&s)
+	if err != nil {
+
+		return nil, fmt.Errorf("Error converting search string to JSON with error %s", err)
+	}
+
+	//var config db.Config
+	var db db.Session
+
+	var mediaModels []MediaModel
+	//config.DBUri = "mongodb://host.docker.internal:27017"
+
+	err := db.NewSession()
+	if err != nil {
+		return nil, err
+	}
+	defer db.Close()
+
+	filter := bson.M{}
+
+	options := options.Find()
+
+	// Sort by `_id` field descending
+	options.SetSort(map[string]int{"created_at": -1})
+
+	cur, err := db.Client.Database(getMediaDB()).Collection("media").Find(context.TODO(), filter, options)
+	if err != nil {
+		return nil, err
+	}
+
+	defer cur.Close(context.TODO())
+
+	for cur.Next(context.TODO()) {
+		var m MediaModel
+		// To decode into a struct, use cursor.Decode()
+		err := cur.Decode(&m)
+
+		// Translate special variables
+		m.ExposureProgramTranslated = m.GetExposureProgramTranslated()
+		m.FStopTranslated = m.CalculateFSTOP()
+
+		if err != nil {
+			return nil, err
+		}
+
+		mediaModels = append(mediaModels, m)
+
+	}
+	if err := cur.Err(); err != nil {
+		return nil, err
+	}
+
+	return mediaModels, nil
 }
 
 func getMediaDB() string {

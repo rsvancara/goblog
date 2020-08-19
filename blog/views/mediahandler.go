@@ -739,6 +739,51 @@ func addFileToS3(filepath string, media models.MediaModel) {
 	return
 }
 
+//MediaSearch search by media tags
+func MediaSearch(w http.ResponseWriter, r *http.Request) {
+	errorMessage := "{\"status\":\"error\", \"message\": \"error: %s in %s\"}\n"
+
+	sess := util.GetSession(r)
+
+	var d models.RequestView
+	err := json.NewDecoder(r.Body).Decode(&d)
+	if err != nil {
+		w.WriteHeader(http.StatusOK)
+		w.Header().Set("Content-Type", "application/json")
+		fmt.Fprintf(w, errorMessage, err, "getting data")
+		return
+	}
+
+	var rv models.RequestView
+	err = rv.GetRequestViewByPTAG(d.PTag)
+	if err != nil {
+		fmt.Printf("error getting requestview by id %s: %s \n", d.PTag, err)
+	}
+
+	rv.BrowserVersion = d.BrowserVersion
+	rv.FunctionalBrowser = d.FunctionalBrowser
+	rv.SessionID = d.SessionID
+	rv.NavAppVersion = d.NavAppVersion
+	rv.NavBrowser = d.NavBrowser
+	rv.NavPlatform = d.NavPlatform
+	rv.OS = d.OS
+	rv.OSVersion = d.OSVersion
+	rv.UserAgent = d.UserAgent
+
+	err = rv.UpdateRequestView()
+	if err != nil {
+		fmt.Printf("error udating requestview: %s", err)
+	}
+
+	//fmt.Println(d)
+	// Need to do some database work here and interface with pageview model
+
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	fmt.Fprintf(w, "{\"status\":\"success\", \"message\": \"request recieved %s\"}\n", sess.SessionToken)
+	return
+}
+
 // Hop-by-hop headers. These are removed when sent to the backend.
 // http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html
 var hopHeaders = []string{
