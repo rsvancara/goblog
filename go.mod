@@ -7,11 +7,11 @@ require (
 	github.com/aws/aws-sdk-go v1.27.0
 	github.com/disintegration/imaging v1.6.2
 	github.com/dsoprea/go-exif v0.0.0-20200102120628-74567945ac68
-	github.com/dsoprea/go-logging v0.0.0-20190624164917-c4f10aab7696
+	github.com/dsoprea/go-logging v0.0.0-20190624164917-c4f10aab7696 // indirect
 	github.com/extemporalgenome/slug v0.0.0-20150414033109-0320c85e32e0 // indirect
 	github.com/flosch/go-humanize v0.0.0-20140728123800-3ba51eabe506
 	github.com/flosch/pongo2 v0.0.0-20190707114632-bbf5a6c351f4
-	github.com/flosch/pongo2-addons v0.0.0-20170902001113-86b9b7b80512
+	github.com/flosch/pongo2-addons v0.0.0-20170902001113-86b9b7b80512 // indirect
 	github.com/go-stack/stack v1.8.0 // indirect
 	github.com/golang/snappy v0.0.1 // indirect
 	github.com/gomodule/redigo v2.0.0+incompatible
@@ -28,7 +28,7 @@ require (
 	github.com/satori/go.uuid v1.2.0
 	github.com/segmentio/ksuid v1.0.2
 	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect
-	github.com/slok/go-http-metrics v0.6.1
+	github.com/slok/go-http-metrics v0.6.1 // indirect
 	github.com/tidwall/pretty v1.0.0 // indirect
 	github.com/xdg/scram v0.0.0-20180814205039-7eeb5667e42c // indirect
 	github.com/xdg/stringprep v1.0.0 // indirect

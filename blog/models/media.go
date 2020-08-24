@@ -15,8 +15,10 @@ import (
 	"github.com/dsoprea/go-exif"
 	"github.com/gosimple/slug"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"gopkg.in/mgo.v2/bson"
+
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 // MediaModel post
@@ -63,6 +65,13 @@ type MediaModel struct {
 // Tag stores tag objects
 type Tag struct {
 	Keyword string `json:"tag" bson:"tag,omitempty"`
+}
+
+//MediaSearchQuery Media Search Object
+type MediaSearchQuery struct {
+	Tags     string `json:"tags"`
+	Title    string `json:"title"`
+	Category string `json:"category"`
 }
 
 //InsertMedia insert media
@@ -586,42 +595,74 @@ func AllCategories() ([]string, error) {
 //MediaSearch retrieve all posts sorted by creation date
 func MediaSearch(searchJSON string) ([]MediaModel, error) {
 
-	type search struct {
-	}
-
 	r := strings.NewReader(searchJSON)
 
-	var s search
-
-	err := json.NewDecoder(r).Decode(&s)
+	var ms MediaSearchQuery
+	err := json.NewDecoder(r).Decode(&ms)
 	if err != nil {
 
 		return nil, fmt.Errorf("Error converting search string to JSON with error %s", err)
 	}
 
+	fmt.Println(ms)
+
+	var filter bson.D
+	isSearch := false
+
+	if ms.Title != "" {
+		//filter = append(filter, bson.E{"title", ms.Title})
+		filter = append(filter, bson.E{Key: "title", Value: bson.D{
+			{"$regex", primitive.Regex{Pattern: fmt.Sprintf("^%s", ms.Title), Options: "i"}},
+		}},
+		)
+		isSearch = true
+	}
+
+	if ms.Category != "" {
+		filter = append(filter, bson.E{"category", ms.Category})
+		isSearch = true
+	}
+
+	if ms.Tags != "" {
+
+		filter = append(filter, bson.E{Key: "keywords", Value: bson.D{
+			{"$regex", primitive.Regex{Pattern: fmt.Sprintf("%s", ms.Tags), Options: "i"}},
+		}},
+		)
+		isSearch = true
+
+		//filter = append(filter, bson.E{"category", ms.Category})
+	}
+
+	var cur *mongo.Cursor
+
 	//var config db.Config
 	var db db.Session
 
-	var mediaModels []MediaModel
-	//config.DBUri = "mongodb://host.docker.internal:27017"
-
-	err := db.NewSession()
+	err = db.NewSession()
 	if err != nil {
 		return nil, err
 	}
 	defer db.Close()
-
-	filter := bson.M{}
 
 	options := options.Find()
 
 	// Sort by `_id` field descending
 	options.SetSort(map[string]int{"created_at": -1})
 
-	cur, err := db.Client.Database(getMediaDB()).Collection("media").Find(context.TODO(), filter, options)
-	if err != nil {
-		return nil, err
+	if isSearch == true {
+		cur, err = db.Client.Database(getMediaDB()).Collection("media").Find(context.TODO(), filter, options)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		cur, err = db.Client.Database(getMediaDB()).Collection("media").Find(context.TODO(), bson.M{}, options)
+		if err != nil {
+			return nil, err
+		}
 	}
+
+	var mediaModels []MediaModel
 
 	defer cur.Close(context.TODO())
 

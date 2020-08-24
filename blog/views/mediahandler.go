@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"math/rand"
 	"net/http"
@@ -739,48 +740,74 @@ func addFileToS3(filepath string, media models.MediaModel) {
 	return
 }
 
-//MediaSearch search by media tags
-func MediaSearch(w http.ResponseWriter, r *http.Request) {
-	errorMessage := "{\"status\":\"error\", \"message\": \"error: %s in %s\"}\n"
+//MediaListView List Media objects
+func MediaListView(w http.ResponseWriter, r *http.Request) {
 
 	sess := util.GetSession(r)
 
-	var d models.RequestView
-	err := json.NewDecoder(r.Body).Decode(&d)
+	template, err := util.SiteTemplate("/admin/medialist.html")
+	tmpl := pongo2.Must(pongo2.FromFile(template))
+
+	out, err := tmpl.Execute(pongo2.Context{
+		"title":     "Index",
+		"user":      sess.User,
+		"bodyclass": "",
+		"hidetitle": true,
+		"pagekey":   util.GetPageID(r),
+		"token":     sess.SessionToken,
+	})
+
 	if err != nil {
-		w.WriteHeader(http.StatusOK)
-		w.Header().Set("Content-Type", "application/json")
-		fmt.Fprintf(w, errorMessage, err, "getting data")
-		return
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		fmt.Println(err)
 	}
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintf(w, out)
 
-	var rv models.RequestView
-	err = rv.GetRequestViewByPTAG(d.PTag)
-	if err != nil {
-		fmt.Printf("error getting requestview by id %s: %s \n", d.PTag, err)
-	}
+}
 
-	rv.BrowserVersion = d.BrowserVersion
-	rv.FunctionalBrowser = d.FunctionalBrowser
-	rv.SessionID = d.SessionID
-	rv.NavAppVersion = d.NavAppVersion
-	rv.NavBrowser = d.NavBrowser
-	rv.NavPlatform = d.NavPlatform
-	rv.OS = d.OS
-	rv.OSVersion = d.OSVersion
-	rv.UserAgent = d.UserAgent
+//EditMediaAPI edit media
+func EditMediaAPI(w http.ResponseWriter, r *http.Request) {
+	//errorMessage := "{\"status\":\"error\", \"message\": \"error: %s in %s\"}\n"
 
-	err = rv.UpdateRequestView()
-	if err != nil {
-		fmt.Printf("error udating requestview: %s", err)
-	}
-
-	//fmt.Println(d)
-	// Need to do some database work here and interface with pageview model
+	sess := util.GetSession(r)
 
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
 	fmt.Fprintf(w, "{\"status\":\"success\", \"message\": \"request recieved %s\"}\n", sess.SessionToken)
+	return
+}
+
+//MediaSearchAPI search by media tags
+func MediaSearchAPI(w http.ResponseWriter, r *http.Request) {
+
+	sess := util.GetSession(r)
+
+	bodyString := "{}"
+	bodyBytes, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		fmt.Fprintf(w, "{\"status\":\"error\", \"message\": \"Error: %s\", \"session\":\"%s\",\"results\":nil}\n", err, sess.SessionToken)
+		return
+	}
+	bodyString = string(bodyBytes)
+
+	mediaList, err := models.MediaSearch(bodyString)
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		fmt.Fprintf(w, "{\"status\":\"error\", \"message\": \"%s\", \"session\":\"%s\",\"results\":nil}\n", err, sess.SessionToken)
+		return
+	}
+
+	mediaLength := len(mediaList)
+
+	jsonBytes, err := json.Marshal(mediaList)
+
+	//fmt.Println(string(jsonBytes))
+
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	fmt.Fprintf(w, "{\"status\":\"success\", \"message\": \"query successful with %d results\", \"session\":\"%s\",\"results\":%s}\n", mediaLength, sess.SessionToken, string(jsonBytes))
 	return
 }
 

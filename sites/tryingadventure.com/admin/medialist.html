@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+ 
+{% block title  %}Media{% endblock %}
+
+{% block headertitle %}<h1>Media</h1>{% endblock %}
+ 
+{% block body %}
+<div class="row">
+    <div class="col-md-12">
+            <a href="/admin/media/add" class="btn btn-primary">Add Media</a>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-12">
+       <form>
+           <input type="text" id="searchtitle" value=""/>
+           <input type="text" id="searchcategory" value=""/>
+           <input type="text" id="searchkeywords" value=""/>
+           <button id="search" class="btn btn-primary">Search</button>
+       </form>
+    </div>
+</div>
+<table id="resultviewer" class="table">
+    <tr><th></th><th>Title</th><th>Date</th><th></th></tr>
+
+
+</table>
+{% endblock %}
+{% block script %}
+<script>
+
+$(document).ready(function(){ 
+
+    console.log("loading on document load");
+    searchMedia();
+
+
+
+    $('#search').click(function(e){
+        $('#resultviewer').empty();
+        $('#resultviewer').append('<tr><th></th><th>Title</th><th>Category</th><th>Key Words</th><th></th></tr>');
+        console.log("clearing results")
+
+        searchMedia();
+        e.preventDefault();
+    });
+     
+});
+
+function searchMedia() {
+    console.log("calling search media")
+
+    $('#resultviewer').empty();
+    $('#resultviewer').append('<tr><th></th><th>Title</th><th>Category</th><th>Key Words</th><th></th></tr>');
+
+
+    var searchtitle = $("#searchtitle").val();
+    var searchcategory = $("#searchcategory").val();
+    var searchkeywords = $("#searchkeywords").val();
+
+    //console.log(searchtitle);
+
+    bdata = {
+    'category': searchcategory,
+    'tags': searchkeywords,
+    'title': searchtitle
+    };
+
+    $.ajax({
+        url: '/api/v1/searchmedia',
+        type: 'post',
+        contentType: 'application/json; charset=utf-8',
+        data: JSON.stringify(bdata),
+        dataType: 'json',
+        success : function(r) {
+            console.log( r.status + ' ' +  r.message);
+            $.each(r.results, function(key,v) {
+                //console.log(v)
+
+                var row = "";
+
+                row += '<tr><td><img src="/image/' + v.slug + '/thumb" style="width: 50px; height: 50px;"></td>';
+                row += '<td>' + v.title +  '</td>';
+                row += '<td>' + v.category + '</td>';
+                row += '<td>' + v.keywords + '</td>';
+                row += '<td>';
+                row += '<a href="/admin/media/view/' + v.media_id + '" class="btn btn-primary">view</a>'
+                row += '</td></tr>';
+
+                console.log(row)
+
+                $('#resultviewer').append(row);
+
+            });
+        },
+        failure: function(errMsg) {
+            console.log(errMsg);
+        },
+        error: function(errMsg) {
+            console.log(errMsg);
+        }
+    });
+
+}
+</script>
+
+{% endblock %}
+
+
