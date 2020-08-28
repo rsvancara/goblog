@@ -129,6 +129,15 @@ func GetRoutes() *mux.Router {
 				views.GeoFilterMiddleware(
 					views.AuthHandler(http.HandlerFunc(views.Media)))))).Methods("GET")
 
+	// Media View
+	r.Handle(
+		"/admin/medialist",
+		handlers.LoggingHandler(
+			os.Stdout,
+			views.SessionHandler(
+				views.GeoFilterMiddleware(
+					views.AuthHandler(http.HandlerFunc(views.MediaListView)))))).Methods("GET")
+
 	// Media Interface
 	r.Handle(
 		"/api/v1/putmedia/{id}",
@@ -146,6 +155,24 @@ func GetRoutes() *mux.Router {
 			views.SessionHandler(
 				views.GeoFilterMiddleware(
 					http.HandlerFunc(views.GetMediaAPI))))).Methods("GET")
+
+	// Media Interface
+	r.Handle(
+		"/api/v1/searchmedia",
+		handlers.LoggingHandler(
+			os.Stdout,
+			views.SessionHandler(
+				views.GeoFilterMiddleware(
+					views.AuthHandler(http.HandlerFunc(views.MediaSearchAPI))))))
+
+	// Media Interface
+	r.Handle(
+		"/api/v1/editmedia",
+		handlers.LoggingHandler(
+			os.Stdout,
+			views.SessionHandler(
+				views.GeoFilterMiddleware(
+					views.AuthHandler(http.HandlerFunc(views.EditMediaAPI))))))
 
 	// Add media
 	r.Handle(

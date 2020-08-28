@@ -4,6 +4,7 @@ import (
 	"blog/blog/config"
 	"blog/blog/db"
 	"context"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -14,8 +15,10 @@ import (
 	"github.com/dsoprea/go-exif"
 	"github.com/gosimple/slug"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"gopkg.in/mgo.v2/bson"
+
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 // MediaModel post
@@ -30,6 +33,7 @@ type MediaModel struct {
 	S3Location                string             `json:"s3_location" bson:"s3_location,omitempty"`
 	S3Thumbnail               string             `json:"s3_thumbnail" bson:"s3_thumbnail,omitempty"`
 	S3LargeView               string             `json:"s3_largeview" bson:"s3_largeview,omitempty"`
+	S3VeryLarge               string             `json:"s3_verylarge" bson:"s3_verylarge,omitempty"`
 	S3Uploaded                string             `json:"s3_uploaded" bson:"s3_uploaded,omitempty"`
 	Description               string             `json:"description" bson:"description,omitempty"`
 	Checksum                  string             `json:"checksum" bson:"checksum,omitempty"`
@@ -61,6 +65,13 @@ type MediaModel struct {
 // Tag stores tag objects
 type Tag struct {
 	Keyword string `json:"tag" bson:"tag,omitempty"`
+}
+
+//MediaSearchQuery Media Search Object
+type MediaSearchQuery struct {
+	Tags     string `json:"tags"`
+	Title    string `json:"title"`
+	Category string `json:"category"`
 }
 
 //InsertMedia insert media
@@ -183,6 +194,7 @@ func (m *MediaModel) SetS3Uploaded() error {
 			"s3_location":  m.S3Location,
 			"s3_thumbnail": m.S3Thumbnail,
 			"s3_largeview": m.S3LargeView,
+			"s3_verylarge": m.S3VeryLarge,
 		},
 	}
 
@@ -578,6 +590,103 @@ func AllCategories() ([]string, error) {
 
 	return categories, nil
 
+}
+
+//MediaSearch retrieve all posts sorted by creation date
+func MediaSearch(searchJSON string) ([]MediaModel, error) {
+
+	r := strings.NewReader(searchJSON)
+
+	var ms MediaSearchQuery
+	err := json.NewDecoder(r).Decode(&ms)
+	if err != nil {
+
+		return nil, fmt.Errorf("Error converting search string to JSON with error %s", err)
+	}
+
+	fmt.Println(ms)
+
+	var filter bson.D
+	isSearch := false
+
+	if ms.Title != "" {
+		//filter = append(filter, bson.E{"title", ms.Title})
+		filter = append(filter, bson.E{Key: "title", Value: bson.D{
+			{"$regex", primitive.Regex{Pattern: fmt.Sprintf("^%s", ms.Title), Options: "i"}},
+		}},
+		)
+		isSearch = true
+	}
+
+	if ms.Category != "" {
+		filter = append(filter, bson.E{"category", ms.Category})
+		isSearch = true
+	}
+
+	if ms.Tags != "" {
+
+		filter = append(filter, bson.E{Key: "keywords", Value: bson.D{
+			{"$regex", primitive.Regex{Pattern: fmt.Sprintf("%s", ms.Tags), Options: "i"}},
+		}},
+		)
+		isSearch = true
+
+		//filter = append(filter, bson.E{"category", ms.Category})
+	}
+
+	var cur *mongo.Cursor
+
+	//var config db.Config
+	var db db.Session
+
+	err = db.NewSession()
+	if err != nil {
+		return nil, err
+	}
+	defer db.Close()
+
+	options := options.Find()
+
+	// Sort by `_id` field descending
+	options.SetSort(map[string]int{"created_at": -1})
+
+	if isSearch == true {
+		cur, err = db.Client.Database(getMediaDB()).Collection("media").Find(context.TODO(), filter, options)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		cur, err = db.Client.Database(getMediaDB()).Collection("media").Find(context.TODO(), bson.M{}, options)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	var mediaModels []MediaModel
+
+	defer cur.Close(context.TODO())
+
+	for cur.Next(context.TODO()) {
+		var m MediaModel
+		// To decode into a struct, use cursor.Decode()
+		err := cur.Decode(&m)
+
+		// Translate special variables
+		m.ExposureProgramTranslated = m.GetExposureProgramTranslated()
+		m.FStopTranslated = m.CalculateFSTOP()
+
+		if err != nil {
+			return nil, err
+		}
+
+		mediaModels = append(mediaModels, m)
+
+	}
+	if err := cur.Err(); err != nil {
+		return nil, err
+	}
+
+	return mediaModels, nil
 }
 
 func getMediaDB() string {
