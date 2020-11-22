@@ -38,12 +38,12 @@ RUN wget https://dl.google.com/go/go1.13.4.linux-amd64.tar.gz && \
     mv go /usr/local/
 
 # Build the binary
-COPY blog.go /BUILD/blog.go
+COPY cmd /BUILD/cmd
 COPY go.sum  /BUILD.go.sum
 COPY go.mod /BUILD/go.mod
 COPY vendor /BUILD/vendor
-COPY blog /BUILD/blog
-RUN cd /BUILD && PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/opt/vips/lib/pkgconfig LD_LIBRARY_PATH=/opt/vips/lib /usr/local/go/bin/go build -o /BUILD/dabloog blog.go 
+COPY internal /BUILD/internal
+RUN cd /BUILD && PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/opt/vips/lib/pkgconfig LD_LIBRARY_PATH=/opt/vips/lib /usr/local/go/bin/go build -o /BUILD/dabloog cmd/goblog/main.go 
 
 FROM debian:stretch-slim
 
