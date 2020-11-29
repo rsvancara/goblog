@@ -2,6 +2,8 @@ package db
 
 import (
 	"context"
+	"fmt"
+	"time"
 
 	"github.com/rsvancara/goblog/internal/config"
 
@@ -40,4 +42,29 @@ func (s *Session) Close() error {
 	}
 
 	return nil
+}
+
+// GetMongoClient connect to the mongodb database
+func GetMongoClient(config *config.AppConfig) (*mongo.Client, error) {
+
+	//mongodb://master:master1234@docdb-2020-11-18-17-41-21-hss.cluster-cy44hjryoetp.us-west-2.docdb.amazonaws.com:27017/?ssl=true&ssl_ca_certs=rds-combined-ca-bundle.pem&replicaSet=rs0&readPreference=secondaryPreferred&retryWrites=false
+
+	//mongoURI := fmt.Sprintf("mongodb://%s:%s@%s/?ssl=false&replicaSet=rs0&readPreference=secondaryPreferred&retryWrites=false", config.MongoUser, config.MongoPass, config.MongoHost)
+	mongoURI := fmt.Sprintf("mongodb://%s/?ssl=false&replicaSet=rs0&readPreference=secondaryPreferred&retryWrites=false", config.MongoHost)
+
+	//tlsConfig, err := GetTLSConfig(config.MongoCert)
+	//if err != nil {
+	//	log.Error().Err(err).Str("service", "utility").Msgf("Error getting tls configuration from path: %s", config.MongoCert)
+	//}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	//options := options.Client().ApplyURI(mongoURI).SetTLSConfig(tlsConfig).SetMaxPoolSize(50)
+	options := options.Client().ApplyURI(mongoURI).SetMaxPoolSize(50)
+	client, err := mongo.Connect(ctx, options)
+	if err != nil {
+		return nil, err
+	}
+
+	return client, nil
 }

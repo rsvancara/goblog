@@ -24,6 +24,7 @@ require (
 	github.com/modern-go/reflect2 v1.0.1 // indirect
 	github.com/oschwald/geoip2-golang v1.4.0
 	github.com/prometheus/client_golang v1.4.1
+	github.com/rs/zerolog v1.20.0
 	github.com/russross/blackfriday v2.0.0+incompatible // indirect
 	github.com/satori/go.uuid v1.2.0
 	github.com/segmentio/ksuid v1.0.2

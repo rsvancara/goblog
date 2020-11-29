@@ -22,6 +22,9 @@ type AppConfig struct {
 	MongoDatabase  string `envconfig:"MONGO_DATABASE"`  // Defines mongo database
 	RedisDB        string `envconfig:"REDIS_DB"`        // Defines logical redis database
 	RedisFilterDB  string `envconfig:"REDISFILTER_DB"`  // Defines logical redis filter database
+	MongoUser      string `envconfig:"MONGO_USER"`
+	MongoPassword  string `envconfig:"MONGO_PASSWORD"`
+	MongoHost      string `envconfig:"MONGO_HOST"`
 }
 
 //GetCacheURI returs cache uri for redis

@@ -4,12 +4,15 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"log"
+
+	//"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"time"
 
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 	"github.com/rsvancara/goblog/internal/config"
 	"github.com/rsvancara/goblog/internal/metrics"
 	"github.com/rsvancara/goblog/internal/routes"
@@ -21,14 +24,25 @@ func main() {
 
 	var wait time.Duration
 	flag.DurationVar(&wait, "graceful-timeout", time.Second*15, "the duration for which the server gracefully wait for existing connections to finish - e.g. 15s or 1m")
+	debug := flag.Bool("debug", false, "sets log level to debug")
 	flag.Parse()
 
 	fmt.Println("== Starting Service ==")
 
 	cfg, err := config.GetConfig()
 	if err != nil {
-		log.Fatal(err.Error())
+		log.Fatal().Err(err).Msg("Can not get configuration")
 	}
+
+	// Default level for this example is info, unless debug flag is present
+	zerolog.SetGlobalLevel(zerolog.InfoLevel)
+	if *debug {
+		zerolog.SetGlobalLevel(zerolog.DebugLevel)
+	}
+
+	log.Info().Str("service", "main").Msgf("Starting up")
+
+	log.Info().Str("service", "main").Msgf("Loading mongo client")
 
 	fmt.Println("== Initializing Configuration ==")
 	fmt.Printf("Database URI: %s\n", cfg.Dburi)
@@ -54,7 +68,7 @@ func main() {
 	// Run our server in a goroutine so that it doesn't block.
 	go func() {
 		if err := srv.ListenAndServe(); err != nil {
-			log.Println(err)
+			log.Error().Err(err).Msg("Error starting up HTTP Listener")
 		}
 	}()
 
@@ -77,6 +91,6 @@ func main() {
 	// Optionally, you could run srv.Shutdown in a goroutine and block on
 	// <-ctx.Done() if your application should wait for other services
 	// to finalize based on context cancellation.
-	log.Println("shutting down")
+	log.Info().Msg("Shutting down server")
 	os.Exit(0)
 }
