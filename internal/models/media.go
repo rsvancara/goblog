@@ -323,7 +323,8 @@ func (m *MediaModel) ExifExtractor(f *os.File) error {
 	exifData, err := exif.SearchAndExtractExif(data)
 	if err != nil {
 		if err == exif.ErrNoExif {
-			return err
+			// Return without error if the exif is missing with defaults set above
+			return nil
 		}
 		return err
 	}
