@@ -63,7 +63,7 @@ func (g *GeoIP) Search(ipaddress string) error {
 	db, err := geoip2.Open("db/GeoIP2-City.mmdb")
 	if err != nil {
 		g.IsFound = false
-		return fmt.Errorf("error opening country geodatabase")
+		return fmt.Errorf("error opening city geodatabase")
 	}
 	defer db.Close()
 
