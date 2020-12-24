@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 
+	bloghandlers "github.com/rsvancara/goblog/internal/handlers"
 	"github.com/rsvancara/goblog/internal/util"
 	"github.com/rsvancara/goblog/internal/views"
 
@@ -13,7 +14,7 @@ import (
 )
 
 //GetRoutes get the routes for the application
-func GetRoutes() *mux.Router {
+func GetRoutes(hctx *bloghandlers.HTTPHandlerContext) *mux.Router {
 
 	staticAssets, err := util.SiteTemplate("/static")
 	if err != nil {
@@ -128,7 +129,7 @@ func GetRoutes() *mux.Router {
 			os.Stdout,
 			views.SessionHandler(
 				views.GeoFilterMiddleware(
-					views.AuthHandler(http.HandlerFunc(views.Media)))))).Methods("GET")
+					views.AuthHandler(http.HandlerFunc(hctx.MediaHandler)))))).Methods("GET")
 
 	// Media View
 	r.Handle(
@@ -137,7 +138,7 @@ func GetRoutes() *mux.Router {
 			os.Stdout,
 			views.SessionHandler(
 				views.GeoFilterMiddleware(
-					views.AuthHandler(http.HandlerFunc(views.MediaListView)))))).Methods("GET")
+					views.AuthHandler(http.HandlerFunc(hctx.MediaListViewHandler)))))).Methods("GET")
 
 	// Media Interface
 	r.Handle(
@@ -146,7 +147,7 @@ func GetRoutes() *mux.Router {
 			os.Stdout,
 			views.SessionHandler(
 				views.GeoFilterMiddleware(
-					views.AuthHandler(http.HandlerFunc(views.PutMedia))))))
+					views.AuthHandler(http.HandlerFunc(hctx.PutMedia))))))
 
 	// Media Interface
 	r.Handle(
@@ -164,7 +165,7 @@ func GetRoutes() *mux.Router {
 			os.Stdout,
 			views.SessionHandler(
 				views.GeoFilterMiddleware(
-					views.AuthHandler(http.HandlerFunc(views.MediaSearchAPI))))))
+					views.AuthHandler(http.HandlerFunc(hctx.MediaSearchAPIHandler))))))
 
 	// Media Interface
 	r.Handle(
@@ -173,7 +174,7 @@ func GetRoutes() *mux.Router {
 			os.Stdout,
 			views.SessionHandler(
 				views.GeoFilterMiddleware(
-					views.AuthHandler(http.HandlerFunc(views.EditMediaAPI))))))
+					views.AuthHandler(http.HandlerFunc(hctx.EditMediaAPIHandler))))))
 
 	// Add media
 	r.Handle(
@@ -182,7 +183,7 @@ func GetRoutes() *mux.Router {
 			os.Stdout,
 			views.SessionHandler(
 				views.GeoFilterMiddleware(
-					views.AuthHandler(http.HandlerFunc(views.MediaAdd)))))).Methods("GET", "POST")
+					views.AuthHandler(http.HandlerFunc(hctx.MediaAddHandler)))))).Methods("GET", "POST")
 
 	// Edit Media
 	r.Handle(
@@ -202,7 +203,7 @@ func GetRoutes() *mux.Router {
 			views.SessionHandler(
 				views.GeoFilterMiddleware(
 					views.AuthHandler(
-						http.HandlerFunc(views.ViewMedia)))))).Methods("GET")
+						http.HandlerFunc(hctx.ViewMediaHandler)))))).Methods("GET")
 
 	// Delete media page
 	r.Handle(
@@ -212,7 +213,7 @@ func GetRoutes() *mux.Router {
 			views.SessionHandler(
 				views.GeoFilterMiddleware(
 					views.AuthHandler(
-						http.HandlerFunc(views.MediaDelete)))))).Methods("GET")
+						http.HandlerFunc(hctx.MediaDeleteHandler)))))).Methods("GET")
 
 	r.Handle(
 		"/admin/post",

@@ -25,6 +25,7 @@ type AppConfig struct {
 	MongoUser      string `envconfig:"MONGO_USER"`
 	MongoPassword  string `envconfig:"MONGO_PASSWORD"`
 	MongoHost      string `envconfig:"MONGO_HOST"`
+	MongoPort      string `envconfig:"MONGO_PORT"`
 }
 
 //GetCacheURI returs cache uri for redis

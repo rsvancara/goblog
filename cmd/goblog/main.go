@@ -14,8 +14,12 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/rsvancara/goblog/internal/config"
+	"github.com/rsvancara/goblog/internal/db"
+	"github.com/rsvancara/goblog/internal/handlers"
 	"github.com/rsvancara/goblog/internal/metrics"
 	"github.com/rsvancara/goblog/internal/routes"
+
+	mediadao "github.com/rsvancara/goblog/internal/dao/media"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
@@ -40,6 +44,21 @@ func main() {
 		zerolog.SetGlobalLevel(zerolog.DebugLevel)
 	}
 
+	log.Info().Str("service", "main").Msgf("Loading mongo client")
+	dbclient, err := db.GetMongoClient(&cfg)
+	if err != nil {
+		log.Fatal().Err(err).Msg("Error getting mongo client")
+	}
+
+	// Test DAO
+	var mediaDAO mediadao.MediaDAO
+
+	err = mediaDAO.Initialize(dbclient, &cfg)
+	if err != nil {
+		log.Error().Err(err).Str("service", "mediadao").Msg("Error initialzing media data access object ")
+
+	}
+
 	log.Info().Str("service", "main").Msgf("Starting up")
 
 	log.Info().Str("service", "main").Msgf("Loading mongo client")
@@ -48,9 +67,12 @@ func main() {
 	fmt.Printf("Database URI: %s\n", cfg.Dburi)
 	fmt.Printf("Cache URI: %s\n", cfg.Cacheuri)
 
+	log.Info().Str("service", "main").Msgf("Populating configuration and mongo client into context")
+	hctx := handlers.CTXHandlerContext(&cfg, dbclient)
+
 	middleware := metrics.NewPrometheusMiddleware(metrics.Opts{})
 
-	r := routes.GetRoutes()
+	r := routes.GetRoutes(hctx)
 
 	r.Handle("/metrics", promhttp.Handler())
 	r.Use(middleware.InstrumentHandlerDuration)

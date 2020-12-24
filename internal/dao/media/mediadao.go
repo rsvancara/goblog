@@ -9,8 +9,8 @@ import (
 	"time"
 
 	"github.com/gosimple/slug"
+	"github.com/rs/zerolog/log"
 	"github.com/rsvancara/goblog/internal/config"
-	"github.com/rsvancara/goblog/internal/db"
 	"github.com/rsvancara/goblog/internal/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -18,14 +18,23 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-//MediaDao stores media data access object information
-type MediaDao struct {
+//MediaDAO stores media data access object information
+type MediaDAO struct {
 	DBClient *mongo.Client
 	Config   *config.AppConfig
 }
 
 // Initialize creates the connection and populates the suppression struct
-func (m *MediaDao) Initialize(mclient *mongo.Client, config *config.AppConfig) error {
+func (m *MediaDAO) Initialize(mclient *mongo.Client, config *config.AppConfig) error {
+
+	err := mclient.Ping(context.TODO(), nil)
+
+	if err != nil {
+		log.Error().Err(err).Msg("Error connecting to mongodb")
+	}
+
+	log.Info().Msg("MediaDAO connected successfully to mongodb")
+
 	m.DBClient = mclient
 	m.Config = config
 
@@ -33,16 +42,7 @@ func (m *MediaDao) Initialize(mclient *mongo.Client, config *config.AppConfig) e
 }
 
 //InsertMedia insert media
-func (m *MediaDao) InsertMedia(media models.MediaModel) error {
-
-	var db db.Session
-
-	err := db.NewSession()
-	if err != nil {
-		return err
-	}
-
-	defer db.Close()
+func (m *MediaDAO) InsertMedia(media *models.MediaModel) error {
 
 	// Manage the create and update time
 	media.CreatedAt = time.Now()
@@ -52,9 +52,14 @@ func (m *MediaDao) InsertMedia(media models.MediaModel) error {
 
 	media.Tags = models.TagExtractor(media.Keywords)
 
-	c := db.Client.Database(m.Config.MongoDatabase).Collection("media")
+	// Connect to our database
+	c := m.DBClient.Database(m.Config.MongoDatabase).Collection("media")
 
-	insertResult, err := c.InsertOne(context.TODO(), m)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+
+	defer cancel()
+
+	insertResult, err := c.InsertOne(ctx, media)
 	if err != nil {
 		return err
 	}
@@ -66,18 +71,14 @@ func (m *MediaDao) InsertMedia(media models.MediaModel) error {
 }
 
 //UpdateMedia Update the title, keywords and description for media
-func (m *MediaDao) UpdateMedia(media models.MediaModel) error {
+func (m *MediaDAO) UpdateMedia(media models.MediaModel) error {
 
-	var db db.Session
+	// Connect to our database
+	c := m.DBClient.Database(m.Config.MongoDatabase).Collection("media")
 
-	err := db.NewSession()
-	if err != nil {
-		return err
-	}
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 
-	defer db.Close()
-
-	c := db.Client.Database(m.Config.MongoDatabase).Collection("media")
+	defer cancel()
 
 	filter := bson.M{
 		"media_id": bson.M{
@@ -100,7 +101,7 @@ func (m *MediaDao) UpdateMedia(media models.MediaModel) error {
 		},
 	}
 
-	result, err := c.UpdateOne(context.TODO(), filter, update)
+	result, err := c.UpdateOne(ctx, filter, update)
 	if err != nil {
 		return err
 	}
@@ -111,18 +112,18 @@ func (m *MediaDao) UpdateMedia(media models.MediaModel) error {
 }
 
 // GetMedia populate the media object based on ID
-func (m *MediaDao) GetMedia(id string) (models.MediaModel, error) {
-
-	var db db.Session
+func (m *MediaDAO) GetMedia(id string) (models.MediaModel, error) {
 
 	var media models.MediaModel
 
-	//config.DBUri = "mongodb://host.docker.internal:27017"
-	err := db.NewSession()
+	// Connect to our database
+	c := m.DBClient.Database(m.Config.MongoDatabase).Collection("media")
 
-	c := db.Client.Database(m.Config.MongoDatabase).Collection("media")
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 
-	err = c.FindOne(context.TODO(), bson.M{"media_id": id}).Decode(m)
+	defer cancel()
+
+	err := c.FindOne(ctx, bson.M{"media_id": id}).Decode(&media)
 
 	// Translate special variables
 	media.ExposureProgramTranslated = media.GetExposureProgramTranslated()
@@ -131,52 +132,45 @@ func (m *MediaDao) GetMedia(id string) (models.MediaModel, error) {
 	if err != nil {
 		return media, err
 	}
-	defer db.Close()
 
 	return media, nil
 }
 
 // GetMediaBySlug populate the media object based on ID
-func (m *MediaDao) GetMediaBySlug(slug string) (models.MediaModel, error) {
-
-	var db db.Session
+func (m *MediaDAO) GetMediaBySlug(slug string) (models.MediaModel, error) {
 
 	var media models.MediaModel
 
-	//config.DBUri = "mongodb://host.docker.internal:27017"
-	err := db.NewSession()
+	// Connect to our database
+	c := m.DBClient.Database(m.Config.MongoDatabase).Collection("media")
 
-	c := db.Client.Database(m.Config.MongoDatabase).Collection("media")
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 
-	err = c.FindOne(context.TODO(), bson.M{"slug": slug}).Decode(media)
-	// Translate special variables
-	media.ExposureProgramTranslated = media.GetExposureProgramTranslated()
-	media.FStopTranslated = media.CalculateFSTOP()
+	defer cancel()
 
+	err := c.FindOne(ctx, bson.M{"slug": slug}).Decode(&media)
 	if err != nil {
 		return media, err
 	}
-	defer db.Close()
+
+	// Translate special variables
+	media.ExposureProgramTranslated = media.GetExposureProgramTranslated()
+	media.FStopTranslated = media.CalculateFSTOP()
 
 	return media, nil
 }
 
 //DeleteMedia delete the media object base on ID
-func (m *MediaDao) DeleteMedia(media models.MediaModel) error {
+func (m *MediaDAO) DeleteMedia(media models.MediaModel) error {
 
-	//var config db.Config
-	var db db.Session
+	// Connect to our database
+	c := m.DBClient.Database(m.Config.MongoDatabase).Collection("media")
 
-	//config.DBUri = "mongodb://host.docker.internal:27017"
-	err := db.NewSession()
-	if err != nil {
-		return err
-	}
-	defer db.Close()
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 
-	c := db.Client.Database(m.Config.MongoDatabase).Collection("media")
-	_, err = c.DeleteOne(context.TODO(), bson.M{"media_id": media.MediaID})
+	defer cancel()
 
+	_, err := c.DeleteOne(ctx, bson.M{"media_id": media.MediaID})
 	if err != nil {
 		return err
 	}
@@ -185,18 +179,16 @@ func (m *MediaDao) DeleteMedia(media models.MediaModel) error {
 }
 
 //GetMediaListByCategory Obtains the list of media by category sorted by date
-func (m *MediaDao) GetMediaListByCategory(category string) ([]models.MediaModel, error) {
-	//var config db.Config
-	var db db.Session
+func (m *MediaDAO) GetMediaListByCategory(category string) ([]models.MediaModel, error) {
 
 	var mediaModels []models.MediaModel
-	//config.DBUri = "mongodb://host.docker.internal:27017"
 
-	err := db.NewSession()
-	if err != nil {
-		return nil, err
-	}
-	defer db.Close()
+	// Connect to our database
+	c := m.DBClient.Database(m.Config.MongoDatabase).Collection("media")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+
+	defer cancel()
 
 	filter := bson.M{"category": category}
 
@@ -205,7 +197,7 @@ func (m *MediaDao) GetMediaListByCategory(category string) ([]models.MediaModel,
 	// Sort by `_id` field descending
 	options.SetSort(map[string]int{"created_at": -1})
 
-	cur, err := db.Client.Database(m.Config.MongoDatabase).Collection("media").Find(context.TODO(), filter, options)
+	cur, err := c.Find(ctx, filter, options)
 	if err != nil {
 		return nil, err
 	}
@@ -216,14 +208,13 @@ func (m *MediaDao) GetMediaListByCategory(category string) ([]models.MediaModel,
 		var media models.MediaModel
 		// To decode into a struct, use cursor.Decode()
 		err := cur.Decode(&m)
+		if err != nil {
+			return nil, err
+		}
 
 		// Translate special variables
 		media.ExposureProgramTranslated = media.GetExposureProgramTranslated()
 		media.FStopTranslated = media.CalculateFSTOP()
-
-		if err != nil {
-			return nil, err
-		}
 
 		mediaModels = append(mediaModels, media)
 
@@ -236,19 +227,17 @@ func (m *MediaDao) GetMediaListByCategory(category string) ([]models.MediaModel,
 }
 
 //AllMediaSortedByDate retrieve all posts sorted by creation date
-func (m *MediaDao) AllMediaSortedByDate() ([]models.MediaModel, error) {
-
-	//var config db.Config
-	var db db.Session
+func (m *MediaDAO) AllMediaSortedByDate() ([]models.MediaModel, error) {
 
 	var mediaModels []models.MediaModel
 	//config.DBUri = "mongodb://host.docker.internal:27017"
 
-	err := db.NewSession()
-	if err != nil {
-		return nil, err
-	}
-	defer db.Close()
+	// Connect to our database
+	c := m.DBClient.Database(m.Config.MongoDatabase).Collection("media")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+
+	defer cancel()
 
 	filter := bson.M{}
 
@@ -257,14 +246,14 @@ func (m *MediaDao) AllMediaSortedByDate() ([]models.MediaModel, error) {
 	// Sort by `_id` field descending
 	options.SetSort(map[string]int{"created_at": -1})
 
-	cur, err := db.Client.Database(m.Config.MongoDatabase).Collection("media").Find(context.TODO(), filter, options)
+	cur, err := c.Find(ctx, filter, options)
 	if err != nil {
 		return nil, err
 	}
 
-	defer cur.Close(context.TODO())
+	defer cur.Close(ctx)
 
-	for cur.Next(context.TODO()) {
+	for cur.Next(ctx) {
 		var media models.MediaModel
 		// To decode into a struct, use cursor.Decode()
 		err := cur.Decode(&media)
@@ -288,21 +277,19 @@ func (m *MediaDao) AllMediaSortedByDate() ([]models.MediaModel, error) {
 }
 
 //AllCategories return a list of categories
-func (m *MediaDao) AllCategories() ([]string, error) {
-	//var config db.Config
-	var db db.Session
+func (m *MediaDAO) AllCategories() ([]string, error) {
 
-	err := db.NewSession()
-	if err != nil {
-		return nil, err
-	}
-	defer db.Close()
+	c := m.DBClient.Database(m.Config.MongoDatabase).Collection("media")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+
+	defer cancel()
 
 	filter := bson.M{}
 
 	options := options.Distinct()
 
-	cur, err := db.Client.Database(m.Config.MongoDatabase).Collection("media").Distinct(context.TODO(), "category", filter, options)
+	cur, err := c.Distinct(ctx, "category", filter, options)
 	if err != nil {
 		return nil, err
 	}
@@ -318,7 +305,7 @@ func (m *MediaDao) AllCategories() ([]string, error) {
 }
 
 //MediaSearch retrieve all posts sorted by creation date
-func (m *MediaDao) MediaSearch(searchJSON string) ([]models.MediaModel, error) {
+func (m *MediaDAO) MediaSearch(searchJSON string) ([]models.MediaModel, error) {
 
 	r := strings.NewReader(searchJSON)
 
@@ -361,14 +348,11 @@ func (m *MediaDao) MediaSearch(searchJSON string) ([]models.MediaModel, error) {
 
 	var cur *mongo.Cursor
 
-	//var config db.Config
-	var db db.Session
+	c := m.DBClient.Database(m.Config.MongoDatabase).Collection("media")
 
-	err = db.NewSession()
-	if err != nil {
-		return nil, err
-	}
-	defer db.Close()
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+
+	defer cancel()
 
 	options := options.Find()
 
@@ -376,12 +360,12 @@ func (m *MediaDao) MediaSearch(searchJSON string) ([]models.MediaModel, error) {
 	options.SetSort(map[string]int{"created_at": -1})
 
 	if isSearch == true {
-		cur, err = db.Client.Database(m.Config.MongoDatabase).Collection("media").Find(context.TODO(), filter, options)
+		cur, err = c.Find(context.TODO(), filter, options)
 		if err != nil {
 			return nil, err
 		}
 	} else {
-		cur, err = db.Client.Database(m.Config.MongoDatabase).Collection("media").Find(context.TODO(), bson.M{}, options)
+		cur, err = c.Find(context.TODO(), bson.M{}, options)
 		if err != nil {
 			return nil, err
 		}
@@ -389,9 +373,9 @@ func (m *MediaDao) MediaSearch(searchJSON string) ([]models.MediaModel, error) {
 
 	var mediaModels []models.MediaModel
 
-	defer cur.Close(context.TODO())
+	defer cur.Close(ctx)
 
-	for cur.Next(context.TODO()) {
+	for cur.Next(ctx) {
 		var m models.MediaModel
 		// To decode into a struct, use cursor.Decode()
 		err := cur.Decode(&m)
@@ -412,4 +396,39 @@ func (m *MediaDao) MediaSearch(searchJSON string) ([]models.MediaModel, error) {
 	}
 
 	return mediaModels, nil
+}
+
+//SetS3Uploaded sets the status of the s3upload
+func (m *MediaDAO) SetS3Uploaded(media *models.MediaModel) error {
+
+	c := m.DBClient.Database(m.Config.MongoDatabase).Collection("media")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+
+	defer cancel()
+
+	filter := bson.M{
+		"media_id": bson.M{
+			"$eq": media.MediaID, // check if bool field has value of 'false'
+		},
+	}
+
+	update := bson.M{
+		"$set": bson.M{
+			"s3_uploaded":  media.S3Uploaded,
+			"s3_location":  media.S3Location,
+			"s3_thumbnail": media.S3Thumbnail,
+			"s3_largeview": media.S3LargeView,
+			"s3_verylarge": media.S3VeryLarge,
+		},
+	}
+
+	result, err := c.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return err
+	}
+
+	log.Info().Msgf("updated s3 status for %d record for media id  %s", result.ModifiedCount, media.MediaID)
+
+	return nil
 }
