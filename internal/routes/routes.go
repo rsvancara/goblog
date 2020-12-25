@@ -83,7 +83,7 @@ func GetRoutes(hctx *bloghandlers.HTTPHandlerContext) *mux.Router {
 			os.Stdout,
 			views.SessionHandler(
 				views.GeoFilterMiddleware(
-					http.HandlerFunc(views.PhotoView))))).Methods("GET")
+					http.HandlerFunc(hctx.PhotoViewHandler))))).Methods("GET")
 
 	// Image
 	r.Handle(
@@ -92,7 +92,7 @@ func GetRoutes(hctx *bloghandlers.HTTPHandlerContext) *mux.Router {
 			os.Stdout,
 			views.SessionHandler(
 				views.GeoFilterMiddleware(
-					http.HandlerFunc(views.ServerImage))))).Methods("GET")
+					http.HandlerFunc(hctx.ServerImageHandler))))).Methods("GET")
 
 	// About Page
 	r.Handle(
@@ -147,7 +147,7 @@ func GetRoutes(hctx *bloghandlers.HTTPHandlerContext) *mux.Router {
 			os.Stdout,
 			views.SessionHandler(
 				views.GeoFilterMiddleware(
-					views.AuthHandler(http.HandlerFunc(hctx.PutMedia))))))
+					views.AuthHandler(http.HandlerFunc(hctx.PutMediaAPI))))))
 
 	// Media Interface
 	r.Handle(
@@ -156,7 +156,7 @@ func GetRoutes(hctx *bloghandlers.HTTPHandlerContext) *mux.Router {
 			os.Stdout,
 			views.SessionHandler(
 				views.GeoFilterMiddleware(
-					http.HandlerFunc(views.GetMediaAPI))))).Methods("GET")
+					http.HandlerFunc(hctx.GetMediaAPI))))).Methods("GET")
 
 	// Media Interface
 	r.Handle(
@@ -193,7 +193,7 @@ func GetRoutes(hctx *bloghandlers.HTTPHandlerContext) *mux.Router {
 			views.SessionHandler(
 				views.GeoFilterMiddleware(
 					views.AuthHandler(
-						http.HandlerFunc(views.MediaEdit)))))).Methods("GET", "POST")
+						http.HandlerFunc(hctx.MediaEditHandler)))))).Methods("GET", "POST")
 
 	// Admin View Media
 	r.Handle(

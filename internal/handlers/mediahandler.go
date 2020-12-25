@@ -8,20 +8,24 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"os"
+	"strings"
 
 	"github.com/flosch/pongo2"
 	"github.com/gorilla/mux"
 	"github.com/rs/zerolog/log"
 	mediadao "github.com/rsvancara/goblog/internal/dao/media"
+	mediatags "github.com/rsvancara/goblog/internal/dao/mediatags"
 	_ "github.com/rsvancara/goblog/internal/filters" //import pongo  plugins
 	"github.com/rsvancara/goblog/internal/models"
+	"github.com/rsvancara/goblog/internal/requestfilter"
 	simplestorageservice "github.com/rsvancara/goblog/internal/s3"
 	"github.com/rsvancara/goblog/internal/session"
 	"github.com/rsvancara/goblog/internal/util"
 )
 
-// MediaHandler View full list of media sorted by date
+// MediaHandler HTTP Handler for View full list of media sorted by date in admin view
 func (ctx *HTTPHandlerContext) MediaHandler(w http.ResponseWriter, r *http.Request) {
 	sess := util.GetSession(r)
 
@@ -60,7 +64,7 @@ func (ctx *HTTPHandlerContext) MediaHandler(w http.ResponseWriter, r *http.Reque
 	fmt.Fprintf(w, out)
 }
 
-// ViewMediaHandler View the media
+// ViewMediaHandler HTTP Handler to View the media in admin view
 func (ctx *HTTPHandlerContext) ViewMediaHandler(w http.ResponseWriter, r *http.Request) {
 
 	var media models.MediaModel
@@ -111,13 +115,12 @@ func (ctx *HTTPHandlerContext) ViewMediaHandler(w http.ResponseWriter, r *http.R
 	fmt.Fprintf(w, out)
 }
 
-// MediaAddHandler add media
+// MediaAddHandler HTTP Handler to view admin add media page
 func (ctx *HTTPHandlerContext) MediaAddHandler(w http.ResponseWriter, r *http.Request) {
 	var sess session.Session
 	err := sess.Session(r, w)
 	if err != nil {
 		log.Printf("Session not available %s", err)
-
 	}
 
 	template, err := util.SiteTemplate("/admin/mediaadd.html")
@@ -133,8 +136,8 @@ func (ctx *HTTPHandlerContext) MediaAddHandler(w http.ResponseWriter, r *http.Re
 	fmt.Fprintf(w, out)
 }
 
-// PutMedia Upload file to server
-func (ctx *HTTPHandlerContext) PutMedia(w http.ResponseWriter, r *http.Request) {
+//PutMediaAPI Supports multi file upload in an API used in admin interface
+func (ctx *HTTPHandlerContext) PutMediaAPI(w http.ResponseWriter, r *http.Request) {
 
 	errorMessage := "{\"status\":\"error\", \"message\": \"error: %s in %s\",\"file\":\"error\"}\n"
 
@@ -240,8 +243,15 @@ func (ctx *HTTPHandlerContext) PutMedia(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	var mediatagsDAO mediatags.MediaTagsDAO
+
+	err = mediatagsDAO.Initialize(ctx.dbClient, ctx.hConfig)
+	if err != nil {
+		log.Error().Err(err).Str("service", "mediadao").Msg("Error initialzing media data access object ")
+	}
+
 	// Update Tags
-	err = ctx.AddTagsSearchIndex(media)
+	err = mediatagsDAO.AddTagsSearchIndex(media)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -256,69 +266,6 @@ func (ctx *HTTPHandlerContext) PutMedia(w http.ResponseWriter, r *http.Request) 
 	w.Header().Set("Content-Type", "application/json")
 	fmt.Fprintf(w, "{\"status\":\"success\", \"message\": \"file %s uploaded\",\"file\":\"%s\"}\n", vars["id"], handler.Filename)
 	return
-}
-
-//AddTagsSearchIndex When images are created, add tags to the tags index
-//TODO: Convert to DAO
-func (ctx *HTTPHandlerContext) AddTagsSearchIndex(media models.MediaModel) error {
-
-	for _, v := range media.Tags {
-		var mtm models.MediaTagsModel
-		count, err := mtm.Exists(v.Keyword)
-		if err != nil {
-			return fmt.Errorf("Error attempting to get record count for keyword %s with error %s", v.Keyword, err)
-		}
-
-		fmt.Printf("Found %v media tag records\n", count)
-
-		// Determine if the document exists already
-		if count == 0 {
-			var newMTM models.MediaTagsModel
-			newMTM.Name = v.Keyword
-			newMTM.TagsID = models.GenUUID()
-			var docs []string
-			docs = append(docs, media.MediaID)
-			newMTM.Documents = docs
-			fmt.Println(newMTM)
-			err = newMTM.InsertMediaTags()
-			if err != nil {
-				return fmt.Errorf("Error inserting new media tag for keyword %s with error %s", v.Keyword, err)
-			}
-			// If not, then we add to existing documents
-		} else {
-			var mtm models.MediaTagsModel
-			err := mtm.GetMediaTagByName(v.Keyword)
-			if err != nil {
-				return fmt.Errorf("Error getting current instance of mediatag for keyword %s with error %s", v.Keyword, err)
-			}
-			fmt.Printf("Found existing mediatag record for %s", mtm.Name)
-			fmt.Println(mtm.Documents)
-
-			// Get the list of documents
-			docs := mtm.Documents
-
-			// For the list of documents, find the document ID we are looking for
-			// If not found, then we update the document list with the document ID
-			f := 0
-			for _, d := range docs {
-				if d == media.MediaID {
-					f = 1
-				}
-			}
-
-			if f == 0 {
-				fmt.Printf("Updating tag, %s with document id %s\n", v.Keyword, media.MediaID)
-				docs = append(docs, media.MediaID)
-				mtm.Documents = docs
-				fmt.Println(mtm)
-				err = mtm.UpdateMediaTags()
-				if err != nil {
-					return fmt.Errorf("Error updating mediatag for keyword %s with error %s", v.Keyword, err)
-				}
-			}
-		}
-	}
-	return nil
 }
 
 //MediaSearchAPIHandler search by media tags
@@ -387,6 +334,155 @@ func (ctx *HTTPHandlerContext) MediaListViewHandler(w http.ResponseWriter, r *ht
 
 }
 
+//MediaEditHandler http handler for editing media
+func (ctx *HTTPHandlerContext) MediaEditHandler(w http.ResponseWriter, r *http.Request) {
+
+	// Media Object populated from form object
+	var media models.MediaModel
+
+	// Form Management Variables
+	formTitle := ""
+	formTitleError := false
+	formDescription := ""
+	formDescriptionError := false
+	formKeywords := ""
+	formKeywordsError := false
+	formCategory := ""
+	formCategoryError := false
+	formLocation := ""
+	formLocationError := false
+
+	sess := util.GetSession(r)
+
+	// HTTP URL Parameters
+	vars := mux.Vars(r)
+	if val, ok := vars["id"]; ok {
+
+	} else {
+		fmt.Printf("Error getting url variable, id: %s", val)
+	}
+
+	// Load Media
+	err := media.GetMedia(vars["id"])
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	// Test if we are a POST to capture form submission
+	if r.Method == http.MethodPost {
+		if err := r.ParseForm(); err != nil {
+			fmt.Fprintf(w, "ParseForm() err: %v", err)
+			return
+		}
+
+		// Loading form
+		media.Title = r.FormValue("title")
+		media.Keywords = r.FormValue("keywords")
+		media.Description = r.FormValue("description")
+		media.Category = r.FormValue("category")
+		media.Location = r.FormValue("location")
+
+		// Do validation here
+		validate := true
+		if media.Title == "" {
+			validate = false
+			formTitle = "Please provide a title"
+			formTitleError = true
+		}
+
+		if media.Keywords == "" {
+			validate = false
+			formKeywords = "Please provide keywords"
+			formKeywordsError = true
+		}
+
+		if media.Description == "" {
+			validate = false
+			formDescription = "Please provide a description"
+			formDescriptionError = true
+		}
+
+		if media.Category == "" {
+			validate = false
+			formCategory = "Please provide a category"
+			formCategoryError = true
+		}
+
+		if media.Location == "" {
+			validate = false
+			formLocation = "Please provide a location"
+			formLocationError = true
+		}
+
+		fmt.Println(validate)
+		if validate == true {
+
+			var mediaDAO mediadao.MediaDAO
+
+			err = mediaDAO.Initialize(ctx.dbClient, ctx.hConfig)
+			if err != nil {
+				log.Error().Err(err).Str("service", "mediadao").Msg("Error initialzing media data access object ")
+			}
+
+			// Update Record
+			err = mediaDAO.UpdateMedia(media)
+			if err != nil {
+				fmt.Println(err)
+			}
+
+			var mediatagsDAO mediatags.MediaTagsDAO
+
+			err = mediatagsDAO.Initialize(ctx.dbClient, ctx.hConfig)
+			if err != nil {
+				log.Error().Err(err).Str("service", "mediadao").Msg("Error initialzing media data access object ")
+			}
+
+			// Update Tags
+			err = mediatagsDAO.AddTagsSearchIndex(media)
+			if err != nil {
+				fmt.Println(err)
+			}
+
+			// Redirect on success otherwise fall through the form
+			// and display any errors
+			http.Redirect(w, r, fmt.Sprintf("/admin/media/view/%s", vars["id"]), http.StatusSeeOther)
+			return
+		}
+	}
+
+	// HTTP Template
+	template, err := util.SiteTemplate("/admin/mediaedit.html")
+	//template := "templates/admin/mediaedit.html"
+	tmpl := pongo2.Must(pongo2.FromFile(template))
+
+	out, err := tmpl.Execute(pongo2.Context{
+		"title":                "Edit Media",
+		"media":                media,
+		"user":                 sess.User,
+		"formTitle":            formTitle,
+		"formTitleError":       formTitleError,
+		"formKeywords":         formKeywords,
+		"formKeywordsError":    formKeywordsError,
+		"formDescription":      formDescription,
+		"formDescriptionError": formDescriptionError,
+		"formCategory":         formCategory,
+		"formCategoryError":    formCategoryError,
+		"formLocation":         formLocation,
+		"formLocationError":    formLocationError,
+		"pagekey":              util.GetPageID(r),
+		"token":                sess.SessionToken,
+	})
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		fmt.Println(err)
+	}
+
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintf(w, out)
+}
+
 //EditMediaAPIHandler edit media
 func (ctx *HTTPHandlerContext) EditMediaAPIHandler(w http.ResponseWriter, r *http.Request) {
 	//errorMessage := "{\"status\":\"error\", \"message\": \"error: %s in %s\"}\n"
@@ -441,4 +537,226 @@ func (ctx *HTTPHandlerContext) MediaDeleteHandler(w http.ResponseWriter, r *http
 	}
 
 	http.Redirect(w, r, "/admin/media", http.StatusSeeOther)
+}
+
+// PhotoViewHandler View File
+func (ctx *HTTPHandlerContext) PhotoViewHandler(w http.ResponseWriter, r *http.Request) {
+
+	sess := util.GetSession(r)
+
+	vars := mux.Vars(r)
+	if val, ok := vars["id"]; ok {
+
+	} else {
+		fmt.Printf("Error getting url variable, id: %s", val)
+	}
+
+	var mediaDAO mediadao.MediaDAO
+
+	err := mediaDAO.Initialize(ctx.dbClient, ctx.hConfig)
+	if err != nil {
+		log.Error().Err(err).Str("service", "mediadao").Msg("Error initialzing media data access object ")
+	}
+
+	// Load Media
+	media, err := mediaDAO.GetMediaBySlug(vars["id"])
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	template, err := util.SiteTemplate("/mediaview.html")
+	tmpl := pongo2.Must(pongo2.FromFile(template))
+
+	out, err := tmpl.Execute(pongo2.Context{
+		"title":           "View Media",
+		"media":           media,
+		"user":            sess.User,
+		"bodyclass":       "",
+		"fluid":           true,
+		"hidetitle":       true,
+		"exposureprogram": media.GetExposureProgramTranslated(),
+		"pagekey":         util.GetPageID(r),
+		"token":           sess.SessionToken,
+	})
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		fmt.Println(err)
+	}
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintf(w, out)
+}
+
+// GetMediaAPI View File
+func (ctx *HTTPHandlerContext) GetMediaAPI(w http.ResponseWriter, r *http.Request) {
+
+	errorMessage := "{\"status\":\"error\", \"message\": \"error: %s in %s\",\"image\":\"error\",\"url\":\"/static/no-image.svg\",\"refurl\":\"#\"}\n"
+
+	// HTTP URL Parameters
+	vars := mux.Vars(r)
+	if _, ok := vars["id"]; ok {
+
+	} else {
+		w.WriteHeader(http.StatusOK)
+		w.Header().Set("Content-Type", "application/json")
+		fmt.Fprintf(w, errorMessage, "Error find ID", "ID was not available inthe URL or could not be parsed")
+		return
+	}
+
+	var mediaDAO mediadao.MediaDAO
+
+	err := mediaDAO.Initialize(ctx.dbClient, ctx.hConfig)
+	if err != nil {
+		log.Error().Err(err).Str("service", "mediadao").Msg("Error initialzing media data access object ")
+	}
+
+	media, err := mediaDAO.GetMedia(vars["id"])
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusOK)
+		w.Header().Set("Content-Type", "application/json")
+		fmt.Fprintf(w, errorMessage, err, "could not get media object from database")
+		return
+	}
+
+	s3URL := "/image/" + media.Slug + "/large"
+	refURL := "/photo/" + media.Slug
+
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	fmt.Fprintf(w, "{\"status\":\"success\", \"message\": \"media found\",\"url\":\"%s\",\"refurl\":\"%s\",\"title\":\"%s\",\"slug\":\"%s\",\"category\":\"%s\"}\n", s3URL, refURL, media.Title, media.Slug, media.Category)
+
+	return
+}
+
+// ServerImageHandler proxy image requests through a handler to obfuscate
+// the s3 bucket location
+func (ctx *HTTPHandlerContext) ServerImageHandler(wr http.ResponseWriter, req *http.Request) {
+	//log.Println(req.RemoteAddr, " ", req.Method, " ", req.URL)
+
+	var mediaDAO mediadao.MediaDAO
+
+	err := mediaDAO.Initialize(ctx.dbClient, ctx.hConfig)
+	if err != nil {
+		log.Error().Err(err).Str("service", "mediadao").Msg("Error initialzing media data access object ")
+	}
+
+	cfg := ctx.hConfig
+
+	slug := ""
+	mediaType := ""
+
+	// HTTP URL Parameters
+	vars := mux.Vars(req)
+	if val, ok := vars["slug"]; ok {
+		slug = vars["slug"]
+	} else {
+		fmt.Printf("Error getting url variable, slug: %s\n", val)
+	}
+
+	// HTTP URL Parameters
+	if val, ok := vars["type"]; ok {
+		mediaType = vars["type"]
+	} else {
+		fmt.Printf("Error getting url variable, type: %s\n", val)
+	}
+
+	media, err := mediaDAO.GetMediaBySlug(slug)
+	if err != nil {
+		fmt.Printf("error getting media by slug: %s", err)
+	}
+
+	s3Path := ""
+
+	if mediaType == "thumb" {
+		s3Path = media.S3Thumbnail
+	}
+
+	if mediaType == "large" {
+		s3Path = media.S3LargeView
+	}
+
+	if mediaType == "original" {
+		s3Path = media.S3Location
+	}
+
+	// Generate S3 URL
+	var mediaRequest http.Request
+	mediaURL, err := url.Parse("https://" + cfg.GetS3Bucket() + ".s3-us-west-2.amazonaws.com" + s3Path)
+	if err != nil {
+		log.Printf("ServeHTTP: %s", err)
+	}
+
+	mediaRequest.URL = mediaURL
+
+	fmt.Printf("proxy for media slug id %s for image type %s using url %s\n", slug, mediaType, mediaURL)
+
+	// Create client
+	client := &http.Client{}
+
+	//delHopHeaders(req.Header)
+
+	clientIP, err := requestfilter.GetIPAddress(req)
+	if err != nil {
+		fmt.Printf("error getting ip address in proxy to send to s3 bucke with error %s", err)
+	}
+
+	appendHostToXForwardHeader(req.Header, clientIP)
+
+	resp, err := client.Do(&mediaRequest)
+	if err != nil {
+
+		http.Error(wr, fmt.Sprintf("error proxying url %s with error %s", mediaURL, err), http.StatusInternalServerError)
+		log.Printf("error proxying url %s with error %s\n", mediaURL, err)
+		return
+	}
+
+	defer resp.Body.Close()
+
+	log.Info().Msgf("%s %s", req.RemoteAddr, resp.Status)
+
+	delHopHeaders(resp.Header)
+
+	copyHeader(wr.Header(), resp.Header)
+	wr.WriteHeader(resp.StatusCode)
+	wr.Header().Set("Content-Type", "image/jpeg") // <-- set the content-type header
+	io.Copy(wr, resp.Body)
+}
+
+// Hop-by-hop headers. These are removed when sent to the backend.
+// http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html
+var hopHeaders = []string{
+	"Connection",
+	"Keep-Alive",
+	"Proxy-Authenticate",
+	"Proxy-Authorization",
+	"Te", // canonicalized version of "TE"
+	"Trailers",
+	"Transfer-Encoding",
+	"Upgrade",
+}
+
+func copyHeader(dst, src http.Header) {
+	for k, vv := range src {
+		for _, v := range vv {
+			dst.Add(k, v)
+		}
+	}
+}
+
+func delHopHeaders(header http.Header) {
+	for _, h := range hopHeaders {
+		header.Del(h)
+	}
+}
+
+func appendHostToXForwardHeader(header http.Header, host string) {
+	// If we aren't the first proxy retain prior
+	// X-Forwarded-For information as a comma+space
+	// separated list and fold multiple headers into one.
+	if prior, ok := header["X-Forwarded-For"]; ok {
+		host = strings.Join(prior, ", ") + ", " + host
+	}
+	header.Set("X-Forwarded-For", host)
 }

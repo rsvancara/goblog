@@ -918,7 +918,7 @@ func ServerImage(wr http.ResponseWriter, req *http.Request) {
 
 	clientIP, err := requestfilter.GetIPAddress(req)
 	if err != nil {
-		fmt.Printf("error getting ip address in proxy to send to s3 bucke with error %s", err)
+		fmt.Printf("error getting ip address in proxy to send to s3 bucket with error %s", err)
 	}
 
 	appendHostToXForwardHeader(req.Header, clientIP)

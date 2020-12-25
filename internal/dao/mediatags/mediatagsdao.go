@@ -3,6 +3,7 @@ package mediatagsdao
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/rsvancara/goblog/internal/models"
@@ -147,7 +148,7 @@ func (m *MediaTagsDAO) GetMediaTagsCount() (int64, error) {
 }
 
 // GetMediaTagByName populate the media object based on ID
-func (m *MediaTagsDAO) GetMediaTagByName(name string) error {
+func (m *MediaTagsDAO) GetMediaTagByName(name string) (models.MediaTagsModel, error) {
 
 	var mediatag models.MediaTagsModel
 
@@ -159,10 +160,10 @@ func (m *MediaTagsDAO) GetMediaTagByName(name string) error {
 
 	err := c.FindOne(ctx, bson.M{"name": name}).Decode(&mediatag)
 	if err != nil {
-		return err
+		return mediatag, err
 	}
 
-	return nil
+	return mediatag, err
 }
 
 // SearchMediaTagsByName Text search for MediaTags
@@ -271,4 +272,68 @@ func (m *MediaTagsDAO) AllMediaTags() ([]models.MediaTagsModel, error) {
 	}
 
 	return mediaTagsModels, nil
+}
+
+//AddTagsSearchIndex update the search index with new tags as media is added, called when media is added or updated
+func (m *MediaTagsDAO) AddTagsSearchIndex(media models.MediaModel) error {
+
+	for _, v := range media.Tags {
+		//var mtm models.MediaTagsModel
+		count, err := m.Exists(v.Keyword)
+		if err != nil {
+			return fmt.Errorf("Error attempting to get record count for keyword %s with error %s", v.Keyword, err)
+		}
+
+		log.Info().Msgf("Found %d media tag records for keyworkd %s", count, v.Keyword)
+
+		// Determine if the document exists already
+		if count == 0 {
+			log.Info().Msgf("]Tag does not exist for %s in the database", v.Keyword)
+			var newMTM models.MediaTagsModel
+			newMTM.Name = v.Keyword
+			newMTM.TagsID = models.GenUUID()
+			var docs []string
+			docs = append(docs, media.MediaID)
+			newMTM.Documents = docs
+			log.Info().Msgf("Inserting new tag %s into database", v.Keyword)
+			err = m.InsertMediaTags(&newMTM)
+			if err != nil {
+				return fmt.Errorf("Error inserting new media tag for keyword %s with error %s", v.Keyword, err)
+			}
+			log.Info().Msgf("Tag %s inserted successfully", v.Keyword)
+			// If not, then we add to existing documents
+		} else {
+
+			mtm, err := m.GetMediaTagByName(v.Keyword)
+			if err != nil {
+				return fmt.Errorf("Error getting current instance of mediatag for keyword %s with error %s", v.Keyword, err)
+			}
+			log.Info().Msgf("Found existing mediatag record for %s", mtm.Name)
+			//fmt.Println(mtm.Documents)
+
+			// Get the list of documents
+			docs := mtm.Documents
+
+			// For the list of documents, find the document ID we are looking for
+			// If not found, then we update the document list with the document ID
+			f := 0
+			for _, d := range docs {
+				if d == media.MediaID {
+					f = 1
+				}
+			}
+
+			if f == 0 {
+				log.Info().Msgf("Updating tag, %s with document id %s", v.Keyword, media.MediaID)
+				docs = append(docs, media.MediaID)
+				mtm.Documents = docs
+				//fmt.Println(mtm)
+				err = m.UpdateMediaTags(&mtm)
+				if err != nil {
+					return fmt.Errorf("Error updating mediatag for keyword %s with error %s", v.Keyword, err)
+				}
+			}
+		}
+	}
+	return nil
 }
