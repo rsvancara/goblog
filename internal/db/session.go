@@ -2,7 +2,6 @@ package db
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/rsvancara/goblog/internal/config"
@@ -50,7 +49,7 @@ func GetMongoClient(config *config.AppConfig) (*mongo.Client, error) {
 	//mongodb://master:master1234@docdb-2020-11-18-17-41-21-hss.cluster-cy44hjryoetp.us-west-2.docdb.amazonaws.com:27017/?ssl=true&ssl_ca_certs=rds-combined-ca-bundle.pem&replicaSet=rs0&readPreference=secondaryPreferred&retryWrites=false
 
 	//mongoURI := fmt.Sprintf("mongodb://%s:%s@%s/?ssl=false&replicaSet=rs0&readPreference=secondaryPreferred&retryWrites=false", config.MongoUser, config.MongoPass, config.MongoHost)
-	mongoURI := fmt.Sprintf("mongodb://%s:%s/?ssl=false", config.MongoHost, config.MongoPort)
+	mongoURI := config.Dburi
 
 	//tlsConfig, err := GetTLSConfig(config.MongoCert)
 	//if err != nil {
