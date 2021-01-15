@@ -34,7 +34,6 @@ func (ctx *HTTPHandlerContext) MediaHandler(w http.ResponseWriter, r *http.Reque
 	err := mediaDAO.Initialize(ctx.dbClient, ctx.hConfig)
 	if err != nil {
 		log.Error().Err(err).Str("service", "mediadao").Msg("Error initialzing media data access object ")
-
 	}
 
 	medialist, err := mediaDAO.AllMediaSortedByDate()
@@ -722,6 +721,94 @@ func (ctx *HTTPHandlerContext) ServerImageHandler(wr http.ResponseWriter, req *h
 	wr.WriteHeader(resp.StatusCode)
 	wr.Header().Set("Content-Type", "image/jpeg") // <-- set the content-type header
 	io.Copy(wr, resp.Body)
+}
+
+// ViewCategoryHandler View the media
+func (ctx *HTTPHandlerContext) ViewCategoryHandler(w http.ResponseWriter, r *http.Request) {
+
+	sess := util.GetSession(r)
+
+	var mediaDAO mediadao.MediaDAO
+
+	err := mediaDAO.Initialize(ctx.dbClient, ctx.hConfig)
+	if err != nil {
+		log.Error().Err(err).Str("service", "mediadao").Msg("Error initialzing media data access object ")
+	}
+
+	var medialist []models.MediaModel
+
+	// HTTP URL Parameters
+	vars := mux.Vars(r)
+	if val, ok := vars["category"]; ok {
+		// Load Media
+		medialist, err = mediaDAO.GetMediaListByCategory(vars["category"])
+		if err != nil {
+			log.Error().Err(err).Str("service", "mediadao").Msgf("Error getting media with variable, category %s", val)
+		}
+	} else {
+		log.Error().Err(err).Str("service", "mediadao").Msgf("Error getting url variable, category: %s", val)
+	}
+
+	template, err := util.SiteTemplate("/category.html")
+	//template := "templates/admin/mediaview.html"
+	tmpl := pongo2.Must(pongo2.FromFile(template))
+
+	out, err := tmpl.Execute(pongo2.Context{
+		"title":     fmt.Sprintf("Category - %s", vars["category"]),
+		"user":      sess.User,
+		"bodyclass": "",
+		"fluid":     true,
+		"hidetitle": true,
+		"medialist": medialist,
+		"pagekey":   util.GetPageID(r),
+		"token":     sess.SessionToken,
+	})
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		fmt.Println(err)
+	}
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintf(w, out)
+}
+
+//ViewCategoriesHandler view all categories
+func (ctx *HTTPHandlerContext) ViewCategoriesHandler(w http.ResponseWriter, r *http.Request) {
+
+	sess := util.GetSession(r)
+
+	var mediaDAO mediadao.MediaDAO
+
+	err := mediaDAO.Initialize(ctx.dbClient, ctx.hConfig)
+	if err != nil {
+		log.Error().Err(err).Str("service", "mediadao").Msg("Error initialzing media data access object ")
+	}
+
+	medialist, err := mediaDAO.AllCategories()
+	if err != nil {
+		log.Error().Err(err).Str("service", "mediadao").Msg("Error getting media list")
+	}
+
+	template, err := util.SiteTemplate("/categories.html")
+	//template := "templates/admin/mediaview.html"
+	tmpl := pongo2.Must(pongo2.FromFile(template))
+
+	out, err := tmpl.Execute(pongo2.Context{
+		"title":     fmt.Sprintf("Media Categories"),
+		"user":      sess.User,
+		"bodyclass": "",
+		"fluid":     true,
+		"hidetitle": true,
+		"medialist": medialist,
+		"pagekey":   util.GetPageID(r),
+		"token":     sess.SessionToken,
+	})
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		fmt.Println(err)
+	}
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintf(w, out)
+
 }
 
 // Hop-by-hop headers. These are removed when sent to the backend.

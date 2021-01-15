@@ -50,7 +50,7 @@ func (p *PostsDAO) GetPost(id string) (models.PostModel, error) {
 
 	defer cancel()
 
-	err := c.FindOne(ctx, bson.M{"postid": id}).Decode(post)
+	err := c.FindOne(ctx, bson.M{"postid": id}).Decode(&post)
 	if err != nil {
 		return post, err
 	}
@@ -69,7 +69,7 @@ func (p *PostsDAO) GetPostBySlug(id string) (models.PostModel, error) {
 
 	defer cancel()
 
-	err := c.FindOne(ctx, bson.M{"slug": id}).Decode(post)
+	err := c.FindOne(ctx, bson.M{"slug": id}).Decode(&post)
 	if err != nil {
 		return post, err
 	}

@@ -194,7 +194,7 @@ func (m *MediaDAO) GetMediaListByCategory(category string) ([]models.MediaModel,
 
 	options := options.Find()
 
-	// Sort by `_id` field descending
+	// Sort by `date` field descending
 	options.SetSort(map[string]int{"created_at": -1})
 
 	cur, err := c.Find(ctx, filter, options)
@@ -202,12 +202,12 @@ func (m *MediaDAO) GetMediaListByCategory(category string) ([]models.MediaModel,
 		return nil, err
 	}
 
-	defer cur.Close(context.TODO())
+	defer cur.Close(ctx)
 
-	for cur.Next(context.TODO()) {
+	for cur.Next(ctx) {
 		var media models.MediaModel
 		// To decode into a struct, use cursor.Decode()
-		err := cur.Decode(&m)
+		err := cur.Decode(&media)
 		if err != nil {
 			return nil, err
 		}
@@ -215,6 +215,8 @@ func (m *MediaDAO) GetMediaListByCategory(category string) ([]models.MediaModel,
 		// Translate special variables
 		media.ExposureProgramTranslated = media.GetExposureProgramTranslated()
 		media.FStopTranslated = media.CalculateFSTOP()
+
+		fmt.Println(media)
 
 		mediaModels = append(mediaModels, media)
 
@@ -279,6 +281,8 @@ func (m *MediaDAO) AllMediaSortedByDate() ([]models.MediaModel, error) {
 //AllCategories return a list of categories
 func (m *MediaDAO) AllCategories() ([]string, error) {
 
+	var categories []string
+
 	c := m.DBClient.Database(m.Config.MongoDatabase).Collection("media")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -287,14 +291,12 @@ func (m *MediaDAO) AllCategories() ([]string, error) {
 
 	filter := bson.M{}
 
-	options := options.Distinct()
+	//options := options.Distinct()
 
-	cur, err := c.Distinct(ctx, "category", filter, options)
+	cur, err := c.Distinct(ctx, "category", filter)
 	if err != nil {
-		return nil, err
+		return categories, err
 	}
-
-	var categories []string
 
 	for _, v := range cur {
 		categories = append(categories, v.(string))

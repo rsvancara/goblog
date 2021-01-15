@@ -30,51 +30,48 @@ func GetRoutes(hctx *bloghandlers.HTTPHandlerContext) *mux.Router {
 			os.Stdout,
 			views.SessionHandler(
 				views.GeoFilterMiddleware(
-					http.HandlerFunc(
-						views.HomeHandler))))).Methods("GET")
+					http.HandlerFunc(hctx.HomeHandler))))).Methods("GET")
 
-	// Test Page
+	// Health check page
 	r.Handle(
 		"/healthcheck957873",
 		handlers.LoggingHandler(
 			os.Stdout,
-			http.HandlerFunc(
-				views.HealthCheck))).Methods("GET")
+			http.HandlerFunc(views.HealthCheck))).Methods("GET")
 
-	// Sitemap
+	// Sitemap used by search engines
 	r.Handle(
 		"/sitemap.xml",
 		handlers.LoggingHandler(
 			os.Stdout,
-			http.HandlerFunc(
-				views.SiteMap))).Methods("GET")
+			http.HandlerFunc(views.SiteMap))).Methods("GET")
 
-	// Stories page
+	// View individual story
 	r.Handle(
 		"/stories/{id}",
 		handlers.LoggingHandler(
 			os.Stdout,
 			views.SessionHandler(
 				views.GeoFilterMiddleware(
-					http.HandlerFunc(views.PostView))))).Methods(("GET"))
+					http.HandlerFunc(hctx.PostViewHandler))))).Methods(("GET"))
 
-	// Category
+	// View individual category
 	r.Handle(
 		"/category/{category}",
 		handlers.LoggingHandler(
 			os.Stdout,
 			views.SessionHandler(
 				views.GeoFilterMiddleware(
-					http.HandlerFunc(views.ViewCategoryHandler))))).Methods("GET")
+					http.HandlerFunc(hctx.ViewCategoryHandler))))).Methods("GET")
 
-	// Category
+	// View a list of categories
 	r.Handle(
 		"/categories",
 		handlers.LoggingHandler(
 			os.Stdout,
 			views.SessionHandler(
 				views.GeoFilterMiddleware(
-					http.HandlerFunc(views.ViewCategoriesHandler))))).Methods("GET")
+					http.HandlerFunc(hctx.ViewCategoriesHandler))))).Methods("GET")
 
 	// Photo
 	r.Handle(
@@ -222,7 +219,7 @@ func GetRoutes(hctx *bloghandlers.HTTPHandlerContext) *mux.Router {
 			views.SessionHandler(
 				views.GeoFilterMiddleware(
 					views.AuthHandler(
-						http.HandlerFunc(views.Post)))))).Methods("GET")
+						http.HandlerFunc(hctx.PostHandler)))))).Methods("GET")
 
 	r.Handle(
 		"/admin/post/add",
@@ -231,7 +228,7 @@ func GetRoutes(hctx *bloghandlers.HTTPHandlerContext) *mux.Router {
 			views.SessionHandler(
 				views.GeoFilterMiddleware(
 					views.AuthHandler(
-						http.HandlerFunc(views.PostAdd)))))).Methods("GET", "POST")
+						http.HandlerFunc(hctx.PostAddHandler)))))).Methods("GET", "POST")
 	r.Handle(
 		"/admin/post/view/{id}",
 		handlers.LoggingHandler(
@@ -239,7 +236,7 @@ func GetRoutes(hctx *bloghandlers.HTTPHandlerContext) *mux.Router {
 			views.SessionHandler(
 				views.GeoFilterMiddleware(
 					views.AuthHandler(
-						http.HandlerFunc(views.PostAdminView)))))).Methods("GET")
+						http.HandlerFunc(hctx.PostAdminViewHandler)))))).Methods("GET")
 
 	r.Handle(
 		"/admin/post/edit/{id}",
@@ -247,7 +244,7 @@ func GetRoutes(hctx *bloghandlers.HTTPHandlerContext) *mux.Router {
 			os.Stdout,
 			views.SessionHandler(
 				views.GeoFilterMiddleware(
-					views.AuthHandler(http.HandlerFunc(views.PostEdit)))))).Methods("GET", "POST")
+					views.AuthHandler(http.HandlerFunc(hctx.PostEditHandler)))))).Methods("GET", "POST")
 
 	r.Handle(
 		"/admin/post/delete/{id}",
@@ -256,7 +253,7 @@ func GetRoutes(hctx *bloghandlers.HTTPHandlerContext) *mux.Router {
 			views.SessionHandler(
 				views.GeoFilterMiddleware(
 					views.AuthHandler(
-						http.HandlerFunc(views.PostDelete)))))).Methods("GET")
+						http.HandlerFunc(hctx.PostDeleteHandler)))))).Methods("GET")
 
 	r.Handle(
 		"/admin/sessions",
@@ -373,23 +370,6 @@ func GetRoutes(hctx *bloghandlers.HTTPHandlerContext) *mux.Router {
 				views.GeoFilterMiddleware(
 					views.AuthHandler(
 						http.HandlerFunc(views.SessionDeleteHandler)))))).Methods("GET")
-
-	// Fake wordpress routes for detecting and blocking bad bots
-	r.Handle(
-		"/wp-login.php",
-		handlers.LoggingHandler(
-			os.Stdout,
-			views.SessionHandler(
-				views.GeoFilterMiddleware(
-					http.HandlerFunc(views.WPLoginHandler))))).Methods("GET", "POST")
-
-	r.Handle(
-		"/wp-admin",
-		handlers.LoggingHandler(
-			os.Stdout,
-			views.SessionHandler(
-				views.GeoFilterMiddleware(
-					http.HandlerFunc(views.WPAdminHandler))))).Methods("GET", "POST")
 
 	r.Handle(
 		"/admin/searchindex",
