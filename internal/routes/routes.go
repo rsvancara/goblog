@@ -107,7 +107,7 @@ func GetRoutes(hctx *bloghandlers.HTTPHandlerContext) *mux.Router {
 			os.Stdout,
 			views.SessionHandler(
 				views.GeoFilterMiddleware(
-					http.HandlerFunc(views.Signin))))).Methods("GET", "POST")
+					http.HandlerFunc(hctx.SignInHandler))))).Methods("GET", "POST")
 
 	// Admin main page
 	r.Handle(
