@@ -290,6 +290,7 @@ func (ctx *HTTPHandlerContext) RequestBotAPI(w http.ResponseWriter, r *http.Requ
 		log.Error().Err(err).Str("service", "requestviewdao").Msgf("Error getting requestview by id %s", d.PTag)
 	}
 
+	rv.PTag = d.PTag
 	rv.BrowserVersion = d.BrowserVersion
 	rv.FunctionalBrowser = d.FunctionalBrowser
 	rv.SessionID = d.SessionID
@@ -300,6 +301,7 @@ func (ctx *HTTPHandlerContext) RequestBotAPI(w http.ResponseWriter, r *http.Requ
 	rv.OSVersion = d.OSVersion
 	rv.UserAgent = d.UserAgent
 
+	//log.Info().Msg("Updated requestview")
 	err = requestviewDAO.UpdateRequestView(&rv)
 	if err != nil {
 		log.Error().Err(err).Str("service", "requestviewdao").Msg("error udating requestview")

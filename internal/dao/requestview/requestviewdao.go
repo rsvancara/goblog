@@ -3,7 +3,6 @@ package requestviewdao
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/rs/zerolog/log"
@@ -30,7 +29,7 @@ func (r *RequestViewDAO) Initialize(mclient *mongo.Client, config *config.AppCon
 		log.Error().Err(err).Msg("Error connecting to mongodb")
 	}
 
-	log.Info().Msg("MediaDAO connected successfully to mongodb")
+	log.Info().Msg("RequestViewDao connected successfully to mongodb")
 
 	r.DBClient = mclient
 	r.Config = config
@@ -75,6 +74,8 @@ func (r *RequestViewDAO) UpdateRequestView(rv *models.RequestView) error {
 
 	defer cancel()
 
+	//log.Info().Msgf("Updating requestview for ptag %s", rv.PTag)
+
 	filter := bson.M{
 		"ptag": bson.M{
 			"$eq": rv.PTag, // check if bool field has value of 'false'
@@ -102,7 +103,7 @@ func (r *RequestViewDAO) UpdateRequestView(rv *models.RequestView) error {
 	}
 
 	if updateResult != nil && updateResult.MatchedCount == 0 {
-		fmt.Printf("could not find any requestview records to update for ptag valute %s", rv.PTag)
+		log.Error().Msgf("could not find any requestview records to update for ptag valute %s", rv.PTag)
 	}
 
 	return nil

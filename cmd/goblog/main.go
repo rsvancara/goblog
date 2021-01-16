@@ -17,6 +17,7 @@ import (
 	"github.com/rsvancara/goblog/internal/db"
 	"github.com/rsvancara/goblog/internal/handlers"
 	"github.com/rsvancara/goblog/internal/metrics"
+	"github.com/rsvancara/goblog/internal/middleware"
 	"github.com/rsvancara/goblog/internal/routes"
 
 	mediadao "github.com/rsvancara/goblog/internal/dao/media"
@@ -69,10 +70,11 @@ func main() {
 
 	log.Info().Str("service", "main").Msgf("Populating configuration and mongo client into context")
 	hctx := handlers.CTXHandlerContext(&cfg, dbclient)
+	mwctx := middleware.CTXMiddlewareContext(&cfg, dbclient)
 
 	middleware := metrics.NewPrometheusMiddleware(metrics.Opts{})
 
-	r := routes.GetRoutes(hctx)
+	r := routes.GetRoutes(hctx, mwctx)
 
 	r.Handle("/metrics", promhttp.Handler())
 	r.Use(middleware.InstrumentHandlerDuration)
