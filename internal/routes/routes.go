@@ -98,7 +98,7 @@ func GetRoutes(hctx *bloghandlers.HTTPHandlerContext) *mux.Router {
 			os.Stdout,
 			views.SessionHandler(
 				views.GeoFilterMiddleware(
-					http.HandlerFunc(views.AboutHandler))))).Methods("GET")
+					http.HandlerFunc(hctx.AboutHandler))))).Methods("GET")
 
 	// Signin
 	r.Handle(
@@ -117,7 +117,7 @@ func GetRoutes(hctx *bloghandlers.HTTPHandlerContext) *mux.Router {
 			views.SessionHandler(
 				views.GeoFilterMiddleware(
 					views.AuthHandler(
-						http.HandlerFunc(views.AdminHome)))))).Methods("GET", "POST")
+						http.HandlerFunc(hctx.AdminHomeHandler)))))).Methods("GET", "POST")
 
 	// Media View
 	r.Handle(
@@ -360,7 +360,7 @@ func GetRoutes(hctx *bloghandlers.HTTPHandlerContext) *mux.Router {
 			os.Stdout,
 			views.SessionHandler(
 				views.GeoFilterMiddleware(
-					http.HandlerFunc(views.ContactHandler))))).Methods("GET")
+					http.HandlerFunc(hctx.ContactHandler))))).Methods("GET")
 
 	r.Handle(
 		"/admin/session/delete/{id}",
@@ -412,7 +412,7 @@ func GetRoutes(hctx *bloghandlers.HTTPHandlerContext) *mux.Router {
 		handlers.LoggingHandler(
 			os.Stdout,
 			views.SessionHandler(
-				http.HandlerFunc(views.RequestBotAPI)))).Methods("GET", "POST")
+				http.HandlerFunc(hctx.RequestBotAPI)))).Methods("GET", "POST")
 
 	ServeStatic(r, "./"+staticAssets)
 	http.Handle("/", r)
