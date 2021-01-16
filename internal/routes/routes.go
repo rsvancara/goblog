@@ -37,14 +37,14 @@ func GetRoutes(hctx *bloghandlers.HTTPHandlerContext) *mux.Router {
 		"/healthcheck957873",
 		handlers.LoggingHandler(
 			os.Stdout,
-			http.HandlerFunc(views.HealthCheck))).Methods("GET")
+			http.HandlerFunc(hctx.HealthCheckHandler))).Methods("GET")
 
 	// Sitemap used by search engines
 	r.Handle(
 		"/sitemap.xml",
 		handlers.LoggingHandler(
 			os.Stdout,
-			http.HandlerFunc(views.SiteMap))).Methods("GET")
+			http.HandlerFunc(hctx.SiteMap))).Methods("GET")
 
 	// View individual story
 	r.Handle(
