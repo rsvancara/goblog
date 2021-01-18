@@ -290,7 +290,7 @@ func GetRoutes(hctx *bloghandlers.HTTPHandlerContext, mwctx *mw.MiddleWareContex
 			mwctx.SessionMiddleware(
 				mwctx.GeoFilterMiddleware(
 					mwctx.AuthHandlerMiddleware(
-						http.HandlerFunc(views.FilterHandler)))))).Methods("GET")
+						http.HandlerFunc(hctx.FilterHandler)))))).Methods("GET")
 
 	r.Handle(
 		"/admin/filters/create",
@@ -299,7 +299,7 @@ func GetRoutes(hctx *bloghandlers.HTTPHandlerContext, mwctx *mw.MiddleWareContex
 			mwctx.SessionMiddleware(
 				mwctx.GeoFilterMiddleware(
 					mwctx.AuthHandlerMiddleware(
-						http.HandlerFunc(views.CreateFilterHandler)))))).Methods("GET")
+						http.HandlerFunc(hctx.CreateFilterHandler)))))).Methods("GET")
 
 	r.Handle(
 		"/api/v1/filters/create",
@@ -308,7 +308,7 @@ func GetRoutes(hctx *bloghandlers.HTTPHandlerContext, mwctx *mw.MiddleWareContex
 			mwctx.SessionMiddleware(
 				mwctx.GeoFilterMiddleware(
 					mwctx.AuthHandlerMiddleware(
-						http.HandlerFunc(views.CreateAPIFilterHandler)))))).Methods("GET")
+						http.HandlerFunc(hctx.CreateAPIFilterHandler)))))).Methods("GET")
 
 	r.Handle(
 		"/admin/affiliates",
@@ -379,7 +379,7 @@ func GetRoutes(hctx *bloghandlers.HTTPHandlerContext, mwctx *mw.MiddleWareContex
 			mwctx.SessionMiddleware(
 				mwctx.GeoFilterMiddleware(
 					mwctx.AuthHandlerMiddleware(
-						http.HandlerFunc(views.SearchIndexListHandler)))))).Methods("GET", "POST")
+						http.HandlerFunc(hctx.SearchIndexListHandler)))))).Methods("GET", "POST")
 
 	r.Handle(
 		"/admin/buildmediaindex",
@@ -388,7 +388,7 @@ func GetRoutes(hctx *bloghandlers.HTTPHandlerContext, mwctx *mw.MiddleWareContex
 			mwctx.SessionMiddleware(
 				mwctx.GeoFilterMiddleware(
 					mwctx.AuthHandlerMiddleware(
-						http.HandlerFunc(views.SearchIndexBuildTagsHandler)))))).Methods("GET", "POST")
+						http.HandlerFunc(hctx.SearchIndexBuildTagsHandler)))))).Methods("GET", "POST")
 
 	r.Handle(
 		"/admin/buildmediaindexgo",
@@ -397,7 +397,7 @@ func GetRoutes(hctx *bloghandlers.HTTPHandlerContext, mwctx *mw.MiddleWareContex
 			mwctx.SessionMiddleware(
 				mwctx.GeoFilterMiddleware(
 					mwctx.AuthHandlerMiddleware(
-						http.HandlerFunc(views.SearchIndexBuilderMediaHandler)))))).Methods("GET", "POST")
+						http.HandlerFunc(hctx.SearchIndexBuilderMediaHandler)))))).Methods("GET", "POST")
 
 	r.Handle(
 		"/admin/api/search-media-tags-by-name/{name}",
@@ -406,7 +406,7 @@ func GetRoutes(hctx *bloghandlers.HTTPHandlerContext, mwctx *mw.MiddleWareContex
 			mwctx.SessionMiddleware(
 				mwctx.GeoFilterMiddleware(
 					mwctx.AuthHandlerMiddleware(
-						http.HandlerFunc(views.SearchIndexMediaTagsAPI)))))).Methods("GET", "POST")
+						http.HandlerFunc(hctx.SearchIndexMediaTagsAPI)))))).Methods("GET", "POST")
 
 	r.Handle(
 		"/api/request/v1",

@@ -196,7 +196,7 @@ func (ctx *HTTPHandlerContext) PostEditHandler(w http.ResponseWriter, r *http.Re
 	// Load Model
 	pm, err := postDAO.GetPost(vars["id"])
 	if err != nil {
-		log.Error().Err(err).Str("service", "postdao").Msgf("error getting post from database for id %s with error %s", vars["id"])
+		log.Error().Err(err).Str("service", "postdao").Msgf("error getting post from database for id %s", vars["id"])
 		// TODO: Need to send user to page that says model can not be found...bla bla
 	}
 

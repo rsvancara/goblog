@@ -1,4 +1,4 @@
-//handlers provides misceleneous handlers for view layer
+//Package handlers provides misceleneous handlers for view layer
 package handlers
 
 import (
@@ -18,7 +18,7 @@ import (
 	"github.com/rsvancara/goblog/internal/util"
 )
 
-// Signin Sign into the application
+// SignInHandler Sign into the application
 func (ctx *HTTPHandlerContext) SignInHandler(w http.ResponseWriter, r *http.Request) {
 
 	sess := util.GetSession(r)
@@ -131,7 +131,7 @@ func (ctx *HTTPHandlerContext) AboutHandler(w http.ResponseWriter, r *http.Reque
 	fmt.Fprintf(w, out)
 }
 
-// HealthCheck defines a healthcheck
+// HealthCheckHandler defines a healthcheck
 func (ctx *HTTPHandlerContext) HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprintf(w, "healthy")
