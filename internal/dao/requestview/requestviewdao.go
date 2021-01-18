@@ -59,7 +59,6 @@ func (r *RequestViewDAO) CreateRequestView(rv *models.RequestView) error {
 	rv.ID = insertResult.InsertedID.(primitive.ObjectID)
 
 	return nil
-
 }
 
 // UpdateRequestView update requestView Record by PTag

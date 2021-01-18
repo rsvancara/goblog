@@ -8,7 +8,6 @@ import (
 	bloghandlers "github.com/rsvancara/goblog/internal/handlers"
 	mw "github.com/rsvancara/goblog/internal/middleware"
 	"github.com/rsvancara/goblog/internal/util"
-	"github.com/rsvancara/goblog/internal/views"
 
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
@@ -263,7 +262,7 @@ func GetRoutes(hctx *bloghandlers.HTTPHandlerContext, mwctx *mw.MiddleWareContex
 			mwctx.SessionMiddleware(
 				mwctx.GeoFilterMiddleware(
 					mwctx.AuthHandlerMiddleware(
-						http.HandlerFunc(views.SessionReportHandler)))))).Methods("GET")
+						http.HandlerFunc(hctx.SessionReportHandler)))))).Methods("GET")
 
 	r.Handle(
 		"/admin/session/details/{id}",
@@ -272,7 +271,7 @@ func GetRoutes(hctx *bloghandlers.HTTPHandlerContext, mwctx *mw.MiddleWareContex
 			mwctx.SessionMiddleware(
 				mwctx.GeoFilterMiddleware(
 					mwctx.AuthHandlerMiddleware(
-						http.HandlerFunc(views.SessionDetailsReportHandler)))))).Methods("GET")
+						http.HandlerFunc(hctx.SessionDetailsReportHandler)))))).Methods("GET")
 
 	r.Handle(
 		"/admin/session/inspector/{id}",
@@ -281,7 +280,7 @@ func GetRoutes(hctx *bloghandlers.HTTPHandlerContext, mwctx *mw.MiddleWareContex
 			mwctx.SessionMiddleware(
 				mwctx.GeoFilterMiddleware(
 					mwctx.AuthHandlerMiddleware(
-						http.HandlerFunc(views.RequestInspectorReportHandler)))))).Methods("GET")
+						http.HandlerFunc(hctx.RequestInspectorReportHandler)))))).Methods("GET")
 
 	r.Handle(
 		"/admin/filters",
@@ -317,7 +316,7 @@ func GetRoutes(hctx *bloghandlers.HTTPHandlerContext, mwctx *mw.MiddleWareContex
 			mwctx.SessionMiddleware(
 				mwctx.GeoFilterMiddleware(
 					mwctx.AuthHandlerMiddleware(
-						http.HandlerFunc(views.AffiliateHandler)))))).Methods("GET")
+						http.HandlerFunc(hctx.AffiliateHandler)))))).Methods("GET")
 
 	r.Handle(
 		"/admin/affiliates/add",
@@ -326,7 +325,7 @@ func GetRoutes(hctx *bloghandlers.HTTPHandlerContext, mwctx *mw.MiddleWareContex
 			mwctx.SessionMiddleware(
 				mwctx.GeoFilterMiddleware(
 					mwctx.AuthHandlerMiddleware(
-						http.HandlerFunc(views.AffiliateAddHandler)))))).Methods("GET", "POST")
+						http.HandlerFunc(hctx.AffiliateAddHandler)))))).Methods("GET", "POST")
 
 	r.Handle(
 		"/admin/affiliates/edit/{id}",
@@ -335,7 +334,7 @@ func GetRoutes(hctx *bloghandlers.HTTPHandlerContext, mwctx *mw.MiddleWareContex
 			mwctx.SessionMiddleware(
 				mwctx.GeoFilterMiddleware(
 					mwctx.AuthHandlerMiddleware(
-						http.HandlerFunc(views.AffiliateEditHandler)))))).Methods("GET", "POST")
+						http.HandlerFunc(hctx.AffiliateEditHandler)))))).Methods("GET", "POST")
 
 	r.Handle(
 		"/admin/affiliates/delete/{id}",
@@ -344,7 +343,7 @@ func GetRoutes(hctx *bloghandlers.HTTPHandlerContext, mwctx *mw.MiddleWareContex
 			mwctx.SessionMiddleware(
 				mwctx.GeoFilterMiddleware(
 					mwctx.AuthHandlerMiddleware(
-						http.HandlerFunc(views.AffiliateDeleteHandler)))))).Methods("GET")
+						http.HandlerFunc(hctx.AffiliateDeleteHandler)))))).Methods("GET")
 
 	r.Handle(
 		"/bouncyhouse/{id}",
@@ -353,7 +352,7 @@ func GetRoutes(hctx *bloghandlers.HTTPHandlerContext, mwctx *mw.MiddleWareContex
 			mwctx.SessionMiddleware(
 				mwctx.GeoFilterMiddleware(
 					mwctx.AuthHandlerMiddleware(
-						http.HandlerFunc(views.AffiliateBouncyHouseHandler)))))).Methods("GET")
+						http.HandlerFunc(hctx.AffiliateBouncyHouseHandler)))))).Methods("GET")
 
 	r.Handle(
 		"/contact",
@@ -370,7 +369,7 @@ func GetRoutes(hctx *bloghandlers.HTTPHandlerContext, mwctx *mw.MiddleWareContex
 			mwctx.SessionMiddleware(
 				mwctx.GeoFilterMiddleware(
 					mwctx.AuthHandlerMiddleware(
-						http.HandlerFunc(views.SessionDeleteHandler)))))).Methods("GET")
+						http.HandlerFunc(hctx.SessionDeleteHandler)))))).Methods("GET")
 
 	r.Handle(
 		"/admin/searchindex",
