@@ -302,6 +302,7 @@ func (ctx *HTTPHandlerContext) RequestBotAPI(w http.ResponseWriter, r *http.Requ
 	rv.UserAgent = d.UserAgent
 
 	//log.Info().Msg("Updated requestview")
+
 	err = requestviewDAO.UpdateRequestView(&rv)
 	if err != nil {
 		log.Error().Err(err).Str("service", "requestviewdao").Msg("error udating requestview")

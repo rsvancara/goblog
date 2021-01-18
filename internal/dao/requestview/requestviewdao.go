@@ -73,7 +73,7 @@ func (r *RequestViewDAO) UpdateRequestView(rv *models.RequestView) error {
 
 	defer cancel()
 
-	//log.Info().Msgf("Updating requestview for ptag %s", rv.PTag)
+	log.Info().Msgf("Updating requestview for ptag %s", rv.PTag)
 
 	filter := bson.M{
 		"ptag": bson.M{
@@ -119,7 +119,7 @@ func (r *RequestViewDAO) GetRequestViewByPTAG(id string) (models.RequestView, er
 
 	defer cancel()
 
-	err := c.FindOne(ctx, bson.M{"ptag": id}).Decode(r)
+	err := c.FindOne(ctx, bson.M{"ptag": id}).Decode(&rv)
 	if err != nil {
 		return rv, err
 	}
