@@ -24,16 +24,21 @@ func (mw *MiddleWareContext) GeoFilterMiddleware(next http.Handler) http.Handler
 
 		// for testing...we inject an IP Address
 		//if ipaddress == "" {
-		//	ipaddress = "73.83.74.114"
+		//ipaddress = "73.83.74.114"
 		//}
 
 		geoIP.PageID = models.GenUUID()
 
 		if ipaddress != "" && ipaddress != "[" {
 
-			err := geoIP.Search(ipaddress)
+			err := geoIP.SearchCity(ipaddress)
 			if err != nil {
-				log.Error().Err(err).Str("service", "geotagger").Msgf("Error IP Address not found in the database for IP Address: %s in geotagger middleware", ipaddress)
+				log.Error().Err(err).Str("service", "geotagger").Msgf("Error IP Address not found in the CITY database for IP Address: %s in geotagger middleware", ipaddress)
+			}
+
+			err = geoIP.SearchASN(ipaddress)
+			if err != nil {
+				log.Error().Err(err).Str("service", "geotagger").Msgf("Error IP Address not found in the ASN database for IP Address: %s in geotagger middleware", ipaddress)
 			}
 
 			if requestfilter.IsPrivateSubnet(geoIP.IPAddress) {
@@ -91,6 +96,8 @@ func (mw *MiddleWareContext) GeoFilterMiddleware(next http.Handler) http.Handler
 		rv.SessionID = sess.SessionToken
 		rv.City = geoIP.City
 		rv.Country = geoIP.CountryName
+		rv.ASN = geoIP.ASN
+		rv.Organization = geoIP.Organization
 		rv.RawRequest = rawRequest
 		err = requestviewDAO.CreateRequestView(&rv)
 		if err != nil {

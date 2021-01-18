@@ -34,13 +34,15 @@ type Item struct {
 
 // User stores user information for a session
 type User struct {
-	Username  string `json:"username"`
-	Items     []Item `json:"items"`
-	IsAuth    bool   `json:"isauth"`
-	IPAddress string `json:"ipaddress"`
-	City      string `json:"city"`
-	TimeZone  string `json:"timezone"`
-	Country   string `json:"country"`
+	Username     string `json:"username"`
+	Items        []Item `json:"items"`
+	IsAuth       bool   `json:"isauth"`
+	IPAddress    string `json:"ipaddress"`
+	City         string `json:"city"`
+	TimeZone     string `json:"timezone"`
+	Country      string `json:"country"`
+	ASN          string `json:"asn"`
+	Organization string `json:"organization"`
 }
 
 func (u *User) setItem(key string, value string) {
@@ -382,17 +384,28 @@ func (s *Session) Session(r *http.Request, w http.ResponseWriter) error {
 				user.TimeZone = geoIP.TimeZone
 				user.Country = geoIP.CountryName
 				user.IPAddress = geoIP.IPAddress.String()
+				user.Organization = geoIP.Organization
+				user.ASN = geoIP.ASN
 			} else {
 				fmt.Printf("Could not find ctxkey geoip during session %s, performing manual lookup\n", s.SessionToken)
 				ipaddress, _ := requestfilter.GetIPAddress(r)
-				err := geoIP.Search(ipaddress)
+				err := geoIP.SearchCity(ipaddress)
 				if err != nil {
-					fmt.Printf("Error IP Address not found in the database for IP Address: %s with error %s\n", ipaddress, err)
+					fmt.Printf("Error IP Address not found in the city database for IP Address: %s with error %s\n", ipaddress, err)
 				}
 				user.City = geoIP.City
 				user.TimeZone = geoIP.TimeZone
 				user.Country = geoIP.CountryName
 				user.IPAddress = geoIP.IPAddress.String()
+
+				err = geoIP.SearchASN(ipaddress)
+				if err != nil {
+					fmt.Printf("Error IP Address not found in the ASN database for IP Address: %s with error %s\n", ipaddress, err)
+				}
+
+				user.Organization = geoIP.Organization
+				user.ASN = geoIP.ASN
+
 			}
 
 			//TODO: Set the user

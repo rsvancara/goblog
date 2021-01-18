@@ -21,11 +21,14 @@ type GeoIP struct {
 	TimeZone       string
 	IsProxy        bool
 	IsEU           bool
+	ASN            string
+	Organization   string
+	Network        string
 	PageID         string
 }
 
 // Search get geoip information from ipaddress
-func (g *GeoIP) Search(ipaddress string) error {
+func (g *GeoIP) SearchCity(ipaddress string) error {
 
 	start := time.Now()
 
@@ -94,4 +97,55 @@ func (g *GeoIP) Search(ipaddress string) error {
 
 	return nil
 
+}
+
+// Search get geoip information from ipaddress
+func (g *GeoIP) SearchASN(ipaddress string) error {
+	start := time.Now()
+
+	if ipaddress == "::1" {
+		g.Organization = "None"
+		g.ASN = "None"
+		return nil
+	}
+
+	if ipaddress == "127.0.0.1" {
+		g.Organization = "None"
+		g.ASN = "None"
+		return nil
+	}
+
+	ip := net.ParseIP(ipaddress)
+	if ip == nil {
+		g.IsFound = false
+		return fmt.Errorf("error converting string [ %s ] to IP Address", ipaddress)
+	}
+
+	if _, err := os.Stat("db/GeoLite2-ASN.mmdb"); os.IsNotExist(err) {
+		g.IsFound = false
+		return fmt.Errorf("error opening ASN geodatabase")
+	}
+
+	dbasn, err := geoip2.Open("db/GeoLite2-ASN.mmdb")
+	if err != nil {
+		g.IsFound = false
+		return fmt.Errorf("error opening ASN geodatabase")
+	}
+	defer dbasn.Close()
+
+	record, err := dbasn.ASN(ip)
+	if err != nil {
+		g.IsFound = false
+		return fmt.Errorf("error getting database record: %s", err)
+	}
+
+	g.Organization = record.AutonomousSystemOrganization
+	g.ASN = fmt.Sprint(record.AutonomousSystemNumber)
+
+	//fmt.Println(g)
+
+	elapsed := time.Since(start)
+	log.Printf("geoipa took %s \n", elapsed)
+
+	return nil
 }
