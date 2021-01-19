@@ -100,7 +100,7 @@ spec:
           - name: REDIS_DB
             valueFrom:
                 secretKeyRef:
-                  name: dyi
+                  name: diy
                   key: REDIS_DB
           ports:
             - name: http
