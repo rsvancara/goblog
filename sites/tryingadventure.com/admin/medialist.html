@@ -3,62 +3,224 @@
 {% block title  %}Media{% endblock %}
 
 {% block headertitle %}<h1>Media</h1>{% endblock %}
- 
+
+{% block stylesheet %}
+<link rel="stylesheet" href="/css/modal-window.css" />
+{% endblock %}
+
+
+
 {% block body %}
+
+<style>
+    .header-row {
+        font-weight: bold;
+        font-size: 1.2em;
+        border-bottom: 2px solid;
+        margin-bottom: 4px;
+    }
+    .table-body {
+        margin-bottom: 4px;
+    }
+
+    .img-box img {
+        width: 200px; /* width of container */
+        height: 200px; /* height of container */
+        object-fit: cover;
+        border: 5px solid black;
+    }
+
+</style>
+
+<form>
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Filter</h5>
+            <div class="row">
+                <div class="col-md-4">
+                    <input type="text" class="form-control" id="searchtitle" value="" placeholder="Title" />
+                </div>
+                <div class="col-md-4">
+                    <input type="text" class="form-control" id="searchkeywords" value="" placeholder="Key Words" />
+                </div>
+                <div class="col-md-1">
+                    <button id="search" class="btn btn-primary">Search</button>
+                </div>
+                <div class="col-md-1">
+                    <button id="clear" class="btn btn-primary">Clear</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
 <div class="row">
-    <div class="col-md-12">
-            <a href="/admin/media/add" class="btn btn-primary">Add Media</a>
+    <div class="col-md-2" style="margin-top:5px;">
+        <a href="/admin/media/add" class="btn btn-primary">Add Media</a>
     </div>
 </div>
-<div class="row">
-    <div class="col-md-12">
-       <form>
-           <input type="text" id="searchtitle" value=""/>
-           <input type="text" id="searchcategory" value=""/>
-           <input type="text" id="searchkeywords" value=""/>
-           <button id="search" class="btn btn-primary">Search</button>
-       </form>
+
+<!-- Result Viewer -->
+<div id="resultviewer">
+
+</div>
+
+<div id="modal" aria-hidden="true" aria-labelledby="modalTitle" aria-describedby="modalDescription" role="dialog">
+    <div class="modalDocument" role="document">
+        <div id="modalDescription" class="screen-reader-offscreen">
+
+        </div>
+        <h1 id="modalTitle">Update Title</h1>
+        <form name="form1" onSubmit="return false;">
+            <div class="row">
+                <div class="col-md-12">
+                    <label for="firstName">New Title</label>
+                    <input type="text" class="form-control" name="newTitle" id="newTitle">
+                </div>
+            </div>
+            <div style="height: 5px"></div>
+            <div class="row">
+                <div class="col-md-4">
+                    <input type="button" class="btn btn-success" name="button" id="enter" value="Submit">
+                    <input type="button" class="btn btn-danger" name="cancelButton" id="cancelButton" value="Cancel">
+                </div>
+            </div>
+
+        </form>
     </div>
 </div>
-<table id="resultviewer" class="table">
-    <tr><th></th><th>Title</th><th>Date</th><th></th></tr>
+<div id="modalOverlay" tabindex="-1"></div> 
 
-
-</table>
 {% endblock %}
 {% block script %}
+<script src="/scripts/modal-window.js"></script>
 <script>
+
+var header = "";
+
+header += '<div class="row header-row">';
+header += '<div class="col-md-2"></div>';
+header += '<div class="col-md-5">Title</div>';
+header += '<div class="col-md-3">Key Words</div>';
+header += '<div class="col-md-2"></div>';
+header += "</div>"
+
+var searchtitle = "";
+var searchcategory = "";
+var searchkeywords = "";
+
+var currentID = ""
 
 $(document).ready(function(){ 
 
+    // Write a local item..
+    if(localStorage.getItem("searchtitle")) {
+        searchtitle = localStorage.getItem("searchtitle");
+        $("#searchtitle").val(searchtitle);
+        console.log("loading search title " + searchtitle);
+    }
+    if(localStorage.getItem("searchkeywords")) {
+        searchkeywords = localStorage.getItem("searchkeywords");
+        $("#searchkeywords").val(searchkeywords);
+    }
+
     console.log("loading on document load");
-    searchMedia();
-
-
+    searchMedia(searchtitle,searchcategory,searchkeywords);
 
     $('#search').click(function(e){
-        $('#resultviewer').empty();
-        $('#resultviewer').append('<tr><th></th><th>Title</th><th>Category</th><th>Key Words</th><th></th></tr>');
-        console.log("clearing results")
 
-        searchMedia();
+        searchtitle = $("#searchtitle").val();
+        searchcategory = $("#searchcategory").val();
+        searchkeywords = $("#searchkeywords").val();
+
+        // Write a local item..
+        localStorage.setItem("searchtitle", searchtitle);
+        localStorage.setItem("searchkeywords", searchkeywords);
+
+        searchMedia(searchtitle,searchcategory,searchkeywords);
         e.preventDefault();
     });
-     
+
+    $('#clear').click(function(e){
+        $("#searchtitle").val("");
+        $("#searchcategory").val("");
+        $("#searchkeywords").val("");
+
+        // Write a local item..
+        localStorage.setItem("searchtitle", "");
+        localStorage.setItem("searchkeywords", "");
+
+        searchtitle = "";
+        searchcategory = "";
+        searchkeywords = "";
+
+        searchMedia(searchtitle,searchcategory,searchkeywords);
+
+        e.preventDefault();
+    });
+
+    
+    $( "#resultviewer" ).on( "click", ".change", function( e ) {
+        
+        currentID = $(this).data("id");
+
+        console.log(currentID);
+
+        showChangeTitleForm(currentID)
+
+        e.preventDefault();
+    });
+
+    $('#enter').click(function(e) {
+        console.log("CLICK");
+
+        title = $("#newTitle").val();
+
+        changeTitle(currentID,title);
+
+        $('#title-'+currentID).text(title)
+    });
+
 });
 
-function searchMedia() {
+function showChangeTitleForm(id) {
+
+    showModal($('#modal'));
+
+}
+
+function changeTitle(id,title) {
+
+    console.log("changing " + title + " id " + id);
+
+    bdata = {
+    'id': id,
+    'title': title
+    };
+
+    $.ajax({
+        url: '/api/v1/change-media-title',
+        type: 'post',
+        contentType: 'application/json; charset=utf-8',
+        data: JSON.stringify(bdata),
+        dataType: 'json',
+        success : function(r) {
+            console.log( r.status + ' ' +  r.message);
+        },
+        failure: function(errMsg) {
+            console.log(errMsg);
+        },
+        error: function(errMsg) {
+            console.log(errMsg);
+        }
+    });
+
+}
+
+function searchMedia(searchtitle, searchcategory, searchkeywords) {
     console.log("calling search media")
-
     $('#resultviewer').empty();
-    $('#resultviewer').append('<tr><th></th><th>Title</th><th>Category</th><th>Key Words</th><th></th></tr>');
-
-
-    var searchtitle = $("#searchtitle").val();
-    var searchcategory = $("#searchcategory").val();
-    var searchkeywords = $("#searchkeywords").val();
-
-    //console.log(searchtitle);
+    $('#resultviewer').append(header);
 
     bdata = {
     'category': searchcategory,
@@ -76,21 +238,20 @@ function searchMedia() {
             console.log( r.status + ' ' +  r.message);
             $.each(r.results, function(key,v) {
                 //console.log(v)
-
-                var row = "";
-
-                row += '<tr><td><img src="/image/' + v.slug + '/thumb" style="width: 50px; height: 50px;"></td>';
-                row += '<td>' + v.title +  '</td>';
-                row += '<td>' + v.category + '</td>';
-                row += '<td>' + v.keywords + '</td>';
-                row += '<td>';
-                row += '<a href="/admin/media/view/' + v.media_id + '" class="btn btn-primary">view</a>'
-                row += '</td></tr>';
+                var row = '<div class="row table-body">';
+                row += '<div class="col-md-2"><div class="img-box"><img src="/image/' + v.slug + '/thumb" ></div></div>';
+                row += '<div class="col-md-5"><span id="title-' + v.media_id + '" class="ptitle">' + v.title +  '</span> <button id="change-'+ v.media_id +'" class="btn btn-info btn-sm change" data-id="' + v.media_id + '">change</button></div>';
+                row += '<div class="col-md-3">' + v.keywords + '</div>';
+                row += '<div class="col-md-2">';
+                row += '<a href="/admin/media/view/' + v.media_id + '" class="btn btn-primary">view</a> ' 
+                row += '<a href="/admin/media/edit/' + v.media_id + '" class="btn btn-success">edit</a> '
+                row += '<a href="/admin/media/delete/' + v.media_id + '" class="btn btn-danger">delete</a> '   
+                row += '</div>';
+                row += '</div>';
 
                 console.log(row)
 
                 $('#resultviewer').append(row);
-
             });
         },
         failure: function(errMsg) {

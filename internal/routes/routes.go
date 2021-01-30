@@ -166,6 +166,15 @@ func GetRoutes(hctx *bloghandlers.HTTPHandlerContext, mwctx *mw.MiddleWareContex
 
 	// Media Interface
 	r.Handle(
+		"/api/v1/change-media-title",
+		handlers.LoggingHandler(
+			os.Stdout,
+			mwctx.SessionMiddleware(
+				mwctx.GeoFilterMiddleware(
+					mwctx.AuthHandlerMiddleware(http.HandlerFunc(hctx.MediaUpdateTitleHandler))))))
+
+	// Media Interface
+	r.Handle(
 		"/api/v1/editmedia",
 		handlers.LoggingHandler(
 			os.Stdout,

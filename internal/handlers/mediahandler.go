@@ -267,6 +267,59 @@ func (ctx *HTTPHandlerContext) PutMediaAPI(w http.ResponseWriter, r *http.Reques
 	return
 }
 
+//MediaUpdateTitleHandler update the media title API
+func (ctx *HTTPHandlerContext) MediaUpdateTitleHandler(w http.ResponseWriter, r *http.Request) {
+	sess := util.GetSession(r)
+
+	type Title struct {
+		ID    string `json:"id"`
+		Title string `json:"title"`
+	}
+
+	var title Title
+
+	err := json.NewDecoder(r.Body).Decode(&title)
+	if err != nil {
+		log.Error().Err(err).Str("service", "media").Msg("Error decoding json string ")
+		w.Header().Set("Content-Type", "application/json")
+		fmt.Fprintf(w, "{\"status\":\"error\", \"message\": \"Error: %s\", \"session\":\"%s\"}\n", err, sess.SessionToken)
+		return
+	}
+
+	var mediaDAO mediadao.MediaDAO
+
+	err = mediaDAO.Initialize(ctx.dbClient, ctx.hConfig)
+	if err != nil {
+		log.Error().Err(err).Str("service", "mediadao").Msg("Error initialzing media data access object ")
+		w.Header().Set("Content-Type", "application/json")
+		fmt.Fprintf(w, "{\"status\":\"error\", \"message\": \"Error: %s\", \"session\":\"%s\"}\n", err, sess.SessionToken)
+		return
+	}
+
+	model, err := mediaDAO.GetMedia(title.ID)
+	if err != nil {
+		log.Error().Err(err).Str("service", "mediadao").Msgf("Error getting media for %s ", title.ID)
+		w.Header().Set("Content-Type", "application/json")
+		fmt.Fprintf(w, "{\"status\":\"error\", \"message\": \"Error finding media object: %s\", \"session\":\"%s\"}\n", err, sess.SessionToken)
+		return
+	}
+
+	model.Title = title.Title
+
+	err = mediaDAO.UpdateMedia(model)
+	if err != nil {
+		log.Error().Err(err).Str("service", "mediadao").Msgf("Error updating media object for %s with title %s ", title.ID, title.Title)
+		w.Header().Set("Content-Type", "application/json")
+		fmt.Fprintf(w, "{\"status\":\"error\", \"message\": \"Error udating media object:  %s\", \"session\":\"%s\"}\n", err, sess.SessionToken)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	fmt.Fprintf(w, "{\"status\":\"success\", \"message\": \"Title updated successfully\", \"session\":\"%s\"}\n", sess.SessionToken)
+	return
+}
+
 //MediaSearchAPIHandler search by media tags
 func (ctx *HTTPHandlerContext) MediaSearchAPIHandler(w http.ResponseWriter, r *http.Request) {
 
