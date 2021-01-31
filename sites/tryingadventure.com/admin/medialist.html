@@ -37,11 +37,8 @@
         <div class="card-body">
             <h5 class="card-title">Filter</h5>
             <div class="row">
-                <div class="col-md-4">
-                    <input type="text" class="form-control" id="searchtitle" value="" placeholder="Title" />
-                </div>
-                <div class="col-md-4">
-                    <input type="text" class="form-control" id="searchkeywords" value="" placeholder="Key Words" />
+                <div class="col-md-8">
+                    <input type="text" class="form-control" id="searchVal" value="" placeholder="Search" />
                 </div>
                 <div class="col-md-1">
                     <button id="search" class="btn btn-primary">Search</button>
@@ -105,56 +102,43 @@ header += '<div class="col-md-3">Key Words</div>';
 header += '<div class="col-md-2"></div>';
 header += "</div>"
 
-var searchtitle = "";
-var searchcategory = "";
-var searchkeywords = "";
+var searchVal = "";
 
 var currentID = ""
 
 $(document).ready(function(){ 
 
     // Write a local item..
-    if(localStorage.getItem("searchtitle")) {
-        searchtitle = localStorage.getItem("searchtitle");
-        $("#searchtitle").val(searchtitle);
-        console.log("loading search title " + searchtitle);
-    }
-    if(localStorage.getItem("searchkeywords")) {
-        searchkeywords = localStorage.getItem("searchkeywords");
-        $("#searchkeywords").val(searchkeywords);
+    if(localStorage.getItem("search")) {
+        searchVal = localStorage.getItem("search");
+        $("#searchVal").val(searchVal);
+        console.log("loading search  " + searchVal);
     }
 
     console.log("loading on document load");
-    searchMedia(searchtitle,searchcategory,searchkeywords);
+    searchMedia(searchVal);
 
     $('#search').click(function(e){
 
-        searchtitle = $("#searchtitle").val();
-        searchcategory = $("#searchcategory").val();
-        searchkeywords = $("#searchkeywords").val();
+        searchVal = $("#searchVal").val();
 
         // Write a local item..
-        localStorage.setItem("searchtitle", searchtitle);
-        localStorage.setItem("searchkeywords", searchkeywords);
+        localStorage.setItem("search", searchVal);
 
-        searchMedia(searchtitle,searchcategory,searchkeywords);
+        searchMedia(searchVal);
+
         e.preventDefault();
     });
 
     $('#clear').click(function(e){
-        $("#searchtitle").val("");
-        $("#searchcategory").val("");
-        $("#searchkeywords").val("");
+        $("#searchVal").val("");
 
         // Write a local item..
-        localStorage.setItem("searchtitle", "");
-        localStorage.setItem("searchkeywords", "");
+        localStorage.setItem("search", "");
 
-        searchtitle = "";
-        searchcategory = "";
-        searchkeywords = "";
+        searchVal = "";
 
-        searchMedia(searchtitle,searchcategory,searchkeywords);
+        searchMedia(searchVal);
 
         e.preventDefault();
     });
@@ -163,11 +147,8 @@ $(document).ready(function(){
     $( "#resultviewer" ).on( "click", ".change", function( e ) {
         
         currentID = $(this).data("id");
-
         console.log(currentID);
-
         showChangeTitleForm(currentID)
-
         e.preventDefault();
     });
 
@@ -180,13 +161,10 @@ $(document).ready(function(){
 
         $('#title-'+currentID).text(title)
     });
-
 });
 
 function showChangeTitleForm(id) {
-
     showModal($('#modal'));
-
 }
 
 function changeTitle(id,title) {
@@ -214,18 +192,18 @@ function changeTitle(id,title) {
             console.log(errMsg);
         }
     });
-
 }
 
-function searchMedia(searchtitle, searchcategory, searchkeywords) {
+function searchMedia(search) {
     console.log("calling search media")
     $('#resultviewer').empty();
     $('#resultviewer').append(header);
 
+
+    console.log("Searching for " + search)
+
     bdata = {
-    'category': searchcategory,
-    'tags': searchkeywords,
-    'title': searchtitle
+    'search': search
     };
 
     $.ajax({
@@ -237,7 +215,7 @@ function searchMedia(searchtitle, searchcategory, searchkeywords) {
         success : function(r) {
             console.log( r.status + ' ' +  r.message);
             $.each(r.results, function(key,v) {
-                //console.log(v)
+                console.log(v)
                 var row = '<div class="row table-body">';
                 row += '<div class="col-md-2"><div class="img-box"><img src="/image/' + v.slug + '/thumb" ></div></div>';
                 row += '<div class="col-md-5"><span id="title-' + v.media_id + '" class="ptitle">' + v.title +  '</span> <button id="change-'+ v.media_id +'" class="btn btn-info btn-sm change" data-id="' + v.media_id + '">change</button></div>';

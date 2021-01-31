@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
@@ -325,23 +324,46 @@ func (ctx *HTTPHandlerContext) MediaSearchAPIHandler(w http.ResponseWriter, r *h
 
 	sess := util.GetSession(r)
 
-	bodyString := "{}"
-	bodyBytes, err := ioutil.ReadAll(r.Body)
+	type Search struct {
+		Search string `json:"search"`
+	}
+
+	var search Search
+
+	// Decode the search string
+	err := json.NewDecoder(r.Body).Decode(&search)
 	if err != nil {
+		log.Error().Err(err).Str("service", "media").Msg("Error decoding json string ")
 		w.Header().Set("Content-Type", "application/json")
-		fmt.Fprintf(w, "{\"status\":\"error\", \"message\": \"Error: %s\", \"session\":\"%s\",\"results\":nil}\n", err, sess.SessionToken)
+		fmt.Fprintf(w, "{\"status\":\"error\", \"message\": \"%s\", \"session\":\"%s\",\"results\":nil}\n", err, sess.SessionToken)
 		return
 	}
-	bodyString = string(bodyBytes)
+
+	log.Info().Msgf("Searching for %s", search.Search)
+
+	//bodyString := "{}"
+	//bodyBytes, err := ioutil.ReadAll(r.Body)
+	//if err != nil {
+	//	w.Header().Set("Content-Type", "application/json")
+	//	fmt.Fprintf(w, "{\"status\":\"error\", \"message\": \"Error: %s\", \"session\":\"%s\",\"results\":nil}\n", err, sess.SessionToken)
+	//	return
+	//}
+	//bodyString = string(bodyBytes)
 
 	var mediaDAO mediadao.MediaDAO
 
 	err = mediaDAO.Initialize(ctx.dbClient, ctx.hConfig)
 	if err != nil {
 		log.Error().Err(err).Str("service", "mediadao").Msg("Error initialzing media data access object ")
+		fmt.Fprintf(w, "{\"status\":\"error\", \"message\": \"%s\", \"session\":\"%s\",\"results\":nil}\n", err, sess.SessionToken)
+		return
 	}
 
-	mediaList, err := mediaDAO.MediaSearch(bodyString)
+	var mediasearch mediadao.MediaSearch
+
+	mediasearch.SearchString = search.Search
+
+	mediaList, err := mediaDAO.MediaSearch(mediasearch)
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
 		fmt.Fprintf(w, "{\"status\":\"error\", \"message\": \"%s\", \"session\":\"%s\",\"results\":nil}\n", err, sess.SessionToken)
@@ -351,8 +373,6 @@ func (ctx *HTTPHandlerContext) MediaSearchAPIHandler(w http.ResponseWriter, r *h
 	mediaLength := len(mediaList)
 
 	jsonBytes, err := json.Marshal(mediaList)
-
-	//fmt.Println(string(jsonBytes))
 
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")

@@ -3,7 +3,6 @@ package mediadao
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -22,6 +21,11 @@ import (
 type MediaDAO struct {
 	DBClient *mongo.Client
 	Config   *config.AppConfig
+}
+
+// MediaSearch Search Parameters
+type MediaSearch struct {
+	SearchString string
 }
 
 // Initialize creates the connection and populates the suppression struct
@@ -307,48 +311,38 @@ func (m *MediaDAO) AllCategories() ([]string, error) {
 }
 
 //MediaSearch retrieve all posts sorted by creation date
-func (m *MediaDAO) MediaSearch(searchJSON string) ([]models.MediaModel, error) {
+func (m *MediaDAO) MediaSearch(mediasearch MediaSearch) ([]models.MediaModel, error) {
 
-	r := strings.NewReader(searchJSON)
+	//r := strings.NewReader(searchJSON)
 
-	var ms models.MediaSearchQuery
-	err := json.NewDecoder(r).Decode(&ms)
-	if err != nil {
+	//var ms models.MediaSearchQuery
+	//err := json.NewDecoder(r).Decode(&ms)
+	//if err != nil {
 
-		return nil, fmt.Errorf("Error converting search string to JSON with error %s", err)
+	//	return nil, fmt.Errorf("Error converting search string to JSON with error %s", err)
+	//}
+
+	//filter :=
+
+	//fmt.Println(ms)
+
+	IsFilter := false
+
+	if len(strings.TrimSpace(strings.TrimSuffix(mediasearch.SearchString, "\n"))) > 3 {
+		IsFilter = true
 	}
 
-	fmt.Println(ms)
+	var filter bson.M
 
-	var filter bson.D
-	isSearch := false
-
-	if ms.Title != "" {
-		//filter = append(filter, bson.E{"title", ms.Title})
-		filter = append(filter, bson.E{Key: "title", Value: bson.D{
-			{"$regex", primitive.Regex{Pattern: fmt.Sprintf("^%s", ms.Title), Options: "i"}},
-		}},
-		)
-		isSearch = true
+	if IsFilter == true {
+		filter = bson.M{
+			"$text": bson.M{
+				"$search": mediasearch.SearchString,
+			},
+		}
+	} else {
+		filter = bson.M{}
 	}
-
-	if ms.Category != "" {
-		filter = append(filter, bson.E{"category", ms.Category})
-		isSearch = true
-	}
-
-	if ms.Tags != "" {
-
-		filter = append(filter, bson.E{Key: "keywords", Value: bson.D{
-			{"$regex", primitive.Regex{Pattern: fmt.Sprintf("%s", ms.Tags), Options: "i"}},
-		}},
-		)
-		isSearch = true
-
-		//filter = append(filter, bson.E{"category", ms.Category})
-	}
-
-	var cur *mongo.Cursor
 
 	c := m.DBClient.Database(m.Config.MongoDatabase).Collection("media")
 
@@ -361,7 +355,17 @@ func (m *MediaDAO) MediaSearch(searchJSON string) ([]models.MediaModel, error) {
 	// Sort by `_id` field descending
 	options.SetSort(map[string]int{"created_at": -1})
 
-	if isSearch == true {
+	//cur, err := c.Find(context.TODO(), filter, options)
+	//if err != nil {
+	//	return nil, err
+	//}
+
+	var cur *mongo.Cursor
+	var err error
+
+	log.Info().Msgf("Looking for [%s] and filter value is %t", mediasearch.SearchString, IsFilter)
+
+	if IsFilter == true {
 		cur, err = c.Find(context.TODO(), filter, options)
 		if err != nil {
 			return nil, err
