@@ -8,13 +8,17 @@ https://tryingadventure.com
 
 https://diytinytrailer.com
 
-## Goals
+# Notable features
 
-1.  Write it in golang, yes I wanted to learn Go and this was a good way to do it.
-2.  Make it work for may blog platform.  Basically there is an engine and you can put it into any chassis you want and make it go!
-3.  Run in a container environment (12 factor applications)
-4.  Support advanced filtering for managing content display using GeoIP (requires maxmind geoip database...you can use the light edition for free)
-5.  Use wiki markdown language for easy content creation.  I wanted to avoide WSISYG editors as I have found they are a pain in the ass to manage in terms of stylesheets. 
+1.  Supports libvips for image processing
+2.  Uses S3 backed storage, but does not expose the s3 or cloudfront backend.  (This may or may not be a good idea)
+3.  Uses MongoDB
+4.  Uses Redis for storing sessions
+5.  Features image management interface to upload, extract Exif information.  
+6.  Uses Markdown language for the editing environment, just like you would in github.  The reason for this is that I 
+    did not want to incorporate a clunky WSIWYG editor that generates HTML differently every new release.  All text is store 
+    as markdown. 
+7.  Fast!  The software is written in golang and compiles to a single binary.  Maybe the next version will be in Rust...
 
 # Instructions
 
