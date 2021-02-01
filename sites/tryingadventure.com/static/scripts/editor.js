@@ -1,5 +1,7 @@
 $(document).ready(function(){ 
 
+  console.log("Firing");
+
   var selectorType = ""
 
   console.log("editor loaded");
@@ -19,16 +21,19 @@ $(document).ready(function(){
 
   });
 
-  $("button.img-select").click(function(e){
+  $("#butt_img").click(function(e){
+    console.log("press my butt");
+    showModal($('#modal'));
     e.preventDefault()
   });
 
-  $("#teaser-butt").click(function(e){
-    e.preventDefault()
+  $("#teaser_butt").click(function(e){
+    
     selectorType = "teaser"
-  });
+    showModal($('#modal'));
 
-  
+    e.preventDefault()
+  });
 
   $("#search").click(function(e) {
 
@@ -84,7 +89,7 @@ $(document).ready(function(){
     }
   });
 
-  $("#buttonSelect").click(function() {
+  $("#enter").click(function() {
 
     var radioValue = $("input[name='img']:checked"). val();
     var radioTitle = $("input[name='img']:checked").attr('data-title');
@@ -109,22 +114,27 @@ $(document).ready(function(){
 
     selectorType = ""
 
-    $('#imageSelectModal').modal('hide');
-  })
+    //$('#imageSelectModal').modal('hide');
+  });
 
-  $('#imageSelectModal').on('show.bs.modal', function (e) {
+
+  //$('#imageSelectModal').on('show.bs.modal', function (e) {
     // do something...
-    console.log('visible but yet not')
-  })
+    // console.log('visible but yet not')
+  //});
 
-  $('#imageSelectModal').on('hide.bs.modal', function (e) {
+  //$('#imageSelectModal').on('hide.bs.modal', function (e) {
     // do something...
-    console.log('hidden but not forgotten')
+  //  console.log('hidden but not forgotten')
 
 
-    $("#searchresult").empty();
+  //  $("#searchresult").empty();
 
-    $("#searchbox").val("")
-  })
+  //  $("#searchbox").val("")
+  //})
+
+  //$('#imageSelectModal').addEventListener('shown.bs.modal', function () {
+  //    console.log("showing")
+  //})
 
 });
