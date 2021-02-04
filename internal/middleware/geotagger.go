@@ -6,11 +6,11 @@ import (
 	"net/http/httputil"
 
 	"github.com/rs/zerolog/log"
-	"github.com/rsvancara/goblog/internal/models"
-	"github.com/rsvancara/goblog/internal/requestfilter"
-	"github.com/rsvancara/goblog/internal/util"
+	"goblog/internal/models"
+	"goblog/internal/requestfilter"
+	"goblog/internal/util"
 
-	requestviewdao "github.com/rsvancara/goblog/internal/dao/requestview"
+	requestviewdao "goblog/internal/dao/requestview"
 )
 
 // GeoFilterMiddleware Middleware that matches paths to filter rules.

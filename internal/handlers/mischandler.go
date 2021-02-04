@@ -9,13 +9,13 @@ import (
 
 	"github.com/flosch/pongo2"
 	"github.com/rs/zerolog/log"
-	"github.com/rsvancara/goblog/internal/config"
-	mediadao "github.com/rsvancara/goblog/internal/dao/media"
-	postsdao "github.com/rsvancara/goblog/internal/dao/posts"
-	requestviewdao "github.com/rsvancara/goblog/internal/dao/requestview"
-	"github.com/rsvancara/goblog/internal/models"
-	"github.com/rsvancara/goblog/internal/session"
-	"github.com/rsvancara/goblog/internal/util"
+	"goblog/internal/config"
+	mediadao "goblog/internal/dao/media"
+	postsdao "goblog/internal/dao/posts"
+	requestviewdao "goblog/internal/dao/requestview"
+	"goblog/internal/models"
+	"goblog/internal/session"
+	"goblog/internal/util"
 )
 
 // SignInHandler Sign into the application

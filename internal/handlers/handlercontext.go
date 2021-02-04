@@ -2,8 +2,8 @@
 package handlers
 
 import (
-	"github.com/rsvancara/goblog/internal/config"
 	"go.mongodb.org/mongo-driver/mongo"
+	"goblog/internal/config"
 )
 
 // HTTPHandlerContext provides context for passing global values to handlers

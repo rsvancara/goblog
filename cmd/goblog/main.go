@@ -11,16 +11,22 @@ import (
 	"os/signal"
 	"time"
 
+	"goblog/internal/config"
+
+	"goblog/internal/db"
+
+	"goblog/internal/handlers"
+
+	"goblog/internal/metrics"
+
+	"goblog/internal/middleware"
+
+	"goblog/internal/routes"
+
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
-	"github.com/rsvancara/goblog/internal/config"
-	"github.com/rsvancara/goblog/internal/db"
-	"github.com/rsvancara/goblog/internal/handlers"
-	"github.com/rsvancara/goblog/internal/metrics"
-	"github.com/rsvancara/goblog/internal/middleware"
-	"github.com/rsvancara/goblog/internal/routes"
 
-	mediadao "github.com/rsvancara/goblog/internal/dao/media"
+	mediadao "goblog/internal/dao/media"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )

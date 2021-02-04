@@ -14,11 +14,11 @@ import (
 	awsSession "github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/rs/zerolog/log"
-	"github.com/rsvancara/goblog/internal/config"
-	mediadao "github.com/rsvancara/goblog/internal/dao/media"
-	"github.com/rsvancara/goblog/internal/models"
-	"github.com/rsvancara/goblog/internal/util"
 	"go.mongodb.org/mongo-driver/mongo"
+	"goblog/internal/config"
+	mediadao "goblog/internal/dao/media"
+	"goblog/internal/models"
+	"goblog/internal/util"
 )
 
 // DeleteS3Object Deletes and object from s3

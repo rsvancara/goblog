@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/rsvancara/goblog/internal/config"
-	"github.com/rsvancara/goblog/internal/db"
+	"goblog/internal/config"
+	"goblog/internal/db"
 
 	"github.com/gosimple/slug"
 	"go.mongodb.org/mongo-driver/bson"

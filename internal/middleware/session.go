@@ -5,8 +5,8 @@ import (
 	"net/http"
 
 	"github.com/rs/zerolog/log"
-	"github.com/rsvancara/goblog/internal/session"
-	"github.com/rsvancara/goblog/internal/util"
+	"goblog/internal/session"
+	"goblog/internal/util"
 )
 
 // SessionMiddleware manage session objects

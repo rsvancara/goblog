@@ -3,7 +3,7 @@ package cache
 import (
 	"fmt"
 
-	"github.com/rsvancara/goblog/internal/config"
+	"goblog/internal/config"
 
 	"github.com/gomodule/redigo/redis"
 )

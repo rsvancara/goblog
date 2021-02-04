@@ -14,14 +14,14 @@ import (
 	"github.com/flosch/pongo2"
 	"github.com/gorilla/mux"
 	"github.com/rs/zerolog/log"
-	mediadao "github.com/rsvancara/goblog/internal/dao/media"
-	mediatags "github.com/rsvancara/goblog/internal/dao/mediatags"
-	_ "github.com/rsvancara/goblog/internal/filters" //import pongo  plugins
-	"github.com/rsvancara/goblog/internal/models"
-	"github.com/rsvancara/goblog/internal/requestfilter"
-	simplestorageservice "github.com/rsvancara/goblog/internal/s3"
-	"github.com/rsvancara/goblog/internal/session"
-	"github.com/rsvancara/goblog/internal/util"
+	mediadao "goblog/internal/dao/media"
+	mediatags "goblog/internal/dao/mediatags"
+	_ "goblog/internal/filters" //import pongo  plugins
+	"goblog/internal/models"
+	"goblog/internal/requestfilter"
+	simplestorageservice "goblog/internal/s3"
+	"goblog/internal/session"
+	"goblog/internal/util"
 )
 
 // MediaHandler HTTP Handler for View full list of media sorted by date in admin view

@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/rsvancara/goblog/internal/db"
+	"goblog/internal/db"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )

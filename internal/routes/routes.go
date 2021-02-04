@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"os"
 
-	bloghandlers "github.com/rsvancara/goblog/internal/handlers"
-	mw "github.com/rsvancara/goblog/internal/middleware"
-	"github.com/rsvancara/goblog/internal/util"
+	bloghandlers "goblog/internal/handlers"
+	mw "goblog/internal/middleware"
+	"goblog/internal/util"
 
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"

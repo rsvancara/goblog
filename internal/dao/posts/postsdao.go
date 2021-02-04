@@ -6,14 +6,14 @@ import (
 	"time"
 
 	"github.com/gosimple/slug"
-	"github.com/rsvancara/goblog/internal/models"
+	"goblog/internal/models"
 
 	"github.com/rs/zerolog/log"
-	"github.com/rsvancara/goblog/internal/config"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"goblog/internal/config"
 )
 
 //PostsDAO stores media data access object information

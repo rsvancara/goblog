@@ -6,11 +6,11 @@ import (
 	"time"
 
 	"github.com/rs/zerolog/log"
-	"github.com/rsvancara/goblog/internal/config"
-	"github.com/rsvancara/goblog/internal/models"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"goblog/internal/config"
+	"goblog/internal/models"
 	"gopkg.in/mgo.v2/bson"
 )
 

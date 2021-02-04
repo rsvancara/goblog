@@ -7,11 +7,11 @@ import (
 	"net/http"
 
 	"github.com/rs/zerolog/log"
-	mediadao "github.com/rsvancara/goblog/internal/dao/media"
-	mediatagsdao "github.com/rsvancara/goblog/internal/dao/mediatags"
-	"github.com/rsvancara/goblog/internal/models"
-	"github.com/rsvancara/goblog/internal/session"
-	"github.com/rsvancara/goblog/internal/util"
+	mediadao "goblog/internal/dao/media"
+	mediatagsdao "goblog/internal/dao/mediatags"
+	"goblog/internal/models"
+	"goblog/internal/session"
+	"goblog/internal/util"
 
 	"github.com/flosch/pongo2"
 	"github.com/gorilla/mux"

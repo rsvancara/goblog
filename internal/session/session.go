@@ -7,9 +7,9 @@ import (
 	"sort"
 	"time"
 
-	"github.com/rsvancara/goblog/internal/cache"
-	"github.com/rsvancara/goblog/internal/config"
-	"github.com/rsvancara/goblog/internal/requestfilter"
+	"goblog/internal/cache"
+	"goblog/internal/config"
+	"goblog/internal/requestfilter"
 
 	"github.com/gomodule/redigo/redis"
 	uuid "github.com/satori/go.uuid"

@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/rsvancara/goblog/internal/config"
+	"goblog/internal/config"
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"

@@ -3,7 +3,7 @@ package middleware
 import (
 	"net/http"
 
-	"github.com/rsvancara/goblog/internal/session"
+	"goblog/internal/session"
 )
 
 // AuthHandlerMiddleware authorize user

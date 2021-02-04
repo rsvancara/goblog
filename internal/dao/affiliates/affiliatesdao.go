@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"time"
 
+	"goblog/internal/config"
+	"goblog/internal/models"
+
 	"github.com/gosimple/slug"
 	"github.com/rs/zerolog/log"
-	"github.com/rsvancara/goblog/internal/config"
-	"github.com/rsvancara/goblog/internal/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"

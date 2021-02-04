@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/rsvancara/goblog/internal/models"
-	"github.com/rsvancara/goblog/internal/util"
+	"goblog/internal/models"
+	"goblog/internal/util"
 
 	"github.com/flosch/pongo2"
 )

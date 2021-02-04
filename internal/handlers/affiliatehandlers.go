@@ -2,15 +2,15 @@ package handlers
 
 import (
 	"github.com/rs/zerolog/log"
-	"github.com/rsvancara/goblog/internal/models"
+	"goblog/internal/models"
 
 	//"blog/blog/session"
 	"fmt"
 	"net/http"
 
-	affiliatesdao "github.com/rsvancara/goblog/internal/dao/affiliates"
+	affiliatesdao "goblog/internal/dao/affiliates"
 
-	"github.com/rsvancara/goblog/internal/util"
+	"goblog/internal/util"
 
 	"github.com/flosch/pongo2"
 	"github.com/gorilla/mux"

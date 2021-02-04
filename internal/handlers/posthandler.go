@@ -6,11 +6,11 @@ import (
 	"net/http"
 
 	"github.com/rs/zerolog/log"
-	mediadao "github.com/rsvancara/goblog/internal/dao/media"
-	postsdao "github.com/rsvancara/goblog/internal/dao/posts"
-	"github.com/rsvancara/goblog/internal/models"
-	"github.com/rsvancara/goblog/internal/session"
-	"github.com/rsvancara/goblog/internal/util"
+	mediadao "goblog/internal/dao/media"
+	postsdao "goblog/internal/dao/posts"
+	"goblog/internal/models"
+	"goblog/internal/session"
+	"goblog/internal/util"
 
 	"github.com/flosch/pongo2"
 	"github.com/gorilla/mux"

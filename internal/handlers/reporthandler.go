@@ -5,9 +5,9 @@ import (
 	"net/http"
 
 	"github.com/rs/zerolog/log"
-	requestviewdao "github.com/rsvancara/goblog/internal/dao/requestview"
-	"github.com/rsvancara/goblog/internal/session"
-	"github.com/rsvancara/goblog/internal/util"
+	requestviewdao "goblog/internal/dao/requestview"
+	"goblog/internal/session"
+	"goblog/internal/util"
 
 	"github.com/flosch/pongo2"
 	"github.com/gorilla/mux"

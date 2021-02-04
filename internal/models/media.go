@@ -10,8 +10,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/rsvancara/goblog/internal/config"
-	"github.com/rsvancara/goblog/internal/db"
+	"goblog/internal/config"
+	"goblog/internal/db"
 
 	"github.com/dsoprea/go-exif"
 	"github.com/gosimple/slug"

@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/rsvancara/goblog/internal/config"
-	"github.com/rsvancara/goblog/internal/requestfilter"
-	"github.com/rsvancara/goblog/internal/session"
+	"goblog/internal/config"
+	"goblog/internal/requestfilter"
+	"goblog/internal/session"
 
 	"github.com/disintegration/imaging"
 
