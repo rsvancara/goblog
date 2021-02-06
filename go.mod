@@ -17,7 +17,6 @@ require (
 	github.com/oschwald/geoip2-golang v1.4.0
 	github.com/prometheus/client_golang v1.9.0
 	github.com/rs/zerolog v1.20.0
-	github.com/rsvancara/goblog v0.0.0-20210202031435-03f6a803b252
 	github.com/satori/go.uuid v1.2.0
 	github.com/segmentio/ksuid v1.0.3
 	github.com/yuin/goldmark v1.3.1
