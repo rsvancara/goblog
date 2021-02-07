@@ -19,6 +19,10 @@ FROM  debian:stretch-slim as maxmindupdate
 ARG ACCOUNT_ID="123"
 ARG LICENSE_KEY="xxx"
 
+RUN mkdir -p /app && \
+    mkdir -p /BUILD && \
+    mkdir -p /BUILD/db
+
 RUN echo $ACCOUNT_ID
 
 RUN \
