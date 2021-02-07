@@ -34,7 +34,7 @@ jobs:
       # build and push Docker image
       - run: |
           TAG=0.1.$CIRCLE_BUILD_NUM
-          ACCOUNT_ID=${ACCOUNT_ID} LICENSE_KEY=${LICENSE_KEY} docker build -t rsvancara/goblog:$TAG .
+          ACCOUNT_ID=${ACCOUNT_ID} LICENSE_KEY=${LICENSE_KEY} docker build -t ${goblog_url}/blog:$TAG .
 
       - aws-ecr/push-image:
           account-url: goblog_url
