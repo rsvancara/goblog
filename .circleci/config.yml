@@ -1,13 +1,36 @@
-# Use the latest 2.1 version of CircleCI pipeline process engine. See: https://circleci.com/docs/2.0/configuration-reference
 version: 2.1
-# Use a package of configuration called an orb.
+
 orbs:
-  # Declare a dependency on the welcome-orb
-  welcome: circleci/welcome-orb@0.4.1
-# Orchestrate or schedule a set of jobs
+  aws-ecr: circleci/aws-ecr@6.7.0
+
 workflows:
-  # Name the workflow "welcome"
-  welcome:
-    # Run the welcome/run job in its own container
+  ECRGoVipsWorkFlow:
     jobs:
-      - welcome/run
+      - build-ecr:
+          context:
+            - AWS
+            - DockerHub
+            - MaxMind
+        
+jobs:
+  build-ecr:
+    docker:
+      - image: cimg/python:3.8.7
+        auth:
+          username: $username
+          password: $password
+       
+    steps:
+      - setup_remote_docker:
+          version: 19.03.13
+          
+      - aws-ecr/build-and-push-image:
+          account-url: goblog_url
+          aws-access-key-id: circleci_key
+          aws-secret-access-key: circleci_secret
+          create-repo: true
+          dockerfile: Dockerfile
+          path: .
+          region: circleci_region
+          repo: blog
+          tag: "$CIRCLE_SHA1"
