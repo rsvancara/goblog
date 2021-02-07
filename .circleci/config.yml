@@ -21,7 +21,7 @@ jobs:
           password: $password
        
     steps:
-      - setup_remote  _docker:
+      - setup_remote_docker:
           version: 19.03.13
 
       - aws-ecr/build-and-push-image:
