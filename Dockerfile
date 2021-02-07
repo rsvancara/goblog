@@ -21,6 +21,12 @@ ENV LICENSE_KEY "xxx"
 
 RUN echo $ACCOUNT_ID
 
+RUN \
+  apt-get update && \
+  apt-get upgrade -y && \
+  apt-get install -y wget ca-certificates && \
+  apt-get clean
+
 WORKDIR /BUILD
 
 RUN wget https://github.com/maxmind/geoipupdate/releases/download/v4.6.0/geoipupdate_4.6.0_linux_amd64.deb && \
