@@ -9,7 +9,6 @@ RUN mkdir -p /app && \
 COPY cmd /BUILD/cmd
 COPY go.sum  /BUILD.go.sum
 COPY go.mod /BUILD/go.mod
-COPY vendor /BUILD/vendor
 COPY internal /BUILD/internal
 RUN cd /BUILD && PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/opt/vips/lib/pkgconfig LD_LIBRARY_PATH=/opt/vips/lib /usr/local/go/bin/go build -o /BUILD/dabloog cmd/goblog/main.go 
 
