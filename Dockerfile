@@ -32,7 +32,7 @@ WORKDIR /BUILD
 RUN wget https://github.com/maxmind/geoipupdate/releases/download/v4.6.0/geoipupdate_4.6.0_linux_amd64.deb && \
     dpkg -i geoipupdate_4.6.0_linux_amd64.deb 
 
-RUN echo "AccountID ${ACOUNT_ID}" > /etc/GeoIP.conf && \
+RUN echo "AccountID ${ACCOUNT_ID}" > /etc/GeoIP.conf && \
     echo "LicenseKey ${LICENSE_KEY}" >> /etc/GeoIP.conf && \
     echo "EditionIDs GeoIP2-City GeoIP2-Country GeoLite2-ASN GeoLite2-City GeoLite2-Country" >> /etc/GeoIP.conf && \
     echo "DatabaseDirectory /BUILD/db" >> /etc/GeoIP.conf && \

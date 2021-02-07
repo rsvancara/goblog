@@ -23,14 +23,19 @@ jobs:
     steps:
       - setup_remote_docker:
           version: 19.03.13
-          
-      - aws-ecr/build-and-push-image:
+
+      - aws-ecr/ecr-login:
           account-url: goblog_url
           aws-access-key-id: circleci_key
           aws-secret-access-key: circleci_secret
-          create-repo: true
-          dockerfile: Dockerfile
-          path: .
           region: circleci_region
-          repo: blog
+
+      # build and push Docker image
+      - run: |
+          TAG=0.1.$CIRCLE_BUILD_NUM
+          ACCOUNT_ID=${ACCOUNT_ID} LICENSE_KEY=${LICENSE_KEY} docker build -t rsvancara/goblog:$TAG .
+
+      - aws-ecr/ecr-login:
+          account-url: goblog_url
           tag: "$CIRCLE_SHA1"
+          repo: blog
