@@ -2,8 +2,8 @@
 FROM rsvancara/govips:0.1.16 as builder
 
 RUN mkdir -p /app && \
-    mkdir /BUILD && \
-    mkdir /BUILD/geoip
+    mkdir -p /BUILD && \
+    mkdir -p /BUILD/geoip
 
 # Build the goblog binary
 COPY cmd /BUILD/cmd
