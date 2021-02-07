@@ -16,8 +16,8 @@ RUN cd /BUILD && PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/opt/vips/lib/pkgconfig LD_LIB
 FROM  debian:stretch-slim as maxmindupdate
 
 #Shouldbe set in environment
-ENV ACCOUNT_ID "123"
-ENV LICENSE_KEY "xxx"
+ARG ACCOUNT_ID="123"
+ARG LICENSE_KEY="xxx"
 
 RUN echo $ACCOUNT_ID
 
