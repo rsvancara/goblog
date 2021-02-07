@@ -1,7 +1,7 @@
 #FROM debian:stretch-slim/ads as builder
 FROM rsvancara/govips:0.1.16 as builder
 
-RUN mkdir /app && \
+RUN mkdir -p /app && \
     mkdir /BUILD && \
     mkdir /BUILD/geoip
 
