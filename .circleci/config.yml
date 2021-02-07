@@ -31,7 +31,7 @@ jobs:
           aws-secret-access-key: circleci_secret
           create-repo: true
           dockerfile: Dockerfile
-          extra-build-args: --build-arg ACCOUNT_ID=${ACCOUNT_ID} --build-arg LICENSE_KEY=${LICENSE_KEY}
+          extra-build-args: "--build-arg ACCOUNT_ID=${ACCOUNT_ID} --build-arg LICENSE_KEY=${LICENSE_KEY}"
           path: .
           region: circleci_region
           repo: blog
