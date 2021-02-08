@@ -45,12 +45,14 @@ RUN echo "AccountID ${ACCOUNT_ID}" > /etc/GeoIP.conf && \
 # Productioncontainer
 FROM debian:stretch-slim
 
+# Install Packages
 RUN \
   apt-get update && \
   apt-get upgrade -y && \
   apt-get install -y libjpeg62 libexpat1 libglib2.0-0 libfftw3-3 liblcms2-2 libexif12 ca-certificates && \
   apt-get clean
 
+# Add user and set up temporary account
 RUN mkdir /app && \
     groupadd -g 1001 goblog && \
     useradd -r -u 1001 -g goblog goblog && \
@@ -58,6 +60,7 @@ RUN mkdir /app && \
     mkdir app/temp && \
     chmod 1777 app/temp 
 
+#Copy Stuff
 COPY --from=builder /opt/vips /opt/vips
 COPY --from=builder /BUILD/dabloog /app/dabloog
 COPY --from=maxmindupdate /BUILD/db /app/db
