@@ -13,27 +13,6 @@ workflows:
             - MaxMind
         
 jobs:
-  build-dockerhub:
-    docker:
-      - image: circleci/golang:1.15
-        auth:
-          username: $username
-          password: $password  # context / project UI env-var reference
-    steps:
-      - checkout
-      # ... steps for building/testing app ...
-
-      - setup_remote_docker:
-          version: 19.03.13
-
-      # build and push Docker image
-      - run: |
-          TAG=0.1.$CIRCLE_BUILD_NUM
-          docker build -t rsvancara/goblog:$TAG .
-          echo "HEY THIS IS A VALUE ${DOCKER_HUB_USER}"
-          echo $password | docker login --username $username --password-stdin
-          docker push rsvancara/goblog:$TAG
-
   build-ecr:
     docker:
       - image: cimg/python:3.8.7
