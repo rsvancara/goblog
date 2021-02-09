@@ -29,7 +29,7 @@ jobs:
       # build and push Docker image
       - run: |
           TAG=0.1.$CIRCLE_BUILD_NUM
-          docker build -t rsvancara/govips:$TAG .
+          docker build -t rsvancara/goblog:$TAG .
           echo "HEY THIS IS A VALUE ${DOCKER_HUB_USER}"
           echo $password | docker login --username $username --password-stdin
           docker push rsvancara/goblog:$TAG
