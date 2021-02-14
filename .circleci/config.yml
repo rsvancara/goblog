@@ -62,6 +62,6 @@ jobs:
       - run: |
           TAG=0.1.$CIRCLE_BUILD_NUM
           echo $artifactorypassword | docker login tryingadventure.jfrog.io --username $artifactoryusername --password-stdin
-          docker build -t tryingadventure.jfrog.io/dhub/goblog:$TAG .
+          docker build --build-arg ACCOUNT_ID=${ACCOUNT_ID} --build-arg LICENSE_KEY=${LICENSE_KEY} -t tryingadventure.jfrog.io/dhub/goblog:$TAG .
           docker push tryingadventure.jfrog.io/dhub/goblog:$TAG
 
