@@ -15,7 +15,7 @@ RUN cd /BUILD && PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/opt/vips/lib/pkgconfig LD_LIB
 # Maxmind
 FROM  debian:stretch-slim as maxmindupdate
 
-#Shouldbe set in environment
+#Should be set in environment
 ARG ACCOUNT_ID="123"
 ARG LICENSE_KEY="xxx"
 
