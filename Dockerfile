@@ -1,6 +1,9 @@
-#FROM debian:stretch-slim/ads as builder
-FROM rsvancara/govips:0.1.16 as builder
+FROM tryingadventure.jfrog.io/dhub/govips:0.1.63 as builder
 
+ENV GOPATH /go
+ENV PATH $GOPATH/bin:$PATH
+
+# Set up build directories
 RUN mkdir -p /app && \
     mkdir -p /BUILD && \
     mkdir -p /BUILD/db
@@ -10,7 +13,7 @@ COPY cmd /BUILD/cmd
 COPY go.sum  /BUILD.go.sum
 COPY go.mod /BUILD/go.mod
 COPY internal /BUILD/internal
-RUN cd /BUILD && PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/opt/vips/lib/pkgconfig LD_LIBRARY_PATH=/opt/vips/lib /usr/local/go/bin/go build -o /BUILD/dabloog cmd/goblog/main.go 
+RUN cd /BUILD && go build -o /BUILD/dabloog cmd/goblog/main.go 
 
 # Maxmind
 FROM  debian:stretch-slim as maxmindupdate
@@ -42,26 +45,19 @@ RUN echo "AccountID ${ACCOUNT_ID}" > /etc/GeoIP.conf && \
     echo "DatabaseDirectory /BUILD/db" >> /etc/GeoIP.conf && \
     /usr/bin/geoipupdate -v
 
-# Productioncontainer
-FROM debian:stretch-slim
-
-# Install Packages
-RUN \
-  apt-get update && \
-  apt-get upgrade -y && \
-  apt-get install -y libjpeg62 libexpat1 libglib2.0-0 libfftw3-3 liblcms2-2 libexif12 ca-certificates && \
-  apt-get clean
+# Production container
+FROM tryingadventure.jfrog.io/dhub/vips:0.1.1
 
 # Add user and set up temporary account
 RUN mkdir /app && \
-    groupadd -g 1001 goblog && \
-    useradd -r -u 1001 -g goblog goblog && \
-    chown -R goblog:goblog /app && \
     mkdir app/temp && \
+    addgroup app && \
+    addgroup goblog && \
+    adduser --home /app --system --no-create-home goblog goblog && \
+    chown -R goblog:goblog /app && \
     chmod 1777 app/temp 
 
 #Copy Stuff
-COPY --from=builder /opt/vips /opt/vips
 COPY --from=builder /BUILD/dabloog /app/dabloog
 COPY --from=maxmindupdate /BUILD/db /app/db
 COPY sites /app/sites
@@ -70,7 +66,5 @@ WORKDIR /app
 
 USER goblog
 EXPOSE 5000
-
-ENV LD_LIBRARY_PATH=/opt/vips/lib
     
 CMD ["./dabloog"]

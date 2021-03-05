@@ -8,6 +8,15 @@ workflows:
     jobs:
       - build-ecr:
           context:
+            - Artifactory
+            - AWS
+            - DockerHub
+            - MaxMind
+  ArtifactoryGoBlogWorkFlow:
+    jobs:
+      - build-artifactory:
+          context:
+            - Artifactory
             - AWS
             - DockerHub
             - MaxMind
@@ -24,6 +33,8 @@ jobs:
       - setup_remote_docker:
           version: 19.03.13
 
+      - run: |
+          echo $artifactorypassword | docker login tryingadventure.jfrog.io --username $artifactoryusername --password-stdin
       - aws-ecr/build-and-push-image:
           account-url: goblog_url
           aws-access-key-id: circleci_key
@@ -35,4 +46,22 @@ jobs:
           region: circleci_region
           repo: blog
           tag: "$CIRCLE_SHA1"
+
+  build-artifactory:
+    docker:
+      - image: circleci/golang:1.15
+        auth:
+          username: $username
+          password: $password  # context / project UI env-var reference
+    steps:
+      - checkout
+      # ... steps for building/testing app ...
+      - setup_remote_docker:
+          version: 19.03.13
+      # build and push Docker image
+      - run: |
+          TAG=0.1.$CIRCLE_BUILD_NUM
+          echo $artifactorypassword | docker login tryingadventure.jfrog.io --username $artifactoryusername --password-stdin
+          docker build --build-arg ACCOUNT_ID=${ACCOUNT_ID} --build-arg LICENSE_KEY=${LICENSE_KEY} -t tryingadventure.jfrog.io/dhub/goblog:$TAG .
+          docker push tryingadventure.jfrog.io/dhub/goblog:$TAG
 
