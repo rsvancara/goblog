@@ -11,6 +11,10 @@ body {
 	position: relative;
 }
 
+.navbar-brand {
+  margin-left: 10px;
+}
+
 h1, h2, h3, h4 {
 	text-transform: uppercase;
 }
@@ -114,7 +118,7 @@ div.blog-item-title-title > h2 > a {
 }
 
 #main {
-	/*max-width: 1240px;*/
+	max-width: 1240px;
 	padding-left: 30px;
 	padding-right: 30px;
 	margin-left: auto;
