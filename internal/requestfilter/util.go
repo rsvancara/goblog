@@ -72,7 +72,7 @@ func IsPrivateSubnet(ipAddress net.IP) bool {
 // https://husobee.github.io/golang/ip-address/2015/12/17/remote-ip-go.html
 func GetIPAddress(r *http.Request) (string, error) {
 	// Possibly values: "X-Original-Forwarded-For","X-Forwarded-For", "X-Real-Ip","X-Original-Forwarded-For"
-	for _, h := range []string{"X-Original-Forwarded-For", "X-Forwarded-For", "X-Real-Ip"} {
+	for _, h := range []string{"Cf-Connecting-Ip", "X-Original-Forwarded-For", "X-Forwarded-For", "X-Real-Ip"} {
 		addresses := strings.Split(r.Header.Get(h), ",")
 		// march from right to left until we get a public address
 		// that will be the address right before our proxy.
