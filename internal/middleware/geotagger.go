@@ -5,10 +5,11 @@ import (
 	"net/http"
 	"net/http/httputil"
 
-	"github.com/rs/zerolog/log"
 	"goblog/internal/models"
 	"goblog/internal/requestfilter"
 	"goblog/internal/util"
+
+	"github.com/rs/zerolog/log"
 
 	requestviewdao "goblog/internal/dao/requestview"
 )
@@ -31,7 +32,7 @@ func (mw *MiddleWareContext) GeoFilterMiddleware(next http.Handler) http.Handler
 
 		if ipaddress != "" && ipaddress != "[" {
 
-			err := geoIP.SearchCity(ipaddress)
+			err := geoIP.SearchCity(ipaddress, *mw.hConfig)
 			if err != nil {
 				log.Error().Err(err).Str("service", "geotagger").Msgf("Error IP Address not found in the CITY database for IP Address: %s in geotagger middleware", ipaddress)
 			}

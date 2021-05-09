@@ -22,6 +22,7 @@ type AppConfig struct {
 	MongoDatabase  string `envconfig:"MONGO_DATABASE"`  // Defines mongo database
 	RedisDB        string `envconfig:"REDIS_DB"`        // Defines logical redis database
 	RedisFilterDB  string `envconfig:"REDISFILTER_DB"`  // Defines logical redis filter database
+	GeoService     string `envconfig:"GEOSERVICE"`      // Defines the geoservice
 	MongoUser      string `envconfig:"MONGO_USER"`
 	MongoPassword  string `envconfig:"MONGO_PASSWORD"`
 	MongoHost      string `envconfig:"MONGO_HOST"`
@@ -66,6 +67,11 @@ func (a *AppConfig) GetSite() string {
 //GetSessionTimeout sets the session lifetime for redis and cookies
 func (a *AppConfig) GetSessionTimeout() string {
 	return a.SessionTimeout
+}
+
+//GetGeoService gets the geoservice
+func (a *AppConfig) GetGeoService() string {
+	return a.GeoService
 }
 
 //GetDurationTimeout sets the session lifetime for redis and cookies

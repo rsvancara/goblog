@@ -1,13 +1,19 @@
 package requestfilter
 
 import (
+	"encoding/json"
 	"fmt"
-	"log"
+	"io/ioutil"
 	"net"
+	"net/http"
 	"os"
 	"time"
 
 	"github.com/oschwald/geoip2-golang"
+
+	"goblog/internal/config"
+
+	"github.com/rs/zerolog/log"
 )
 
 // GeoIP Object
@@ -27,8 +33,29 @@ type GeoIP struct {
 	PageID         string
 }
 
+type GeoIPMessage struct {
+	message     string      `json:"message"`
+	isError     bool        `json:"is_error"`
+	geoLocation GeoLocation `json:"geo_location"`
+}
+
+type GeoLocation struct {
+	isFound        bool   `json:"is_found"`
+	isPrivate      bool   `json:"is_private"`
+	ipAddr         string `json:"ip_addr"`
+	city           string `json:"city"`
+	countryName    string `json:"country_name"`
+	countryISOCode string `json:"country_iso_code"`
+	timeZone       string `json:"time_zone"`
+	isProxy        bool   `json:"is_proxy"`
+	isEU           bool   `json:"is_eu"`
+	asn            int    `json:"ans"`
+	organization   string `json:"organization"`
+	network        string `json:"network"`
+}
+
 // Search get geoip information from ipaddress
-func (g *GeoIP) SearchCity(ipaddress string) error {
+func (g *GeoIP) SearchCity(ipaddress string, config config.AppConfig) error {
 
 	start := time.Now()
 
@@ -58,39 +85,72 @@ func (g *GeoIP) SearchCity(ipaddress string) error {
 		return fmt.Errorf("error converting string [ %s ] to IP Address", ipaddress)
 	}
 
-	if _, err := os.Stat("db/GeoIP2-City.mmdb"); os.IsNotExist(err) {
-		g.IsFound = false
-		return fmt.Errorf("error opening city geodatabase")
-	}
+	geoServiceURI := config.GeoService
 
-	db, err := geoip2.Open("db/GeoIP2-City.mmdb")
+	response, err := http.Get(geoServiceURI + ip.String())
+
 	if err != nil {
 		g.IsFound = false
-		return fmt.Errorf("error opening city geodatabase")
+		log.Error().Err(err).Str("service", "GeoService").Msgf("Error querying [%s]", geoServiceURI)
+		return fmt.Errorf("Error querying [%s] with error %s", geoServiceURI, err)
 	}
-	defer db.Close()
 
-	record, err := db.City(ip)
+	responseData, err := ioutil.ReadAll(response.Body)
 	if err != nil {
 		g.IsFound = false
-		return fmt.Errorf("error getting database record: %s", err)
+		log.Error().Err(err).Str("service", "GeoService").Msgf("Error getting response data from geoservice  for URI [%s]", geoServiceURI)
+		return fmt.Errorf("Error getting response data from geoservice for uri [%s] with error %s", geoServiceURI, err)
 	}
 
-	// Each language is represented in a map
-	g.City = record.City.Names["en"]
+	var geoipMessage GeoIPMessage
+	err = json.Unmarshal(responseData, &geoipMessage)
+	if err != nil {
+		g.IsFound = false
+		log.Error().Err(err).Str("service", "GeoService").Msgf("Error unmarshalling responsed data for URI [%s]", geoServiceURI)
+		return fmt.Errorf("Error unmarshalling responsed data for uri [%s] with error %s", geoServiceURI, err)
+	}
+
+	if geoipMessage.isError == false {
+		g.IsFound = false
+		log.Error().Err(fmt.Errorf(geoipMessage.message)).Str("service", "GeoService").Msg("The geocode service experienced an error")
+		return fmt.Errorf("The geocode service experienced an error %s", geoipMessage.message)
+	}
+
+	geoLoc := geoipMessage.geoLocation
+
+	//if _, err := os.Stat("db/GeoIP2-City.mmdb"); os.IsNotExist(err) {
+	//	g.IsFound = false
+	//	return fmt.Errorf("error opening city geodatabase")
+	//}
+
+	//db, err := geoip2.Open("db/GeoIP2-City.mmdb")
+	//if err != nil {
+	//	g.IsFound = false
+	//	return fmt.Errorf("error opening city geodatabase")
+	//}
+	//defer db.Close()
+
+	//record, err := db.City(ip)
+	//if err != nil {
+	//	g.IsFound = false
+	//	return fmt.Errorf("error getting database record: %s", err)
+	//}
 
 	// Each language is represented in a map
-	g.CountryName = record.Country.Names["en"]
+	g.City = geoLoc.city
 
-	g.CountryISOCode = record.Country.IsoCode
+	// Each language is represented in a map
+	g.CountryName = geoLoc.countryName
+
+	g.CountryISOCode = geoLoc.countryISOCode
 
 	g.IPAddress = ip
 
-	g.TimeZone = record.Location.TimeZone
+	g.TimeZone = geoLoc.timeZone
 
-	g.IsProxy = record.Traits.IsAnonymousProxy
+	g.IsProxy = geoLoc.isProxy
 
-	g.IsEU = record.Country.IsInEuropeanUnion
+	g.IsEU = geoLoc.isEU
 
 	elapsed := time.Since(start)
 	log.Printf("geoipa took %s \n", elapsed)

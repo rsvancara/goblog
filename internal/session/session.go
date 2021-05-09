@@ -389,7 +389,7 @@ func (s *Session) Session(r *http.Request, w http.ResponseWriter) error {
 			} else {
 				fmt.Printf("Could not find ctxkey geoip during session %s, performing manual lookup\n", s.SessionToken)
 				ipaddress, _ := requestfilter.GetIPAddress(r)
-				err := geoIP.SearchCity(ipaddress)
+				err := geoIP.SearchCity(ipaddress, cfg)
 				if err != nil {
 					fmt.Printf("Error IP Address not found in the city database for IP Address: %s with error %s\n", ipaddress, err)
 				}
