@@ -1,0 +1,53 @@
+ArgoCD stuck and you can not figure out how to clean up ArgoCD.  This usually happens because a 
+finalizer is still running.
+
+Warning:  This will remove ArgoCD and all state information
+
+Try Deleting the finalizer in the namespace for the object you are removing.  
+
+1.  kubectl get namespace default -o json > ns.json
+2.  kubectl replace --raw "/api/v1/namespaces/default/finalize" -f ./ns.json
+
+
+Try Removing ArgoCD
+
+kubectl delete -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/v2.0.1/manifests/install.yaml
+
+Upgrading ArgoCD
+
+create -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/v2.0.1/manifests/install.yaml
+
+Changing ArgoCD password
+
+
+DEFCON 5 - Remove the namespace.  May create orphaned objects!!!
+
+(
+NAMESPACE=argocd
+kubectl proxy &
+kubectl get namespace $NAMESPACE -o json |jq '.spec = {"finalizers":[]}' >temp.json
+curl -k -H "Content-Type: application/json" -X PUT --data-binary @temp.json 127.0.0.1:8001/api/v1/namespaces/$NAMESPACE/finalize
+)
+
+
+Look for CRDs - Used in troubleshooting, should have two CRDs
+
+kubectl get crd applications.argoproj.io appprojects.argoproj.io
+
+NAME                       CREATED AT
+applications.argoproj.io   2021-05-08T16:51:15Z
+appprojects.argoproj.io    2021-05-08T16:51:15Z
+
+
+Connecting to ArgoCD via kubectl portfoward
+
+kubectl port-forward svc/argocd-server -n argocd 8080:443
+
+
+Change argocd password to "admin"
+
+kubectl -n argocd patch secret argocd-secret \
+  -p '{"stringData": {
+    "admin.password": "$2a$10$HuFUNhrCErfZJsxLtL.uPu3FFvZzBLlXA1QFEGDcnNukGzxwjWACS",
+    "admin.passwordMtime": "'$(date +%FT%T%Z)'"
+  }}'
