@@ -15,7 +15,7 @@ kubectl delete -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/v
 
 Upgrading ArgoCD
 
-create -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/v2.0.1/manifests/install.yaml
+kubectl create -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/v2.0.1/manifests/install.yaml
 
 Changing ArgoCD password
 
