@@ -46,7 +46,7 @@ RUN echo "AccountID ${ACCOUNT_ID}" > /etc/GeoIP.conf && \
     /usr/bin/geoipupdate -v
 
 # Production container
-FROM tryingadventure.jfrog.io/dhub/vips:0.1.1
+FROM fun.jfrog.io/dhub/vips:0.1.1
 
 # Add user and set up temporary account
 RUN mkdir /app && \
