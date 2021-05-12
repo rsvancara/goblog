@@ -1,4 +1,4 @@
-FROM fun.jfrog.io/dhub/govips:0.1.70 as builder
+FROM artifact.tryingadventure.com/govips:0.1.2 as builder
 
 ENV GOPATH /go
 ENV PATH $GOPATH/bin:$PATH

@@ -24,7 +24,7 @@ jobs:
       # build and push Docker image
       - run: |
           TAG=0.1.$CIRCLE_BUILD_NUM
-          echo $artifactory_fun_pass | docker login fun.jfrog.io --username $artifactory_fun_user --password-stdin
-          docker build --build-arg ACCOUNT_ID=${ACCOUNT_ID} --build-arg LICENSE_KEY=${LICENSE_KEY} -t fun.jfrog.io/dhub/goblog:$TAG .
-          docker push fun.jfrog.io/dhub/goblog:$TAG
+          echo $registry_password | docker login artifact.tryingadventure.com --username $registry_user --password-stdin
+          docker build --build-arg ACCOUNT_ID=${ACCOUNT_ID} --build-arg LICENSE_KEY=${LICENSE_KEY} -t artifact.tryingadventure.com/goblog:$TAG .
+          docker push artifact.tryingadventure.com/goblog:$TAG
 

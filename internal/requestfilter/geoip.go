@@ -7,6 +7,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/oschwald/geoip2-golang"
@@ -34,24 +35,24 @@ type GeoIP struct {
 }
 
 type GeoIPMessage struct {
-	message     string      `json:"message"`
-	isError     bool        `json:"is_error"`
-	geoLocation GeoLocation `json:"geo_location"`
+	Message     string      `json:"message"`
+	IsError     bool        `json:"is_error"`
+	GeoLocation GeoLocation `json:"geo_location"`
 }
 
 type GeoLocation struct {
-	isFound        bool   `json:"is_found"`
-	isPrivate      bool   `json:"is_private"`
-	ipAddr         string `json:"ip_addr"`
-	city           string `json:"city"`
-	countryName    string `json:"country_name"`
-	countryISOCode string `json:"country_iso_code"`
-	timeZone       string `json:"time_zone"`
-	isProxy        bool   `json:"is_proxy"`
-	isEU           bool   `json:"is_eu"`
-	asn            int    `json:"ans"`
-	organization   string `json:"organization"`
-	network        string `json:"network"`
+	IsFound        bool   `json:"is_found"`
+	IsPrivate      bool   `json:"is_private"`
+	IpAddr         string `json:"ip_addr"`
+	City           string `json:"city"`
+	CountryName    string `json:"country_name"`
+	CountryISOCode string `json:"country_iso_code"`
+	TimeZone       string `json:"time_zone"`
+	IsProxy        bool   `json:"is_proxy"`
+	IsEU           bool   `json:"is_eu"`
+	ASN            int    `json:"ans"`
+	Organization   string `json:"organization"`
+	Network        string `json:"network"`
 }
 
 // Search get geoip information from ipaddress
@@ -85,9 +86,9 @@ func (g *GeoIP) SearchCity(ipaddress string, config config.AppConfig) error {
 		return fmt.Errorf("error converting string [ %s ] to IP Address", ipaddress)
 	}
 
-	geoServiceURI := config.GeoService
+	geoServiceURI := fmt.Sprintf("%s%s", strings.TrimSuffix(config.GeoService, "\n"), ip.String())
 
-	response, err := http.Get(geoServiceURI + ip.String())
+	response, err := http.Get(geoServiceURI)
 
 	if err != nil {
 		g.IsFound = false
@@ -110,13 +111,13 @@ func (g *GeoIP) SearchCity(ipaddress string, config config.AppConfig) error {
 		return fmt.Errorf("Error unmarshalling responsed data for uri [%s] with error %s", geoServiceURI, err)
 	}
 
-	if geoipMessage.isError == false {
+	if geoipMessage.IsError == false {
 		g.IsFound = false
-		log.Error().Err(fmt.Errorf(geoipMessage.message)).Str("service", "GeoService").Msg("The geocode service experienced an error")
-		return fmt.Errorf("The geocode service experienced an error %s", geoipMessage.message)
+		log.Error().Err(fmt.Errorf(geoipMessage.Message)).Str("service", "GeoService").Msg("The geocode service experienced an error")
+		return fmt.Errorf("The geocode service experienced an error %s", geoipMessage.Message)
 	}
 
-	geoLoc := geoipMessage.geoLocation
+	geoLoc := geoipMessage.GeoLocation
 
 	//if _, err := os.Stat("db/GeoIP2-City.mmdb"); os.IsNotExist(err) {
 	//	g.IsFound = false
@@ -137,20 +138,20 @@ func (g *GeoIP) SearchCity(ipaddress string, config config.AppConfig) error {
 	//}
 
 	// Each language is represented in a map
-	g.City = geoLoc.city
+	g.City = geoLoc.City
 
 	// Each language is represented in a map
-	g.CountryName = geoLoc.countryName
+	g.CountryName = geoLoc.CountryName
 
-	g.CountryISOCode = geoLoc.countryISOCode
+	g.CountryISOCode = geoLoc.CountryISOCode
 
 	g.IPAddress = ip
 
-	g.TimeZone = geoLoc.timeZone
+	g.TimeZone = geoLoc.TimeZone
 
-	g.IsProxy = geoLoc.isProxy
+	g.IsProxy = geoLoc.IsProxy
 
-	g.IsEU = geoLoc.isEU
+	g.IsEU = geoLoc.IsEU
 
 	elapsed := time.Since(start)
 	log.Printf("geoipa took %s \n", elapsed)
