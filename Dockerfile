@@ -31,7 +31,6 @@ RUN mkdir /app && \
 
 #Copy Stuff
 COPY --from=builder /BUILD/dabloog /app/dabloog
-COPY --from=maxmindupdate /BUILD/db /app/db
 COPY sites /app/sites
 
 WORKDIR /app
