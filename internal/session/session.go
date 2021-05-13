@@ -12,6 +12,7 @@ import (
 	"goblog/internal/requestfilter"
 
 	"github.com/gomodule/redigo/redis"
+	"github.com/rs/zerolog/log"
 	uuid "github.com/satori/go.uuid"
 )
 
@@ -389,20 +390,15 @@ func (s *Session) Session(r *http.Request, w http.ResponseWriter) error {
 			} else {
 				fmt.Printf("Could not find ctxkey geoip during session %s, performing manual lookup\n", s.SessionToken)
 				ipaddress, _ := requestfilter.GetIPAddress(r)
-				err := geoIP.SearchCity(ipaddress, cfg)
+				err := geoIP.GeoIPSearch(ipaddress, cfg)
 				if err != nil {
-					fmt.Printf("Error IP Address not found in the city database for IP Address: %s with error %s\n", ipaddress, err)
+					log.Error().Err(err).Msgf("GeoIP Address search error: %s", ipaddress)
+
 				}
 				user.City = geoIP.City
 				user.TimeZone = geoIP.TimeZone
 				user.Country = geoIP.CountryName
 				user.IPAddress = geoIP.IPAddress.String()
-
-				err = geoIP.SearchASN(ipaddress)
-				if err != nil {
-					fmt.Printf("Error IP Address not found in the ASN database for IP Address: %s with error %s\n", ipaddress, err)
-				}
-
 				user.Organization = geoIP.Organization
 				user.ASN = geoIP.ASN
 

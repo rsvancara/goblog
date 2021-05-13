@@ -32,14 +32,9 @@ func (mw *MiddleWareContext) GeoFilterMiddleware(next http.Handler) http.Handler
 
 		if ipaddress != "" && ipaddress != "[" {
 
-			err := geoIP.SearchCity(ipaddress, *mw.hConfig)
+			err := geoIP.GeoIPSearch(ipaddress, *mw.hConfig)
 			if err != nil {
-				log.Error().Err(err).Str("service", "geotagger").Msgf("Error IP Address not found in the CITY database for IP Address: %s in geotagger middleware", ipaddress)
-			}
-
-			err = geoIP.SearchASN(ipaddress)
-			if err != nil {
-				log.Error().Err(err).Str("service", "geotagger").Msgf("Error IP Address not found in the ASN database for IP Address: %s in geotagger middleware", ipaddress)
+				log.Error().Err(err).Str("service", "geotagger").Msgf("Error for looking up GeoIP Address: %s in geotagger middleware", ipaddress)
 			}
 
 			if requestfilter.IsPrivateSubnet(geoIP.IPAddress) {
