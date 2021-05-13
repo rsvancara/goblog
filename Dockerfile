@@ -1,6 +1,6 @@
-FROM artifact.tryingadventure.com/govips:0.1.3 as builder
+FROM artifact.tryingadventure.com/govips:0.1.5 as builder
 
-ENV GOPATH /go
+ENV GOPATH /usr/local/go
 ENV PATH $GOPATH/bin:$PATH
 
 # Set up build directories
