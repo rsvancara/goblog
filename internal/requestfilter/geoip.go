@@ -86,6 +86,8 @@ func (g *GeoIP) SearchCity(ipaddress string, config config.AppConfig) error {
 		return fmt.Errorf("error converting string [ %s ] to IP Address", ipaddress)
 	}
 
+	log.Info().Msgf("Searching for IP %s", ip.String())
+
 	geoServiceURI := fmt.Sprintf("%s%s", strings.TrimSuffix(config.GeoService, "\n"), ip.String())
 
 	response, err := http.Get(geoServiceURI)
@@ -111,7 +113,9 @@ func (g *GeoIP) SearchCity(ipaddress string, config config.AppConfig) error {
 		return fmt.Errorf("Error unmarshalling responsed data for uri [%s] with error %s", geoServiceURI, err)
 	}
 
-	if geoipMessage.IsError == false {
+	fmt.Println(geoipMessage)
+
+	if geoipMessage.IsError == true {
 		g.IsFound = false
 		log.Error().Err(fmt.Errorf(geoipMessage.Message)).Str("service", "GeoService").Msg("The geocode service experienced an error")
 		return fmt.Errorf("The geocode service experienced an error %s", geoipMessage.Message)

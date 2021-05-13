@@ -9,8 +9,6 @@ import (
 	"goblog/internal/session"
 
 	"github.com/disintegration/imaging"
-
-	"github.com/h2non/bimg"
 )
 
 // CtxKey Context Key
@@ -28,28 +26,28 @@ func SiteTemplate(path string) (string, error) {
 }
 
 //GetViewerBImage get the image
-func GetViewerBImage(srcFilePath string, dstFilePath string) error {
+// func GetViewerBImage(srcFilePath string, dstFilePath string) error {
 
-	buffer, err := bimg.Read(srcFilePath)
-	if err != nil {
-		fmt.Println(err)
-	}
+// 	buffer, err := bimg.Read(srcFilePath)
+// 	if err != nil {
+// 		fmt.Println(err)
+// 	}
 
-	newImage, err := bimg.NewImage(buffer).Resize(1440, 0)
-	if err != nil {
-		fmt.Println(err)
-	}
+// 	newImage, err := bimg.NewImage(buffer).Resize(1440, 0)
+// 	if err != nil {
+// 		fmt.Println(err)
+// 	}
 
-	//size, err := bimg.NewImage(newImage).Size()
-	//if size.Width == 1400 && size.Height == 1080 {
-	//	fmt.Println("The image size is valid")
-	//}
+// 	//size, err := bimg.NewImage(newImage).Size()
+// 	//if size.Width == 1400 && size.Height == 1080 {
+// 	//	fmt.Println("The image size is valid")
+// 	//}
 
-	bimg.Write(dstFilePath, newImage)
+// 	bimg.Write(dstFilePath, newImage)
 
-	return nil
+// 	return nil
 
-}
+// }
 
 // GetVeryLargeImage 4K image
 func GetVeryLargeImage(srcFilePath string, dstFilePath string) error {
@@ -82,11 +80,8 @@ func GetViewerImage(srcFilePath string, dstFilePath string) error {
 		return err
 	}
 
-	// Resize the cropped image to width = 200px preserving the aspect ratio.
+	// Resize the cropped image to width = 1440px preserving the aspect ratio.
 	src = imaging.Resize(src, 1440, 0, imaging.Lanczos)
-
-	// Crop the original image to 300x300px size using the center anchor.
-	//src = imaging.CropAnchor(src, 300, 300, imaging.Center)
 
 	// Save the resulting image as JPEG.
 	err = imaging.Save(src, dstFilePath)

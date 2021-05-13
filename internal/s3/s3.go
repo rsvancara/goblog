@@ -10,15 +10,16 @@ import (
 	"os"
 	"time"
 
+	"goblog/internal/config"
+	mediadao "goblog/internal/dao/media"
+	"goblog/internal/models"
+	"goblog/internal/util"
+
 	"github.com/aws/aws-sdk-go/aws"
 	awsSession "github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/rs/zerolog/log"
 	"go.mongodb.org/mongo-driver/mongo"
-	"goblog/internal/config"
-	mediadao "goblog/internal/dao/media"
-	"goblog/internal/models"
-	"goblog/internal/util"
 )
 
 // DeleteS3Object Deletes and object from s3
@@ -150,7 +151,7 @@ func AddFileToS3(filepath string, media *models.MediaModel, mongoclient *mongo.C
 	mfLargeView.destination = media.S3LargeView
 
 	log.Info().Msgf("Generating largeview image %s", mfLargeView.path)
-	err = util.GetViewerBImage(filepath, mfLargeView.path)
+	err = util.GetViewerImage(filepath, mfLargeView.path)
 	if err != nil {
 		log.Error().Err(err).Msgf("Error creating %s for path %s\n", mfLargeView.imagetype, mfLargeView.path)
 	}
