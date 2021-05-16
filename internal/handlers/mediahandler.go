@@ -11,9 +11,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/flosch/pongo2"
-	"github.com/gorilla/mux"
-	"github.com/rs/zerolog/log"
 	mediadao "goblog/internal/dao/media"
 	mediatags "goblog/internal/dao/mediatags"
 	_ "goblog/internal/filters" //import pongo  plugins
@@ -22,6 +19,10 @@ import (
 	simplestorageservice "goblog/internal/s3"
 	"goblog/internal/session"
 	"goblog/internal/util"
+
+	"github.com/flosch/pongo2"
+	"github.com/gorilla/mux"
+	"github.com/rs/zerolog/log"
 )
 
 // MediaHandler HTTP Handler for View full list of media sorted by date in admin view
@@ -162,8 +163,9 @@ func (ctx *HTTPHandlerContext) PutMediaAPI(w http.ResponseWriter, r *http.Reques
 	if err != nil {
 		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json")
-		log.Printf("Error opeinging file with error  %s", err)
-		fmt.Fprintf(w, errorMessage, err, "opening file")
+		log.Error().Err(err).Msg("Error opening file from form post")
+
+		fmt.Fprintf(w, errorMessage, err, "Could not find uploaded form file in the post reqest")
 		return
 	}
 
@@ -174,7 +176,9 @@ func (ctx *HTTPHandlerContext) PutMediaAPI(w http.ResponseWriter, r *http.Reques
 	if err != nil {
 		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json")
-		fmt.Fprintf(w, errorMessage, err, "error storing file")
+		log.Error().Err(err).Msg("Error copying file from post to temporary file")
+
+		fmt.Fprintf(w, errorMessage, err, "Error copying file from post to temporary file")
 		return
 	}
 
@@ -185,7 +189,10 @@ func (ctx *HTTPHandlerContext) PutMediaAPI(w http.ResponseWriter, r *http.Reques
 	if err != nil {
 		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json")
-		fmt.Fprintf(w, errorMessage, err, "copying file to destination path")
+
+		log.Error().Err(err).Msg("Error copying temporary file to destination path")
+
+		fmt.Fprintf(w, errorMessage, err, "Error copying temporary file to destination path")
 		return
 	}
 
@@ -193,7 +200,10 @@ func (ctx *HTTPHandlerContext) PutMediaAPI(w http.ResponseWriter, r *http.Reques
 	if err != nil {
 		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json")
-		fmt.Fprintf(w, errorMessage, err, "opening file")
+
+		log.Error().Err(err).Msgf("Error opening file for extracting exif information %s", handler.Filename)
+
+		fmt.Fprintf(w, errorMessage, err, "Error opening file for extracting exif information")
 		return
 	}
 	defer rf.Close()
@@ -203,7 +213,10 @@ func (ctx *HTTPHandlerContext) PutMediaAPI(w http.ResponseWriter, r *http.Reques
 	if err != nil {
 		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json")
-		fmt.Fprintf(w, errorMessage, err, "extracting exif")
+
+		log.Error().Err(err).Msgf("Error opening file for extracting exif information %s", handler.Filename)
+
+		fmt.Fprintf(w, errorMessage, err, "Error extracting exif information")
 		return
 	}
 
@@ -211,6 +224,9 @@ func (ctx *HTTPHandlerContext) PutMediaAPI(w http.ResponseWriter, r *http.Reques
 	if _, err := io.Copy(h, rf); err != nil {
 		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json")
+
+		log.Error().Err(err).Msgf("Error create sha256 for file %s", handler.Filename)
+
 		fmt.Fprintf(w, errorMessage, err, "creating sha265")
 		return
 	}
@@ -570,8 +586,6 @@ func (ctx *HTTPHandlerContext) EditMediaAPIHandler(w http.ResponseWriter, r *htt
 // MediaDeleteHandler Delete media from the database and s3
 func (ctx *HTTPHandlerContext) MediaDeleteHandler(w http.ResponseWriter, r *http.Request) {
 
-	//sess := util.GetSession(r)
-
 	// HTTP URL Parameters
 	vars := mux.Vars(r)
 	if val, ok := vars["id"]; ok {
@@ -591,7 +605,7 @@ func (ctx *HTTPHandlerContext) MediaDeleteHandler(w http.ResponseWriter, r *http
 
 	media, err := mediaDAO.GetMedia(vars["id"])
 	if err != nil {
-		fmt.Println(err)
+		log.Error().Err(err).Str("service", "mediadao").Msgf("Error getting media from database for id %s", vars["id"])
 		return
 	}
 
@@ -608,7 +622,7 @@ func (ctx *HTTPHandlerContext) MediaDeleteHandler(w http.ResponseWriter, r *http
 		fmt.Println(err)
 	}
 
-	http.Redirect(w, r, "/admin/media", http.StatusSeeOther)
+	http.Redirect(w, r, "/admin/medialist", http.StatusSeeOther)
 }
 
 // PhotoViewHandler View File
