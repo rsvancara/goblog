@@ -171,12 +171,14 @@ func AddFileToS3(filepath string, media *models.MediaModel, mongoclient *mongo.C
 	mfOriginal.imagetype = "original"
 	mfOriginal.path = fmt.Sprintf("temp/original-%s.jpeg", randString)
 	mfOriginal.destination = media.S3Location
+
 	log.Info().Msgf("Copying original to temporary file %s", mfOriginal.path)
 
 	size, err := copy(filepath, mfOriginal.path)
 	if err != nil {
 		log.Error().Err(err).Msgf("Error copying %s for path %s\n", mfOriginal.imagetype, mfOriginal.path)
 	}
+
 	log.Info().Msgf("Copied %d bytes for original file %s", size, mfOriginal.path)
 
 	var mediaFiles = [4]mediaFile{mfThumb, mfLargeView, mfVeryLargeView, mfOriginal}
@@ -225,7 +227,7 @@ func AddFileToS3(filepath string, media *models.MediaModel, mongoclient *mongo.C
 		end := time.Now()
 
 		elapsed := end.Sub(start)
-		log.Info().Msgf("Uploaded %s to s3 in %f seconds", mf.imagetype, elapsed.Seconds())
+		log.Info().Msgf("Uploaded file to s3 location %s with type %s to s3 in %f seconds", mf.destination, mf.imagetype, elapsed.Seconds())
 
 	}
 

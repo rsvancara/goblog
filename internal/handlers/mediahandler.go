@@ -149,7 +149,8 @@ func (ctx *HTTPHandlerContext) PutMediaAPI(w http.ResponseWriter, r *http.Reques
 		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json")
 		fmt.Fprintf(w, errorMessage, err, "parsing multipart form")
-		log.Printf("Error parsing multipart form %s", err)
+		log.Error().Err(err).Msgf("Error parsing multipart form")
+		//log.Printf("Error parsing multipart form %s", err)
 		return
 	}
 
