@@ -13,6 +13,7 @@ require (
 	github.com/gorilla/mux v1.8.0
 	github.com/gosimple/slug v1.9.0
 	github.com/h2non/bimg v1.1.5 // indirect
+	github.com/jdeng/goheif v0.0.0-20200323230657-a0d6a8b3e68f // indirect
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/oschwald/geoip2-golang v1.4.0 // indirect
 	github.com/prometheus/client_golang v1.9.0
@@ -20,6 +21,6 @@ require (
 	github.com/satori/go.uuid v1.2.0
 	github.com/segmentio/ksuid v1.0.3
 	github.com/yuin/goldmark v1.3.1
-	go.mongodb.org/mongo-driver v1.4.6
+	go.mongodb.org/mongo-driver v1.7.0
 	gopkg.in/mgo.v2 v2.0.0-20190816093944-a6b53ec6cb22
 )
