@@ -1,14 +1,17 @@
 package util
 
 import (
+	"bytes"
 	"fmt"
+	"io"
+	"mime/multipart"
 	"net/http"
+	"os"
+	"path/filepath"
 
 	"goblog/internal/config"
 	"goblog/internal/requestfilter"
 	"goblog/internal/session"
-
-	"github.com/disintegration/imaging"
 )
 
 // CtxKey Context Key
@@ -25,94 +28,33 @@ func SiteTemplate(path string) (string, error) {
 
 }
 
-//GetViewerBImage get the image
-// func GetViewerBImage(srcFilePath string, dstFilePath string) error {
-
-// 	buffer, err := bimg.Read(srcFilePath)
-// 	if err != nil {
-// 		fmt.Println(err)
-// 	}
-
-// 	newImage, err := bimg.NewImage(buffer).Resize(1440, 0)
-// 	if err != nil {
-// 		fmt.Println(err)
-// 	}
-
-// 	//size, err := bimg.NewImage(newImage).Size()
-// 	//if size.Width == 1400 && size.Height == 1080 {
-// 	//	fmt.Println("The image size is valid")
-// 	//}
-
-// 	bimg.Write(dstFilePath, newImage)
-
-// 	return nil
-
-// }
-
-// GetVeryLargeImage 4K image
-func GetVeryLargeImage(srcFilePath string, dstFilePath string) error {
-	// Open a test image.
-	src, err := imaging.Open(srcFilePath)
+// Creates a new file upload http request with optional extra params
+func ImageUploadRequest(uri string, params map[string]string, paramName, path string) (*http.Request, error) {
+	file, err := os.Open(path)
 	if err != nil {
-		return err
+		return nil, err
+	}
+	defer file.Close()
+
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+	part, err := writer.CreateFormFile(paramName, filepath.Base(path))
+	if err != nil {
+		return nil, err
+	}
+	_, err = io.Copy(part, file)
+
+	for key, val := range params {
+		_ = writer.WriteField(key, val)
+	}
+	err = writer.Close()
+	if err != nil {
+		return nil, err
 	}
 
-	// Resize the cropped image to width = 200px preserving the aspect ratio.
-	src = imaging.Resize(src, 3840, 0, imaging.Lanczos)
-
-	// Crop the original image to 300x300px size using the center anchor.
-	//src = imaging.CropAnchor(src, 300, 300, imaging.Center)
-
-	// Save the resulting image as JPEG.
-	err = imaging.Save(src, dstFilePath)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// GetViewerImage 1080P image
-func GetViewerImage(srcFilePath string, dstFilePath string) error {
-	// Open a test image.
-	src, err := imaging.Open(srcFilePath)
-	if err != nil {
-		return err
-	}
-
-	// Resize the cropped image to width = 1440px preserving the aspect ratio.
-	src = imaging.Resize(src, 1440, 0, imaging.Lanczos)
-
-	// Save the resulting image as JPEG.
-	err = imaging.Save(src, dstFilePath)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// GetThumbnail Thumbnail generator
-func GetThumbnail(srcFilePath string, dstFilePath string) error {
-	// Open a test image.
-	src, err := imaging.Open(srcFilePath)
-	if err != nil {
-		return err
-	}
-
-	// Resize the cropped image to width = 200px preserving the aspect ratio.
-	src = imaging.Resize(src, 300, 0, imaging.Lanczos)
-
-	// Crop the original image to 300x300px size using the center anchor.
-	src = imaging.CropAnchor(src, 300, 300, imaging.Center)
-
-	// Save the resulting image as JPEG.
-	err = imaging.Save(src, dstFilePath)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	req, err := http.NewRequest("POST", uri, body)
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+	return req, err
 }
 
 //GeoIPContext get the geoip object

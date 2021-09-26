@@ -27,6 +27,12 @@ type AppConfig struct {
 	MongoPassword  string `envconfig:"MONGO_PASSWORD"`
 	MongoHost      string `envconfig:"MONGO_HOST"`
 	MongoPort      string `envconfig:"MONGO_PORT"`
+	ImageService   string `envconfig:"IMAGESERVICE"` // Image service
+}
+
+// Get image service URI
+func (a *AppConfig) GetImageServiceURI() string {
+	return a.ImageService
 }
 
 //GetCacheURI returs cache uri for redis

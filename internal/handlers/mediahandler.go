@@ -1,11 +1,10 @@
 package handlers
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
+	"math/rand"
 	"net/http"
 	"net/url"
 	"os"
@@ -136,12 +135,19 @@ func (ctx *HTTPHandlerContext) MediaAddHandler(w http.ResponseWriter, r *http.Re
 }
 
 //PutMediaAPI Supports multi file upload in an API used in admin interface
-func (ctx *HTTPHandlerContext) PutMediaAPI(w http.ResponseWriter, r *http.Request) {
-
+func (ctx *HTTPHandlerContext) PutMediaAPIV2(w http.ResponseWriter, r *http.Request) {
 	errorMessage := "{\"status\":\"error\", \"message\": \"error: %s in %s\",\"file\":\"error\"}\n"
 
 	vars := mux.Vars(r)
-	var media models.MediaModel
+
+	data := make(map[string]string)
+
+	data["keywords"] = r.FormValue("keywords")
+	data["description"] = r.FormValue("description")
+	data["title"] = r.FormValue("title")
+	data["category"] = r.FormValue("category")
+	data["location"] = r.FormValue("location")
+	data["sitekey"] = "tryingadventure"
 
 	//err = r.ParseForm()
 	err := r.ParseMultipartForm(128 << 20)
@@ -154,11 +160,7 @@ func (ctx *HTTPHandlerContext) PutMediaAPI(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	keywords := r.FormValue("keywords")
-	description := r.FormValue("description")
-	title := r.FormValue("title")
-	category := r.FormValue("category")
-	location := r.FormValue("location")
+	// Copy file information from the form
 
 	file, handler, err := r.FormFile("file") // Retrieve the file from form data
 	if err != nil {
@@ -172,20 +174,41 @@ func (ctx *HTTPHandlerContext) PutMediaAPI(w http.ResponseWriter, r *http.Reques
 
 	defer file.Close() // Close the file when we finish
 
-	// This is path which we want to store the file
-	f, err := os.OpenFile("temp/"+handler.Filename, os.O_WRONLY|os.O_CREATE, 0666)
+	// Create the path to store the temporary file
+	letterBytes := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	n := 12
+	b := make([]byte, n)
+	for i := range b {
+		b[i] = letterBytes[rand.Intn(len(letterBytes))]
+	}
+
+	tpath := fmt.Sprintf("temp/%s", string(b))
+
+	_, err = os.Stat(tpath)
+
+	if os.IsNotExist(err) {
+		errDir := os.MkdirAll(tpath, 0755)
+		if errDir != nil {
+			log.Error().Err(err).Msg("Error creating temporary directory")
+			w.WriteHeader(http.StatusOK)
+			w.Header().Set("Content-Type", "application/json")
+			fmt.Fprintf(w, errorMessage, "Error creating directory", "")
+		}
+	}
+
+	// Create the file handle for storing the file
+	f, err := os.OpenFile(tpath+"/"+handler.Filename, os.O_WRONLY|os.O_CREATE, 0666)
 	if err != nil {
 		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json")
 		log.Error().Err(err).Msg("Error copying file from post to temporary file")
-
 		fmt.Fprintf(w, errorMessage, err, "Error copying file from post to temporary file")
 		return
 	}
 
 	defer f.Close()
 
-	// Copy the file to the destination path
+	// Finally copy form file to the filehandle
 	_, err = io.Copy(f, file)
 	if err != nil {
 		w.WriteHeader(http.StatusOK)
@@ -197,90 +220,63 @@ func (ctx *HTTPHandlerContext) PutMediaAPI(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	rf, err := os.OpenFile("temp/"+handler.Filename, os.O_RDONLY, 0666)
+	cfg := ctx.hConfig
+
+	log.Info().Msgf("Uploading image %s to image processing service at %s/api/meida/add/v1", handler.Filename, cfg.ImageService)
+
+	req, err := util.ImageUploadRequest(cfg.GetImageServiceURI()+"/api/media/add/v1", data, "file", tpath+"/"+handler.Filename)
 	if err != nil {
 		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json")
-
-		log.Error().Err(err).Msgf("Error opening file for extracting exif information %s", handler.Filename)
-
-		fmt.Fprintf(w, errorMessage, err, "Error opening file for extracting exif information")
+		log.Error().Err(err).Msg("Error creating request")
+		fmt.Fprintf(w, errorMessage, err, "Error creating request")
 		return
 	}
-	defer rf.Close()
 
-	// Get exif
-	err = media.ExifExtractor(rf)
+	client := &http.Client{}
+	resp, err := client.Do(req)
 	if err != nil {
 		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json")
-
-		log.Error().Err(err).Msgf("Error opening file for extracting exif information %s", handler.Filename)
-
-		fmt.Fprintf(w, errorMessage, err, "Error extracting exif information")
+		log.Error().Err(err).Msg("Error uploading file and parameters")
+		fmt.Fprintf(w, errorMessage, err, "Error uploading file and parameters")
 		return
 	}
 
-	h := sha256.New()
-	if _, err := io.Copy(h, rf); err != nil {
+	log.Info().Msgf("Uploading image %s to image processing service at %s/api/media/add/v1 with status code %d", handler.Filename, cfg.ImageService, resp.StatusCode)
+
+	if resp.StatusCode < 200 || resp.StatusCode > 299 {
 		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json")
-
-		log.Error().Err(err).Msgf("Error create sha256 for file %s", handler.Filename)
-
-		fmt.Fprintf(w, errorMessage, err, "creating sha265")
-		return
-	}
-	sha256 := hex.EncodeToString(h.Sum(nil))
-
-	media.Keywords = keywords
-	media.Checksum = string(sha256)
-	media.Description = description
-	media.Category = category
-	media.FileName = handler.Filename
-	media.Title = title
-	media.Location = location
-	media.S3Uploaded = "false"
-
-	var mediaDAO mediadao.MediaDAO
-
-	err = mediaDAO.Initialize(ctx.dbClient, ctx.hConfig)
-	if err != nil {
-		log.Error().Err(err).Str("service", "mediadao").Msg("Error initialzing media data access object ")
+		log.Error().Err(err).Msgf("Bad status code returned: %d", resp.StatusCode)
+		fmt.Fprintf(w, errorMessage, fmt.Sprintf("Bad status code returned: %d", resp.StatusCode), "")
 	}
 
-	err = mediaDAO.InsertMedia(&media)
+	// Remove the file when done
+	err = os.Remove(tpath + "/" + handler.Filename)
 	if err != nil {
-		log.Error().Err(err).Str("service", "mediadao").Msg("Error retrieving data from access object ")
 		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json")
-		fmt.Fprintf(w, errorMessage, err, "Inserting media into database")
+		log.Error().Err(err).Msg("Error removing temporary file")
+		fmt.Fprintf(w, errorMessage, err, "Error removing temporary directory")
 		return
 	}
 
-	var mediatagsDAO mediatags.MediaTagsDAO
-
-	err = mediatagsDAO.Initialize(ctx.dbClient, ctx.hConfig)
+	// Remove the directory too
+	err = os.Remove(tpath)
 	if err != nil {
-		log.Error().Err(err).Str("service", "mediadao").Msg("Error initialzing media data access object ")
+		w.WriteHeader(http.StatusOK)
+		w.Header().Set("Content-Type", "application/json")
+		log.Error().Err(err).Msg("Error removing temporary image directory")
+		fmt.Fprintf(w, errorMessage, err, "Error removing temporary image directory")
+		return
 	}
-
-	// Update Tags
-	err = mediatagsDAO.AddTagsSearchIndex(media)
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	// Get s3 key
-	simplestorageservice.S3KeyGenerator(&media)
-
-	// Launch in a go routine so it is non blocking
-	go simplestorageservice.AddFileToS3("temp/"+handler.Filename, &media, ctx.dbClient, ctx.hConfig)
 
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
 	fmt.Fprintf(w, "{\"status\":\"success\", \"message\": \"file %s uploaded\",\"file\":\"%s\"}\n", vars["id"], handler.Filename)
 	return
+
 }
 
 //MediaUpdateTitleHandler update the media title API

@@ -144,7 +144,7 @@ func GetRoutes(hctx *bloghandlers.HTTPHandlerContext, mwctx *mw.MiddleWareContex
 			os.Stdout,
 			mwctx.SessionMiddleware(
 				mwctx.GeoFilterMiddleware(
-					mwctx.AuthHandlerMiddleware(http.HandlerFunc(hctx.PutMediaAPI))))))
+					mwctx.AuthHandlerMiddleware(http.HandlerFunc(hctx.PutMediaAPIV2))))))
 
 	// Media Interface
 	r.Handle(
