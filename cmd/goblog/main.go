@@ -51,6 +51,15 @@ func main() {
 		zerolog.SetGlobalLevel(zerolog.DebugLevel)
 	}
 
+	log.Info().Msg("Initialized Runtime Parameters")
+	log.Info().Msgf("SITE:%s", cfg.GetSite())
+	log.Info().Msgf("GEOSERVICE:%s", cfg.GetGeoService())
+	log.Info().Msgf("IMAGESERVICE:%s", cfg.GetImageServiceURI())
+	log.Info().Msgf("CACHE_URI:%s", cfg.GetCacheURI())
+	log.Info().Msgf("DB_URI:%s", cfg.Dburi)
+	log.Info().Msgf("ADMIN_USER:%s", cfg.GetAdminUser())
+	log.Info().Msgf("S3_BUCKET:%s", cfg.GetS3Bucket())
+
 	log.Info().Str("service", "main").Msgf("Loading mongo client")
 	dbclient, err := db.GetMongoClient(&cfg)
 	if err != nil {

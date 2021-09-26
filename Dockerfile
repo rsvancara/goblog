@@ -1,4 +1,4 @@
-FROM 1.15.12-alpine3.12 as builder
+FROM  golang:1.16.7-alpine3.14 as builder
 
 #ENV GOPATH /usr/local/go
 #ENV PATH $GOPATH/bin:$PATH
@@ -10,15 +10,16 @@ RUN mkdir -p /app && \
 
 # Build the goblog binary
 COPY cmd /BUILD/cmd
-COPY go.sum  /BUILD.go.sum
+COPY go.sum  /BUILD/go.sum
 COPY go.mod /BUILD/go.mod
 COPY internal /BUILD/internal
+RUN cd /BUILD && go mod vendor && go mod download
 RUN cd /BUILD && go build -o /BUILD/dabloog cmd/goblog/main.go 
 
 
 
 # Production container
-FROM artifact.tryingadventure.com/vips:0.0.1
+FROM alpine
 
 # Add user and set up temporary account
 RUN mkdir /app && \
