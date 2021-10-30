@@ -1,11 +1,125 @@
-{% extends "base.html" %}
- 
-{% block title  %}About{% endblock %}
+<!DOCTYPE html>
+<html  lang="en">
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+      <meta property="og:type" content="website">
+      <meta property="og:title" content="Trying Adventure">
+      <meta property="og:site_name" content="Trying Adventure">
+      <meta property="og:url" content="http://tryingadventure.com/">
+      <meta property="og:description" content="Trying Adventures in photography.">
+      <meta property="og:url" content="https://tryingadventure.com">
+      <meta name="description" content="Trying Adventure in Photography.">
+      <meta name="google-site-verification" content="" />
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+      <link rel="icon" href="/images/fav.png" type="image/x-icon"/>
+      <title>
+             {% block title %}Do It Yourself Trailer{% endblock %}
+      </title>
+      <!-- Latest compiled and minified CSS -->
+      <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1" crossorigin="anonymous">
+      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css">
+      <link rel="stylesheet" href="/css/frontpage.css" type="text/css" media="screen" charset="utf-8">
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-112487731-4"></script>
+        <script>
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+  
+          gtag('config', 'UA-112487731-4');
+          var ptag = '{{ pagekey }}';
+          var stag = '{{ token }}'
+        </script>
+        <style>
+          .masthead {
+            height: 100vh;
+            min-height: 500px;
+            max-height: 1024px;
+            background-image: url('/images/sandybeach.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+          }
 
-{% block headertitle %}<h1>Trying Adventure</h1>{% endblock %}
- 
-{% block body %}
-<p>
-    Hi, I am Randall and welcome to my travel photography blog.  I started this blog to share my stories and my photography with you.  I hope you enjoy! 
-</p>
-{% endblock %}
+          .masthead-box {
+            color: #ececec;
+            border: 2px solid #ececec;
+            border-radius: 10px;
+            background: rgba(0,0,0,.40)
+            
+          }
+        </style>
+    </head>
+    <body class="page {{ bodyclass }}">
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+            <a class="navbar-brand" href="/">Trying Adventure</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+              <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav mr-auto">
+                  <li class="nav-item">
+                    <a class="nav-link" href="/">Home</a>
+                  </li>
+                  <li class="nav-item">
+                    <a class="nav-link" href="/about">About</a>
+                  </li>
+                </ul>
+            </div>
+        </nav>
+        <!-- Full Page Image Header with Vertically Centered Content -->
+        <header class="masthead">
+          <div class="container h-100">
+            <div class="row h-100 align-items-center">
+              <div class="col-12 text-center masthead-box">
+                <h1 class="fw-light">About Trying Adventure</h1>
+                <p class="lead">Another Trying Adventure... A place for photography and fun!</p>
+              </div>
+            </div>
+          </div>
+        </header>
+        <div class="container" >
+            <div style="height: 10px;"></div>
+          <p>Hi,</p>
+
+          <p>I am Randall!  I am a photographer and adventurer who loves photography and the outdoors.  In fact, I enjoy it so much, I built my own 
+          adventure travel trailer which you can learn more about here at <a href="https://diytinytrailer.com" target="_blank">https://diytinytrailer.com.</a>
+          When I started Trying Adventure, I was looking for a way to bootstrap my photography portfolio.  I had attempted many variants 
+          of a photography blog under a variety of names, including Visual Intrigue which just did not seem to respresent 
+          what I was really about as a photographer.  I enjoy traveling, seeing new places and capturing the moment as cliche as that sounds.</p>
+
+          <p>I do not sell my photography!  I do this simply for the enjoyment photography brings me.  This allows a great latitude
+          in creative freedom for my work.  If you enjoy what you see, please feel free to visit anytime as I keep updating the content of 
+          this site.  
+          </p>
+          <div style="height: 45px;"></div>
+
+        </div>
+
+        <footer>
+          <div class="container-fluid footer">
+            <div class="row">
+              <div class="col-md-2">
+                <a href="/contact">Contact</a>
+              </div>
+              <div class="col-md-2">
+    
+              </div>
+              <div class="col-md-2">
+    
+              </div>
+              <div class="col-md-2">
+    
+              </div>
+              <div class="col-md-4">
+                Copyright 2020 Trying Adventure all rights reserved.
+              </div>
+            </div>    
+          </div>
+        </footer>
+    </body>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js" integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js" integrity="sha384-ygbV9kiqUc6oa4msXn9868pTtWMgiQaeYH7/t7LECLbyPA2x65Kgf80OJFdroafW" crossorigin="anonymous"></script>
+    <script async src="/scripts/requests.js"></script>
+</html> 
+

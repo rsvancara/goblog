@@ -32,6 +32,23 @@
           var ptag = '{{ pagekey }}';
           var stag = '{{ token }}'
         </script>
+        <style>
+          .masthead {
+            height: 100vh;
+            min-height: 500px;
+            background-image: url('/images/pahsemeroivalley-crop.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+          }
+
+          .masthead-box {
+            color: #ececec;
+            border: 2px solid #ececec;
+            border-radius: 10px;
+            background: rgba(0,0,0,.40)
+          }
+        </style>
     </head>
     <body class="diy launch withxbone">
         <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
@@ -50,24 +67,22 @@
                 </ul>
             </div>
         </nav>
-
-        <div id="page" class="content">
-          <div class="keyart" id="nonparallax">
+        <!-- Full Page Image Header with Vertically Centered Content -->
+        <header class="masthead">
+          <div class="container h-100">
+            <div class="row h-100 align-items-center">
+              <div class="col-12 text-center masthead-box">
+                <h1 class="fw-light">Trying Adventure</h1>
+                <p class="lead">Another Trying Adventure... A place for photography and fun!</p>
+              </div>
+            </div>
           </div>
-            <div class="keyart" id="parallax">
-                    
-                    <div class="keyart_layer parallax" id="keyart-3" data-speed="16"></div>	<!-- 37.5 -->
-                    <div class="keyart_layer parallax" id="keyart-4" data-speed="26"></div>		<!-- 50.0 -->
-                    <div class="keyart_layer parallax" id="keyart-5" data-speed="36"></div>	<!-- 62.5 -->
-                    <div class="keyart_layer parallax" id="keyart-6" data-speed="49"></div>		<!-- 100.0 -->
-                    <div class="keyart_layer" id="keyart-scrim"></div>
-                    <div class="keyart_layer parallax" id="keyart-7" data-speed="69"></div>		<!-- 87.5 -->
-                    <div class="keyart_layer" id="keyart-8" data-speed="100"></div>		<!-- 100. -->
-        </div>
+        </header>
         <div id="maincontain" class="row">
           <div id="main" class="col-lg-12">
 
-        {% block body %}Body Default{% endblock %} 
+          {% block body %}Body Default{% endblock %} 
+          <div style="height: 10px;"></div>
           </div>
         </div>
 

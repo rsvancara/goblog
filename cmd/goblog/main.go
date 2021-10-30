@@ -72,7 +72,6 @@ func main() {
 	err = mediaDAO.Initialize(dbclient, &cfg)
 	if err != nil {
 		log.Error().Err(err).Str("service", "mediadao").Msg("Error initialzing media data access object ")
-
 	}
 
 	log.Info().Str("service", "main").Msgf("Starting up")

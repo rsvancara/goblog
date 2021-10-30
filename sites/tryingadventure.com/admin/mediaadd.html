@@ -5,6 +5,7 @@
 {% block headertitle %}<h1>Add Images</h1>{% endblock %}
  
 {% block body %}
+
 <form id="form" method="post" action="/admin/media/add" enctype="multipart/form-data">
 
 <div class="form-group">
@@ -59,6 +60,14 @@
 </div>
 </form>
 <div id='file-list-status'></div>
+<div class="progress" style="display:none;">
+    <div class="progress-bar progress-bar-success progress-bar-striped 
+    active" role="progressbar"
+    aria-valuemin="0" aria-valuemax="100" style="width:0%">
+    0%
+    </div>
+</div>
+
 
 {% endblock %}
 
@@ -66,7 +75,7 @@
 <script>
 $(document).ready(function() { 
 
-    var _validFileExtensions = [".jpg", ".jpeg"]; 
+    var _validFileExtensions = [".jpg", ".jpeg","heic"]; 
     var fileList = [];
     var renderFileList, sendFile;
     var fileListDisplay = $('#file-list-display')[0];
@@ -168,6 +177,8 @@ $(document).ready(function() {
                 timeout: 120000,
                 error: function(error) {
                     $('#file-list-status').append('<div class="alert alert-error" role="alert">File upload failed with error: ' + error + '</div>');
+                    console.log(error)
+                    console.log(error.responseText)
                 },
                 success: function(response){ 
                     if(response != 0){ 
@@ -198,7 +209,7 @@ $(document).ready(function() {
                         setInterval(function () {
                             i++;
                             if(i == 3){
-                                window.location.replace("/admin/medialist");
+                                //window.location.replace("/admin/medialist");
                             }
                         }, 1000);
                     }
@@ -211,5 +222,7 @@ $(document).ready(function() {
         };
     }
 }); 
+
+
 </script>
 {% endblock %}
