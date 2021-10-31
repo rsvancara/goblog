@@ -1,7 +1,7 @@
 version: 2.1
 
 workflows:
-  ISSBuilder:
+  BlogGUIBuilder:
     jobs:
       - build-docker:
           context:

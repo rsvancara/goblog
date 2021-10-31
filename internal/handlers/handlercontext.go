@@ -2,9 +2,16 @@
 package handlers
 
 import (
-	"go.mongodb.org/mongo-driver/mongo"
 	"goblog/internal/config"
+
+	"go.mongodb.org/mongo-driver/mongo"
 )
+
+// PongoTemplate
+// Contains the precompiled versios of the pongo templates useful for enhancing performance of page
+// rendering times by 5x
+type PongoTemplate struct {
+}
 
 // HTTPHandlerContext provides context for passing global values to handlers
 // such as http thread pools or database handlers
