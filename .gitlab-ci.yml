@@ -1,0 +1,15 @@
+stages:
+  - test
+  - run
+variables:
+    ANSIBLE_HOST_KEY_CHECKING: 'false'
+    ANSIBLE_FORCE_COLOR: 'true'
+    ANSIBLE_PYTHON_INTERPRRTER: /usr/bin/python3
+
+test:
+  script:
+    - /usr/local/go/bin/go build -o goblog cmd/goblog/main.go
+run: 
+  script:
+    - docker build .
+
