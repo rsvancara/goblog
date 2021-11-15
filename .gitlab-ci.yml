@@ -5,11 +5,12 @@ variables:
     ANSIBLE_HOST_KEY_CHECKING: 'false'
     ANSIBLE_FORCE_COLOR: 'true'
     ANSIBLE_PYTHON_INTERPRRTER: /usr/bin/python3
+    CI_DEBUG_TRACE: "true"
 
 test:
   script:
     - /usr/local/go/bin/go build -o goblog cmd/goblog/main.go
 run: 
   script:
-    - docker build .
+    - docker build .  --tag=artifact.tryingadventure.com/goblog/goblog-${CI_COMMIT_SHORT_SHA}
 
