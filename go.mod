@@ -3,7 +3,7 @@ module goblog
 go 1.16
 
 require (
-	github.com/aws/aws-sdk-go v1.38.40
+	github.com/aws/aws-sdk-go v1.42.5
 	github.com/dsoprea/go-exif v0.0.0-20210131231135-d154f10435cc
 	github.com/flosch/go-humanize v0.0.0-20140728123800-3ba51eabe506
 	github.com/flosch/pongo2 v0.0.0-20200913210552-0d938eb266f3
