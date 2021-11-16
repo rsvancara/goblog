@@ -12,6 +12,6 @@ test:
     - /usr/local/go/bin/go build -o goblog cmd/goblog/main.go
 run: 
   script:
-    - docker build .  --tag=artifact.tryingadventure.com/goblog/goblog-${CI_COMMIT_SHORT_SHA}
-    - docker push artifact.tryingadventure.com/goblog/goblog-${CI_COMMIT_SHORT_SHA}
+    - docker build .  --tag=artifact.tryingadventure.com/goblog:${CI_COMMIT_SHORT_SHA}
+    - docker push artifact.tryingadventure.com/goblog:${CI_COMMIT_SHORT_SHA}
 
