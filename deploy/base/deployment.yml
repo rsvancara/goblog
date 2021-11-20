@@ -25,6 +25,7 @@ spec:
       labels:
         app.kubernetes.io/instance: tryingadventure
         app.kubernetes.io/name: tryingadventure
+        app: tryingadventure
     spec:
       containers:
       - env:
