@@ -1,0 +1,17 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    app: tryingadventure-metrics-servicemonitor
+    app.kubernetes.io/instance: tryingadventure
+    release: prometheus
+  name: tryingadventure-metrics-servicemonitor
+  namespace: default
+spec:
+  endpoints:
+  - interval: 15s
+    path: metrics
+    port: http
+  selector:
+    matchLabels:
+      app: tryingadventure
