@@ -20,4 +20,4 @@ deploy:
   script:
     - cd deploy/overlays/prod
     - kustomize edit set image artifact.tryingadventure.com/goblog=artifact.tryingadventure.com/goblog:${CI_COMMIT_SHORT_SHA}  
-    - kubeclt apply -k . 
+    - kubectl apply -k . 
