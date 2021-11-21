@@ -1,5 +1,5 @@
 html {
-	background-color:#223333;
+	background-color:#badddd;
 	color: #FFFFFF;
 	font-family: 'Verlag A', 'Verlag B', "Verlag";
 	font-weight: 300;
@@ -112,7 +112,7 @@ div.blog-item-title-title > h2 > a {
 /* MAIN STRUCTURE */
 
 #maincontain {
-	background-color: #223333;
+	background-color: #badddd;
 	position: relative;
 	z-index: 98;
 }
@@ -125,7 +125,7 @@ div.blog-item-title-title > h2 > a {
 	margin-right: auto;
 	z-index: 99;
 	position: relative;
-	background-color: #223333;
+	background-color: #badddd;
 }
 
 .section {

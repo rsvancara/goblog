@@ -149,32 +149,6 @@ func (ctx *HTTPHandlerContext) HealthCheckHandler(w http.ResponseWriter, r *http
 	fmt.Fprintf(w, "healthy")
 }
 
-// HealthCheckHandler defines a healthcheck
-func (ctx *HTTPHandlerContext) BookingHandler(w http.ResponseWriter, r *http.Request) {
-	sess := util.GetSession(r)
-
-	template, err := util.SiteTemplate("/booking.html")
-	if err != nil {
-		log.Error().Err(err)
-	}
-
-	tmpl := pongo2.Must(pongo2.FromFile(template))
-
-	out, err := tmpl.Execute(pongo2.Context{
-		"title":    "Booking",
-		"greating": "Hello",
-		"user":     sess.User,
-		"pagekey":  util.GetPageID(r),
-		"token":    sess.SessionToken,
-	})
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		fmt.Println(err)
-	}
-	w.WriteHeader(http.StatusOK)
-	fmt.Fprint(w, out)
-}
-
 // ContactHandler defines a healthcheck
 func (ctx *HTTPHandlerContext) ContactHandler(w http.ResponseWriter, r *http.Request) {
 	var sess session.Session
