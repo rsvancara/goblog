@@ -16,11 +16,7 @@ image {
     z-index: 1071;
 }
 
-.footer {
-    background-color: #DDDDDD;
-    min-height: 100px;
-    padding-top: 30px;
-}
+
 
 /** Front Page ***/
 
@@ -231,5 +227,7 @@ div.category-view {
 .footer {
     margin: 0px;
     padding: 15px;
-    background-color: #a7a7a7!important;
+    background-color: #DDDDDD!important;
+    min-height: 100px;
+    padding-top: 30px;
 }
