@@ -1,8 +1,9 @@
 package handlers
 
 import (
-	"github.com/rs/zerolog/log"
 	"goblog/internal/models"
+
+	"github.com/rs/zerolog/log"
 
 	//"blog/blog/session"
 	"fmt"
@@ -34,6 +35,9 @@ func (ctx *HTTPHandlerContext) AffiliateHandler(w http.ResponseWriter, r *http.R
 	}
 
 	template, err := util.SiteTemplate("/admin/affiliates.html")
+	if err != nil {
+		log.Error().Err(err)
+	}
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
 	out, err := tmpl.Execute(pongo2.Context{
@@ -49,7 +53,7 @@ func (ctx *HTTPHandlerContext) AffiliateHandler(w http.ResponseWriter, r *http.R
 		fmt.Println(err)
 	}
 	w.WriteHeader(http.StatusOK)
-	fmt.Fprintf(w, out)
+	fmt.Fprint(w, out)
 
 }
 
@@ -97,7 +101,7 @@ func (ctx *HTTPHandlerContext) AffiliateAddHandler(w http.ResponseWriter, r *htt
 			categoryMessageError = true
 		}
 
-		if validate == true {
+		if validate {
 
 			var affiliatesDAO affiliatesdao.AffiliatesDAO
 			err := affiliatesDAO.Initialize(ctx.dbClient, ctx.hConfig)
@@ -119,6 +123,9 @@ func (ctx *HTTPHandlerContext) AffiliateAddHandler(w http.ResponseWriter, r *htt
 	}
 
 	template, err := util.SiteTemplate("/admin/affiliatesadd.html")
+	if err != nil {
+		log.Error().Err(err)
+	}
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
 	out, err := tmpl.Execute(pongo2.Context{
@@ -140,7 +147,7 @@ func (ctx *HTTPHandlerContext) AffiliateAddHandler(w http.ResponseWriter, r *htt
 		fmt.Println(err)
 	}
 	w.WriteHeader(http.StatusOK)
-	fmt.Fprintf(w, out)
+	fmt.Fprint(w, out)
 
 }
 
@@ -198,7 +205,7 @@ func (ctx *HTTPHandlerContext) AffiliateEditHandler(w http.ResponseWriter, r *ht
 			categoryMessageError = true
 		}
 
-		if validate == true {
+		if validate {
 
 			var affiliatesDAO affiliatesdao.AffiliatesDAO
 			err := affiliatesDAO.Initialize(ctx.dbClient, ctx.hConfig)
@@ -220,6 +227,10 @@ func (ctx *HTTPHandlerContext) AffiliateEditHandler(w http.ResponseWriter, r *ht
 	}
 
 	template, err := util.SiteTemplate("/admin/affiliatesedit.html")
+	if err != nil {
+		log.Error().Err(err)
+	}
+
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
 	out, err := tmpl.Execute(pongo2.Context{
@@ -241,7 +252,7 @@ func (ctx *HTTPHandlerContext) AffiliateEditHandler(w http.ResponseWriter, r *ht
 		fmt.Println(err)
 	}
 	w.WriteHeader(http.StatusOK)
-	fmt.Fprintf(w, out)
+	fmt.Fprint(w, out)
 
 }
 
@@ -306,6 +317,10 @@ func (ctx *HTTPHandlerContext) AffiliateBouncyHouseHandler(w http.ResponseWriter
 	//http.Redirect(w, r, af.AffiliateLink, http.StatusSeeOther)
 
 	template, err := util.SiteTemplate("/bouncyhouse.html")
+	if err != nil {
+		log.Error().Err(err)
+	}
+
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
 	out, err := tmpl.Execute(pongo2.Context{
@@ -319,6 +334,6 @@ func (ctx *HTTPHandlerContext) AffiliateBouncyHouseHandler(w http.ResponseWriter
 		fmt.Println(err)
 	}
 	w.WriteHeader(http.StatusOK)
-	fmt.Fprintf(w, out)
+	fmt.Fprint(w, out)
 
 }

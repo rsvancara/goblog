@@ -7,8 +7,6 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/flosch/pongo2"
-	"github.com/rs/zerolog/log"
 	"goblog/internal/config"
 	mediadao "goblog/internal/dao/media"
 	postsdao "goblog/internal/dao/posts"
@@ -16,6 +14,9 @@ import (
 	"goblog/internal/models"
 	"goblog/internal/session"
 	"goblog/internal/util"
+
+	"github.com/flosch/pongo2"
+	"github.com/rs/zerolog/log"
 )
 
 // SignInHandler Sign into the application
@@ -49,7 +50,7 @@ func (ctx *HTTPHandlerContext) SignInHandler(w http.ResponseWriter, r *http.Requ
 			return
 		}
 
-		if isAuth == false {
+		if !isAuth {
 			log.Info().Msgf("SIGNUP - User is authenticated %s %s\n", sess.SessionToken, sess.User.Username)
 			http.Redirect(w, r, "/signin", http.StatusSeeOther)
 			return
@@ -60,6 +61,9 @@ func (ctx *HTTPHandlerContext) SignInHandler(w http.ResponseWriter, r *http.Requ
 	}
 
 	template, err := util.SiteTemplate("/signin.html")
+	if err != nil {
+		log.Error().Err(err)
+	}
 	//template := "templates/signin.html"
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
@@ -75,7 +79,7 @@ func (ctx *HTTPHandlerContext) SignInHandler(w http.ResponseWriter, r *http.Requ
 		fmt.Printf("error loading template with error: %s\n", err)
 	}
 	w.WriteHeader(http.StatusOK)
-	fmt.Fprintf(w, out)
+	fmt.Fprint(w, out)
 }
 
 // AdminHomeHandler admin home page
@@ -89,6 +93,10 @@ func (ctx *HTTPHandlerContext) AdminHomeHandler(w http.ResponseWriter, r *http.R
 	}
 
 	template, err := util.SiteTemplate("/admin/admin.html")
+	if err != nil {
+		log.Error().Err(err)
+	}
+
 	//template := "templates/admin/admin.html"
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
@@ -104,7 +112,7 @@ func (ctx *HTTPHandlerContext) AdminHomeHandler(w http.ResponseWriter, r *http.R
 		fmt.Println(err)
 	}
 	w.WriteHeader(http.StatusOK)
-	fmt.Fprintf(w, out)
+	fmt.Fprint(w, out)
 }
 
 // AboutHandler about page
@@ -113,6 +121,10 @@ func (ctx *HTTPHandlerContext) AboutHandler(w http.ResponseWriter, r *http.Reque
 	sess := util.GetSession(r)
 
 	template, err := util.SiteTemplate("/about.html")
+	if err != nil {
+		log.Error().Err(err)
+	}
+
 	//template := "templates/about.html"
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
@@ -128,13 +140,39 @@ func (ctx *HTTPHandlerContext) AboutHandler(w http.ResponseWriter, r *http.Reque
 		fmt.Println(err)
 	}
 	w.WriteHeader(http.StatusOK)
-	fmt.Fprintf(w, out)
+	fmt.Fprint(w, out)
 }
 
 // HealthCheckHandler defines a healthcheck
 func (ctx *HTTPHandlerContext) HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprintf(w, "healthy")
+}
+
+// HealthCheckHandler defines a healthcheck
+func (ctx *HTTPHandlerContext) BookingHandler(w http.ResponseWriter, r *http.Request) {
+	sess := util.GetSession(r)
+
+	template, err := util.SiteTemplate("/booking.html")
+	if err != nil {
+		log.Error().Err(err)
+	}
+
+	tmpl := pongo2.Must(pongo2.FromFile(template))
+
+	out, err := tmpl.Execute(pongo2.Context{
+		"title":    "Booking",
+		"greating": "Hello",
+		"user":     sess.User,
+		"pagekey":  util.GetPageID(r),
+		"token":    sess.SessionToken,
+	})
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		fmt.Println(err)
+	}
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprint(w, out)
 }
 
 // ContactHandler defines a healthcheck
@@ -146,6 +184,9 @@ func (ctx *HTTPHandlerContext) ContactHandler(w http.ResponseWriter, r *http.Req
 	}
 
 	template, err := util.SiteTemplate("/contact.html")
+	if err != nil {
+		log.Error().Err(err)
+	}
 	//template := "templates/about.html"
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
@@ -161,7 +202,7 @@ func (ctx *HTTPHandlerContext) ContactHandler(w http.ResponseWriter, r *http.Req
 		fmt.Println(err)
 	}
 	w.WriteHeader(http.StatusOK)
-	fmt.Fprintf(w, out)
+	fmt.Fprint(w, out)
 }
 
 // SiteMap generate a sitemap.xml
@@ -203,7 +244,7 @@ func (ctx *HTTPHandlerContext) SiteMap(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Fprintf(&b, "<url>")
 
-	fmt.Fprintf(&b, fmt.Sprintf("<loc>https://%s/</loc>", cfg.GetSite()))
+	fmt.Fprintf(&b, "<loc>https://%s/</loc>", cfg.GetSite())
 
 	fmt.Fprintf(&b, "<lastmod>2020-01-01</lastmod>")
 
@@ -215,7 +256,7 @@ func (ctx *HTTPHandlerContext) SiteMap(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Fprintf(&b, "<url>")
 
-	fmt.Fprintf(&b, fmt.Sprintf("<loc>https://%s</loc>", cfg.GetSite()))
+	fmt.Fprintf(&b, "<loc>https://%s</loc>", cfg.GetSite())
 
 	fmt.Fprintf(&b, "<lastmod>2020-01-01</lastmod>")
 
@@ -228,9 +269,9 @@ func (ctx *HTTPHandlerContext) SiteMap(w http.ResponseWriter, r *http.Request) {
 	for _, p := range posts {
 		fmt.Fprintf(&b, "<url>")
 
-		fmt.Fprintf(&b, fmt.Sprintf("<loc>https://%s/stories/%s</loc>", cfg.GetSite(), p.Slug))
+		fmt.Fprintf(&b, "<loc>https://%s/stories/%s</loc>", cfg.GetSite(), p.Slug)
 
-		fmt.Fprintf(&b, fmt.Sprintf("<lastmod>%s</lastmod>", p.CreatedAt.Format("2006-01-02")))
+		fmt.Fprintf(&b, "<lastmod>%s</lastmod>", p.CreatedAt.Format("2006-01-02"))
 
 		fmt.Fprintf(&b, "<changefreq>monthly</changefreq>")
 
@@ -242,9 +283,9 @@ func (ctx *HTTPHandlerContext) SiteMap(w http.ResponseWriter, r *http.Request) {
 	for _, m := range media {
 		fmt.Fprintf(&b, "<url>")
 
-		fmt.Fprintf(&b, fmt.Sprintf("<loc>https://%s/photo/%s</loc>", cfg.GetSite(), m.Slug))
+		fmt.Fprintf(&b, "<loc>https://%s/photo/%s</loc>", cfg.GetSite(), m.Slug)
 
-		fmt.Fprintf(&b, fmt.Sprintf("<lastmod>%s</lastmod>", m.CreatedAt.Format("2006-01-02")))
+		fmt.Fprintf(&b, "<lastmod>%s</lastmod>", m.CreatedAt.Format("2006-01-02"))
 
 		fmt.Fprintf(&b, "<changefreq>monthly</changefreq>")
 
@@ -258,7 +299,7 @@ func (ctx *HTTPHandlerContext) SiteMap(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/xml")
 
-	fmt.Fprintf(w, b.String())
+	fmt.Fprint(w, b.String())
 
 }
 
@@ -301,8 +342,6 @@ func (ctx *HTTPHandlerContext) RequestBotAPI(w http.ResponseWriter, r *http.Requ
 	rv.OSVersion = d.OSVersion
 	rv.UserAgent = d.UserAgent
 
-	//log.Info().Msg("Updated requestview")
-
 	err = requestviewDAO.UpdateRequestView(&rv)
 	if err != nil {
 		log.Error().Err(err).Str("service", "requestviewdao").Msg("error udating requestview")
@@ -311,5 +350,5 @@ func (ctx *HTTPHandlerContext) RequestBotAPI(w http.ResponseWriter, r *http.Requ
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
 	fmt.Fprintf(w, "{\"status\":\"success\", \"message\": \"request recieved %s\"}\n", sess.SessionToken)
-	return
+
 }

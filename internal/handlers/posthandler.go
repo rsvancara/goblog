@@ -5,12 +5,13 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/rs/zerolog/log"
 	mediadao "goblog/internal/dao/media"
 	postsdao "goblog/internal/dao/posts"
 	"goblog/internal/models"
 	"goblog/internal/session"
 	"goblog/internal/util"
+
+	"github.com/rs/zerolog/log"
 
 	"github.com/flosch/pongo2"
 	"github.com/gorilla/mux"
@@ -37,6 +38,10 @@ func (ctx *HTTPHandlerContext) HomeHandler(w http.ResponseWriter, r *http.Reques
 	}
 
 	template, err := util.SiteTemplate("/index.html")
+	if err != nil {
+		log.Error().Err(err)
+	}
+
 	//template := "templates/index.html"
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
@@ -55,7 +60,7 @@ func (ctx *HTTPHandlerContext) HomeHandler(w http.ResponseWriter, r *http.Reques
 		fmt.Println(err)
 	}
 	w.WriteHeader(http.StatusOK)
-	fmt.Fprintf(w, out)
+	fmt.Fprint(w, out)
 }
 
 // PostViewHandler View individual post
@@ -102,6 +107,10 @@ func (ctx *HTTPHandlerContext) PostViewHandler(w http.ResponseWriter, r *http.Re
 	}
 
 	template, err := util.SiteTemplate("/post.html")
+	if err != nil {
+		log.Error().Err(err)
+	}
+
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
 	out, err := tmpl.Execute(pongo2.Context{
@@ -118,7 +127,7 @@ func (ctx *HTTPHandlerContext) PostViewHandler(w http.ResponseWriter, r *http.Re
 		fmt.Println(err)
 	}
 	w.WriteHeader(http.StatusOK)
-	fmt.Fprintf(w, out)
+	fmt.Fprint(w, out)
 }
 
 // PostHandler View Post
@@ -138,6 +147,10 @@ func (ctx *HTTPHandlerContext) PostHandler(w http.ResponseWriter, r *http.Reques
 	}
 
 	template, err := util.SiteTemplate("/admin/post.html")
+	if err != nil {
+		log.Error().Err(err)
+	}
+
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
 	out, err := tmpl.Execute(pongo2.Context{
@@ -152,7 +165,7 @@ func (ctx *HTTPHandlerContext) PostHandler(w http.ResponseWriter, r *http.Reques
 		fmt.Println(err)
 	}
 	w.WriteHeader(http.StatusOK)
-	fmt.Fprintf(w, out)
+	fmt.Fprint(w, out)
 }
 
 // PostEditHandler admin edit the post
@@ -271,7 +284,7 @@ func (ctx *HTTPHandlerContext) PostEditHandler(w http.ResponseWriter, r *http.Re
 			postKeywordsMessageError = true
 		}
 
-		if validate == true {
+		if validate {
 
 			// Create Record
 			err = postDAO.UpdatePost(&pm)
@@ -288,6 +301,10 @@ func (ctx *HTTPHandlerContext) PostEditHandler(w http.ResponseWriter, r *http.Re
 
 	// HTTP Template
 	template, err := util.SiteTemplate("/admin/postedit.html")
+	if err != nil {
+		log.Error().Err(err)
+	}
+
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
 	out, err := tmpl.Execute(pongo2.Context{
@@ -316,7 +333,7 @@ func (ctx *HTTPHandlerContext) PostEditHandler(w http.ResponseWriter, r *http.Re
 		fmt.Println(err)
 	}
 	w.WriteHeader(http.StatusOK)
-	fmt.Fprintf(w, out)
+	fmt.Fprint(w, out)
 }
 
 // PostAdminViewHandler view the post in the admin view
@@ -369,6 +386,10 @@ func (ctx *HTTPHandlerContext) PostAdminViewHandler(w http.ResponseWriter, r *ht
 
 	// HTTP Template
 	template, err := util.SiteTemplate("/admin/postview.html")
+	if err != nil {
+		log.Error().Err(err)
+	}
+
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
 	out, err := tmpl.Execute(pongo2.Context{
@@ -385,7 +406,7 @@ func (ctx *HTTPHandlerContext) PostAdminViewHandler(w http.ResponseWriter, r *ht
 		fmt.Printf("error rendering template: %s", err)
 	}
 	w.WriteHeader(http.StatusOK)
-	fmt.Fprintf(w, out)
+	fmt.Fprint(w, out)
 }
 
 // PostAddHandler add post
@@ -490,7 +511,7 @@ func (ctx *HTTPHandlerContext) PostAddHandler(w http.ResponseWriter, r *http.Req
 			postKeywordsMessageError = true
 		}
 
-		if validate == true {
+		if validate {
 
 			// Create Record
 			err = postDAO.InsertPost(&pm)
@@ -506,6 +527,10 @@ func (ctx *HTTPHandlerContext) PostAddHandler(w http.ResponseWriter, r *http.Req
 	}
 
 	template, err := util.SiteTemplate("/admin/postadd.html")
+	if err != nil {
+		log.Error().Err(err)
+	}
+
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
 	out, err := tmpl.Execute(pongo2.Context{
@@ -534,7 +559,7 @@ func (ctx *HTTPHandlerContext) PostAddHandler(w http.ResponseWriter, r *http.Req
 		fmt.Println(err)
 	}
 	w.WriteHeader(http.StatusOK)
-	fmt.Fprintf(w, out)
+	fmt.Fprint(w, out)
 }
 
 // PostDeleteHandler delete post

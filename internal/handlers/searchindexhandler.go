@@ -6,12 +6,13 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/rs/zerolog/log"
 	mediadao "goblog/internal/dao/media"
 	mediatagsdao "goblog/internal/dao/mediatags"
 	"goblog/internal/models"
 	"goblog/internal/session"
 	"goblog/internal/util"
+
+	"github.com/rs/zerolog/log"
 
 	"github.com/flosch/pongo2"
 	"github.com/gorilla/mux"
@@ -24,8 +25,15 @@ func (ctx *HTTPHandlerContext) SearchIndexListHandler(w http.ResponseWriter, r *
 
 	var sessions []session.Session
 	sessions, err := session.GetAllSessions()
+	if err != nil {
+		log.Error().Err(err)
+	}
 
 	template, err := util.SiteTemplate("/admin/searchindex.html")
+	if err != nil {
+		log.Error().Err(err)
+	}
+
 	//template := "templates/admin/media.html"
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
@@ -40,7 +48,7 @@ func (ctx *HTTPHandlerContext) SearchIndexListHandler(w http.ResponseWriter, r *
 		fmt.Printf("error retrieving media tags count with error %s\n", err)
 	}
 
-	fmt.Println(count)
+	//fmt.Println(count)
 
 	out, err := tmpl.Execute(pongo2.Context{
 		"title":     "Search Inex",
@@ -58,9 +66,7 @@ func (ctx *HTTPHandlerContext) SearchIndexListHandler(w http.ResponseWriter, r *
 		fmt.Println(err)
 	}
 	w.WriteHeader(http.StatusOK)
-	fmt.Fprintf(w, out)
-
-	return
+	fmt.Fprint(w, out)
 }
 
 // SearchIndexBuildTagsHandler Build tags search index.
@@ -70,8 +76,15 @@ func (ctx *HTTPHandlerContext) SearchIndexBuildTagsHandler(w http.ResponseWriter
 
 	var sessions []session.Session
 	sessions, err := session.GetAllSessions()
+	if err != nil {
+		log.Error().Err(err)
+	}
 
 	template, err := util.SiteTemplate("/admin/buildsearchindex.html")
+	if err != nil {
+		log.Error().Err(err)
+	}
+
 	//template := "templates/admin/media.html"
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
@@ -90,9 +103,7 @@ func (ctx *HTTPHandlerContext) SearchIndexBuildTagsHandler(w http.ResponseWriter
 		fmt.Println(err)
 	}
 	w.WriteHeader(http.StatusOK)
-	fmt.Fprintf(w, out)
-
-	return
+	fmt.Fprint(w, out)
 }
 
 // SearchIndexMediaTagsAPI Search for media tags via an API
@@ -134,7 +145,7 @@ func (ctx *HTTPHandlerContext) SearchIndexMediaTagsAPI(w http.ResponseWriter, r 
 					f = true
 				}
 			}
-			if f == false {
+			if !f {
 				var m models.MediaModel
 
 				err := m.GetMedia(d)
@@ -153,12 +164,13 @@ func (ctx *HTTPHandlerContext) SearchIndexMediaTagsAPI(w http.ResponseWriter, r 
 	}
 
 	b, err := json.Marshal(docs)
+	if err != nil {
+		log.Error().Err(err)
+	}
 
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
 	fmt.Fprintf(w, "{\"status\":\"success\", \"message\": \"mediatag found\",\"tags\":%s}\n", string(b))
-
-	return
 }
 
 // SearchIndexBuilderMediaHandler builds the tag index for media

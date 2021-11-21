@@ -41,6 +41,10 @@ func (ctx *HTTPHandlerContext) MediaHandler(w http.ResponseWriter, r *http.Reque
 	}
 
 	template, err := util.SiteTemplate("/admin/media.html")
+	if err != nil {
+		log.Error().Err(err)
+	}
+
 	//template := "templates/admin/media.html"
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
@@ -59,7 +63,7 @@ func (ctx *HTTPHandlerContext) MediaHandler(w http.ResponseWriter, r *http.Reque
 		fmt.Println(err)
 	}
 	w.WriteHeader(http.StatusOK)
-	fmt.Fprintf(w, out)
+	fmt.Fprint(w, out)
 }
 
 // ViewMediaHandler HTTP Handler to View the media in admin view
@@ -74,7 +78,8 @@ func (ctx *HTTPHandlerContext) ViewMediaHandler(w http.ResponseWriter, r *http.R
 	if val, ok := vars["id"]; ok {
 
 	} else {
-		fmt.Printf("Error getting url variable, id: %s", val)
+
+		log.Error().Msgf("Error getting url variable, id: %s", val)
 	}
 
 	var mediaDAO mediadao.MediaDAO
@@ -90,6 +95,10 @@ func (ctx *HTTPHandlerContext) ViewMediaHandler(w http.ResponseWriter, r *http.R
 	}
 
 	template, err := util.SiteTemplate("/admin/mediaview.html")
+	if err != nil {
+		log.Error().Err(err)
+	}
+
 	//template := "templates/admin/mediaview.html"
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
@@ -110,7 +119,7 @@ func (ctx *HTTPHandlerContext) ViewMediaHandler(w http.ResponseWriter, r *http.R
 		fmt.Println(err)
 	}
 	w.WriteHeader(http.StatusOK)
-	fmt.Fprintf(w, out)
+	fmt.Fprint(w, out)
 }
 
 // MediaAddHandler HTTP Handler to view admin add media page
@@ -122,6 +131,10 @@ func (ctx *HTTPHandlerContext) MediaAddHandler(w http.ResponseWriter, r *http.Re
 	}
 
 	template, err := util.SiteTemplate("/admin/mediaadd.html")
+	if err != nil {
+		log.Error().Err(err)
+	}
+
 	//template := "templates/admin/mediaadd.html"
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
@@ -131,7 +144,7 @@ func (ctx *HTTPHandlerContext) MediaAddHandler(w http.ResponseWriter, r *http.Re
 		log.Printf("Error loading template %s", err)
 	}
 	w.WriteHeader(http.StatusOK)
-	fmt.Fprintf(w, out)
+	fmt.Fprint(w, out)
 }
 
 //PutMediaAPI Supports multi file upload in an API used in admin interface
@@ -275,7 +288,6 @@ func (ctx *HTTPHandlerContext) PutMediaAPIV2(w http.ResponseWriter, r *http.Requ
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
 	fmt.Fprintf(w, "{\"status\":\"success\", \"message\": \"file %s uploaded\",\"file\":\"%s\"}\n", vars["id"], handler.Filename)
-	return
 
 }
 
@@ -329,7 +341,7 @@ func (ctx *HTTPHandlerContext) MediaUpdateTitleHandler(w http.ResponseWriter, r 
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
 	fmt.Fprintf(w, "{\"status\":\"success\", \"message\": \"Title updated successfully\", \"session\":\"%s\"}\n", sess.SessionToken)
-	return
+
 }
 
 //MediaSearchAPIHandler search by media tags
@@ -386,11 +398,14 @@ func (ctx *HTTPHandlerContext) MediaSearchAPIHandler(w http.ResponseWriter, r *h
 	mediaLength := len(mediaList)
 
 	jsonBytes, err := json.Marshal(mediaList)
+	if err != nil {
+		log.Error().Err(err)
+	}
 
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
 	fmt.Fprintf(w, "{\"status\":\"success\", \"message\": \"query successful with %d results\", \"session\":\"%s\",\"results\":%s}\n", mediaLength, sess.SessionToken, string(jsonBytes))
-	return
+
 }
 
 //MediaListViewHandler List Media objects
@@ -399,6 +414,10 @@ func (ctx *HTTPHandlerContext) MediaListViewHandler(w http.ResponseWriter, r *ht
 	sess := util.GetSession(r)
 
 	template, err := util.SiteTemplate("/admin/medialist.html")
+	if err != nil {
+		log.Error().Err(err)
+	}
+
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
 	out, err := tmpl.Execute(pongo2.Context{
@@ -415,7 +434,7 @@ func (ctx *HTTPHandlerContext) MediaListViewHandler(w http.ResponseWriter, r *ht
 		fmt.Println(err)
 	}
 	w.WriteHeader(http.StatusOK)
-	fmt.Fprintf(w, out)
+	fmt.Fprint(w, out)
 
 }
 
@@ -501,7 +520,7 @@ func (ctx *HTTPHandlerContext) MediaEditHandler(w http.ResponseWriter, r *http.R
 		}
 
 		fmt.Println(validate)
-		if validate == true {
+		if validate {
 
 			var mediaDAO mediadao.MediaDAO
 
@@ -538,6 +557,10 @@ func (ctx *HTTPHandlerContext) MediaEditHandler(w http.ResponseWriter, r *http.R
 
 	// HTTP Template
 	template, err := util.SiteTemplate("/admin/mediaedit.html")
+	if err != nil {
+		log.Error().Err(err)
+	}
+
 	//template := "templates/admin/mediaedit.html"
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
@@ -565,7 +588,7 @@ func (ctx *HTTPHandlerContext) MediaEditHandler(w http.ResponseWriter, r *http.R
 	}
 
 	w.WriteHeader(http.StatusOK)
-	fmt.Fprintf(w, out)
+	fmt.Fprint(w, out)
 }
 
 //EditMediaAPIHandler edit media
@@ -577,7 +600,7 @@ func (ctx *HTTPHandlerContext) EditMediaAPIHandler(w http.ResponseWriter, r *htt
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
 	fmt.Fprintf(w, "{\"status\":\"success\", \"message\": \"request recieved %s\"}\n", sess.SessionToken)
-	return
+
 }
 
 // MediaDeleteHandler Delete media from the database and s3
@@ -649,6 +672,10 @@ func (ctx *HTTPHandlerContext) PhotoViewHandler(w http.ResponseWriter, r *http.R
 	}
 
 	template, err := util.SiteTemplate("/mediaview.html")
+	if err != nil {
+		log.Error().Err(err)
+	}
+
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
 	out, err := tmpl.Execute(pongo2.Context{
@@ -668,7 +695,7 @@ func (ctx *HTTPHandlerContext) PhotoViewHandler(w http.ResponseWriter, r *http.R
 		fmt.Println(err)
 	}
 	w.WriteHeader(http.StatusOK)
-	fmt.Fprintf(w, out)
+	fmt.Fprint(w, out)
 }
 
 // GetMediaAPI View File
@@ -709,8 +736,6 @@ func (ctx *HTTPHandlerContext) GetMediaAPI(w http.ResponseWriter, r *http.Reques
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
 	fmt.Fprintf(w, "{\"status\":\"success\", \"message\": \"media found\",\"url\":\"%s\",\"refurl\":\"%s\",\"title\":\"%s\",\"slug\":\"%s\",\"category\":\"%s\"}\n", s3URL, refURL, media.Title, media.Slug, media.Category)
-
-	return
 }
 
 // ServerImageHandler proxy image requests through a handler to obfuscate
@@ -834,6 +859,10 @@ func (ctx *HTTPHandlerContext) ViewCategoryHandler(w http.ResponseWriter, r *htt
 	}
 
 	template, err := util.SiteTemplate("/category.html")
+	if err != nil {
+		log.Error().Err(err)
+	}
+
 	//template := "templates/admin/mediaview.html"
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
@@ -852,7 +881,7 @@ func (ctx *HTTPHandlerContext) ViewCategoryHandler(w http.ResponseWriter, r *htt
 		fmt.Println(err)
 	}
 	w.WriteHeader(http.StatusOK)
-	fmt.Fprintf(w, out)
+	fmt.Fprint(w, out)
 }
 
 //ViewCategoriesHandler view all categories
@@ -873,11 +902,15 @@ func (ctx *HTTPHandlerContext) ViewCategoriesHandler(w http.ResponseWriter, r *h
 	}
 
 	template, err := util.SiteTemplate("/categories.html")
+	if err != nil {
+		log.Error().Err(err)
+	}
+
 	//template := "templates/admin/mediaview.html"
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
 	out, err := tmpl.Execute(pongo2.Context{
-		"title":     fmt.Sprintf("Media Categories"),
+		"title":     "Media Categories",
 		"user":      sess.User,
 		"bodyclass": "",
 		"fluid":     true,
@@ -891,7 +924,7 @@ func (ctx *HTTPHandlerContext) ViewCategoriesHandler(w http.ResponseWriter, r *h
 		fmt.Println(err)
 	}
 	w.WriteHeader(http.StatusOK)
-	fmt.Fprintf(w, out)
+	fmt.Fprint(w, out)
 
 }
 

@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/rs/zerolog/log"
 	requestviewdao "goblog/internal/dao/requestview"
 	"goblog/internal/session"
 	"goblog/internal/util"
+
+	"github.com/rs/zerolog/log"
 
 	"github.com/flosch/pongo2"
 	"github.com/gorilla/mux"
@@ -20,8 +21,14 @@ func (ctx *HTTPHandlerContext) SessionReportHandler(w http.ResponseWriter, r *ht
 
 	var sessions []session.Session
 	sessions, err := session.GetAllSessions()
+	if err != nil {
+		log.Error().Err(err)
+	}
 
 	template, err := util.SiteTemplate("/admin/sessions.html")
+	if err != nil {
+		log.Error().Err(err)
+	}
 	//template := "templates/admin/media.html"
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
@@ -40,9 +47,7 @@ func (ctx *HTTPHandlerContext) SessionReportHandler(w http.ResponseWriter, r *ht
 		fmt.Println(err)
 	}
 	w.WriteHeader(http.StatusOK)
-	fmt.Fprintf(w, out)
-
-	return
+	fmt.Fprint(w, out)
 }
 
 // SessionDetailsReportHandler build a list of current user sessions
@@ -72,6 +77,9 @@ func (ctx *HTTPHandlerContext) SessionDetailsReportHandler(w http.ResponseWriter
 	}
 
 	template, err := util.SiteTemplate("/admin/sessiondetail.html")
+	if err != nil {
+		log.Error().Err(err)
+	}
 	//template := "templates/admin/media.html"
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
@@ -91,9 +99,7 @@ func (ctx *HTTPHandlerContext) SessionDetailsReportHandler(w http.ResponseWriter
 		fmt.Println(err)
 	}
 	w.WriteHeader(http.StatusOK)
-	fmt.Fprintf(w, out)
-
-	return
+	fmt.Fprint(w, out)
 }
 
 // SessionDeleteHandler build a list of current user sessions
@@ -114,8 +120,6 @@ func (ctx *HTTPHandlerContext) SessionDeleteHandler(w http.ResponseWriter, r *ht
 	}
 
 	http.Redirect(w, r, "/admin/sessions", http.StatusSeeOther)
-
-	return
 }
 
 // RequestInspectorReportHandler Get details of a request
@@ -144,6 +148,10 @@ func (ctx *HTTPHandlerContext) RequestInspectorReportHandler(w http.ResponseWrit
 	}
 
 	template, err := util.SiteTemplate("/admin/requestdetail.html")
+	if err != nil {
+		log.Error().Err(err)
+	}
+
 	//template := "templates/admin/media.html"
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
@@ -163,7 +171,5 @@ func (ctx *HTTPHandlerContext) RequestInspectorReportHandler(w http.ResponseWrit
 		fmt.Println(err)
 	}
 	w.WriteHeader(http.StatusOK)
-	fmt.Fprintf(w, out)
-
-	return
+	fmt.Fprint(w, out)
 }

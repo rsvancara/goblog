@@ -9,6 +9,7 @@ import (
 	"goblog/internal/util"
 
 	"github.com/flosch/pongo2"
+	"github.com/rs/zerolog/log"
 )
 
 // FilterHandler View File
@@ -17,6 +18,10 @@ func (ctx *HTTPHandlerContext) FilterHandler(w http.ResponseWriter, r *http.Requ
 	sess := util.GetSession(r)
 
 	template, err := util.SiteTemplate("/admin/filters.html")
+	if err != nil {
+		log.Error().Err(err)
+	}
+
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
 	out, err := tmpl.Execute(pongo2.Context{
@@ -31,7 +36,7 @@ func (ctx *HTTPHandlerContext) FilterHandler(w http.ResponseWriter, r *http.Requ
 		fmt.Println(err)
 	}
 	w.WriteHeader(http.StatusOK)
-	fmt.Fprintf(w, out)
+	fmt.Fprint(w, out)
 
 }
 
@@ -41,6 +46,9 @@ func (ctx *HTTPHandlerContext) CreateFilterHandler(w http.ResponseWriter, r *htt
 	sess := util.GetSession(r)
 
 	template, err := util.SiteTemplate("/admin/filtersadd.html")
+	if err != nil {
+		log.Error().Err(err)
+	}
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
 	out, err := tmpl.Execute(pongo2.Context{
@@ -55,7 +63,7 @@ func (ctx *HTTPHandlerContext) CreateFilterHandler(w http.ResponseWriter, r *htt
 		fmt.Println(err)
 	}
 	w.WriteHeader(http.StatusOK)
-	fmt.Fprintf(w, out)
+	fmt.Fprint(w, out)
 
 }
 
