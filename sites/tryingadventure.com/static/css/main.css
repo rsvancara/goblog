@@ -16,6 +16,12 @@ image {
     z-index: 1071;
 }
 
+.footer {
+    background-color: #DDDDDD;
+    min-height: 100px;
+    padding-top: 30px;
+}
+
 /** Front Page ***/
 
 /* Set a background image by replacing the URL below */
@@ -37,14 +43,6 @@ body.frontpage {
 .navbar-light .navbar-nav .nav-link {
     color: rgba(0, 0, 0, 0.651);
 }
-
-    /*
-    -webkit-background-size: cover;
-    -moz-background-size: cover;
-    background-size: cover;
-    -o-background-size: cover;
-    */
-  }
 
 .blog-item-box {
     width: 100%;
