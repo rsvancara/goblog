@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	mediadao "goblog/internal/dao/media"
 	postsdao "goblog/internal/dao/posts"
@@ -23,16 +24,33 @@ import (
 
 // HomeHandler Displays the home page with list of posts
 func (ctx *HTTPHandlerContext) HomeHandler(w http.ResponseWriter, r *http.Request) {
+
+	page := 1
+	var err error
+
+	// HTTP URL Parameters
+	page, err = strconv.Atoi(r.URL.Query().Get("page"))
+	if err != nil {
+		log.Info().Msg("Page is not available")
+	}
+
+	if page == 0 {
+		page = 1
+	}
+
+	log.Info().Msgf("page=%d", page)
+
 	sess := util.GetSession(r)
 
 	var postDAO postsdao.PostsDAO
-	err := postDAO.Initialize(ctx.dbClient, ctx.hConfig)
+	err = postDAO.Initialize(ctx.dbClient, ctx.hConfig)
 	if err != nil {
 		log.Error().Err(err).Str("service", "postdao").Msg("Error initialzing post data access object ")
 	}
 
 	// Get List
-	posts, err := postDAO.AllPostsSortedByDate()
+	posts, pageCount, hasNextPage, hasPrevPage, err := postDAO.AllPostsSortedByDatePaginated(int64(page))
+	//posts, err := postDAO.AllPostsSortedByDate()
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -42,17 +60,24 @@ func (ctx *HTTPHandlerContext) HomeHandler(w http.ResponseWriter, r *http.Reques
 		log.Error().Err(err)
 	}
 
+	//pageCount := len(posts)
+
 	//template := "templates/index.html"
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
 	out, err := tmpl.Execute(pongo2.Context{
-		"title":     "Index",
-		"posts":     posts,
-		"user":      sess.User,
-		"bodyclass": "frontpage",
-		"hidetitle": true,
-		"pagekey":   util.GetPageID(r),
-		"token":     sess.SessionToken,
+		"title":       "Index",
+		"posts":       posts,
+		"pagecount":   pageCount,
+		"nextpage":    page + 1,
+		"prevpage":    page - 1,
+		"hasnextpage": hasNextPage,
+		"hasprevpage": hasPrevPage,
+		"user":        sess.User,
+		"bodyclass":   "frontpage",
+		"hidetitle":   true,
+		"pagekey":     util.GetPageID(r),
+		"token":       sess.SessionToken,
 	})
 
 	if err != nil {

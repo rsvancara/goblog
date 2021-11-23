@@ -5,15 +5,17 @@ import (
 	"context"
 	"time"
 
-	"github.com/gosimple/slug"
 	"goblog/internal/models"
+
+	"github.com/gosimple/slug"
+
+	"goblog/internal/config"
 
 	"github.com/rs/zerolog/log"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"goblog/internal/config"
 )
 
 //PostsDAO stores media data access object information
@@ -223,4 +225,92 @@ func (p *PostsDAO) AllPostsSortedByDate() ([]models.PostModel, error) {
 	}
 
 	return postModels, nil
+}
+
+func (p *PostsDAO) AllPostsSortedByDatePaginated(page int64) ([]models.PostModel, int64, bool, bool, error) {
+
+	var pageSize int64 = 5
+	var skips int64 = 0
+
+	var postModels []models.PostModel
+	//config.DBUri = "mongodb://host.docker.internal:27017"
+
+	c := p.DBClient.Database(p.Config.MongoDatabase).Collection("posts")
+
+	countctx, countcancel := context.WithTimeout(context.Background(), 10*time.Second)
+
+	defer countcancel()
+
+	count, err := c.CountDocuments(countctx, bson.D{})
+	if err != nil {
+		return nil, 0, false, false, err
+	}
+
+	totalPages := count / pageSize
+	remainder := count % pageSize
+	if remainder > 0 {
+		totalPages = totalPages + 1
+	}
+
+	hasPrevPage := false
+	hasNextPage := false
+
+	if page-1 >= 1 {
+		hasPrevPage = true
+	}
+
+	if page > totalPages {
+		page = totalPages
+	}
+
+	if page < totalPages {
+		hasNextPage = true
+	}
+
+	if page > 0 {
+		skips = pageSize * (page - 1)
+	}
+
+	log.Info().Msgf("page size=%d skips=%d total pages=%d nextpage=%d previouspage=%d", pageSize, skips, totalPages, page+1, page-1)
+
+	//if page > totalPages {
+	//	return postModels, 0, nil
+	//}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+
+	defer cancel()
+
+	filter := bson.M{}
+
+	options := options.Find()
+	options.SetLimit(pageSize)
+	options.SetSkip(skips)
+
+	// Sort by `_id` field descending
+	options.SetSort(map[string]int{"created_at": -1})
+
+	cur, err := c.Find(ctx, filter, options)
+	if err != nil {
+		return nil, 0, false, false, err
+	}
+
+	defer cur.Close(context.TODO())
+
+	for cur.Next(context.TODO()) {
+		var post models.PostModel
+		// To decode into a struct, use cursor.Decode()
+		err := cur.Decode(&post)
+		if err != nil {
+			return nil, 0, false, false, err
+		}
+
+		postModels = append(postModels, post)
+
+	}
+	if err := cur.Err(); err != nil {
+		return nil, 0, false, false, err
+	}
+
+	return postModels, totalPages, hasNextPage, hasPrevPage, nil
 }
