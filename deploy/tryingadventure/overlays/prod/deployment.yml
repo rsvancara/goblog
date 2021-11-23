@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: tryingadventure # necessary for Kustomize identification
 spec:
-  replicas: 3
+  replicas: 2 
   strategy:
     rollingUpdate:
       maxSurge: 1
