@@ -25,11 +25,11 @@ import (
 // HomeHandler Displays the home page with list of posts
 func (ctx *HTTPHandlerContext) HomeHandler(w http.ResponseWriter, r *http.Request) {
 
-	page := 1
+	var page int64 = 1
 	var err error
 
 	// HTTP URL Parameters
-	page, err = strconv.Atoi(r.URL.Query().Get("page"))
+	page, err = strconv.ParseInt(r.URL.Query().Get("page"), 0, 64)
 	if err != nil {
 		log.Info().Msg("Page is not available")
 	}
@@ -47,7 +47,7 @@ func (ctx *HTTPHandlerContext) HomeHandler(w http.ResponseWriter, r *http.Reques
 	}
 
 	// Get List
-	posts, pageCount, hasNextPage, hasPrevPage, err := postDAO.AllPostsSortedByDatePaginated(int64(page), 10)
+	posts, pageCount, hasNextPage, hasPrevPage, err := postDAO.AllPostsSortedByDatePaginated(page, 10)
 	//posts, err := postDAO.AllPostsSortedByDate()
 	if err != nil {
 		fmt.Println(err)
@@ -90,11 +90,11 @@ func (ctx *HTTPHandlerContext) HomeHandler(w http.ResponseWriter, r *http.Reques
 // PostViewHandler View individual post
 func (ctx *HTTPHandlerContext) PostViewHandler(w http.ResponseWriter, r *http.Request) {
 
-	page := 1
+	var page int64 = 1
 	var err error
 
 	// HTTP URL Parameters
-	page, err = strconv.Atoi(r.URL.Query().Get("page"))
+	page, err = strconv.ParseInt(r.URL.Query().Get("page"), 0, 64)
 	if err != nil {
 		log.Info().Msg("Page is not available")
 	}

@@ -6,7 +6,7 @@ variables:
     ANSIBLE_HOST_KEY_CHECKING: 'false'
     ANSIBLE_FORCE_COLOR: 'true'
     ANSIBLE_PYTHON_INTERPRRTER: /usr/bin/python3
-    CI_DEBUG_TRACE: "true"
+    CI_DEBUG_TRACE: "false"
 
 test:
   script:
@@ -18,6 +18,6 @@ build:
 
 deploy:
   script:
-    - cd deploy/overlays/prod
+    - cd deploy/tryingadventure/overlays/prod
     - kustomize edit set image artifact.tryingadventure.com/goblog=artifact.tryingadventure.com/goblog:${CI_COMMIT_SHORT_SHA}  
     - kubectl apply -k . 
