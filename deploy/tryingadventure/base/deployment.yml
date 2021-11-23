@@ -137,10 +137,10 @@ spec:
         resources: 
           requests:
             memory: "256Mi"
-            cpu: "1000m"
+            cpu: "750m"
           limits:
             memory: "256Mi"
-            cpu: "1000m"
+            cpu: "750m"
         securityContext: {}
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File
