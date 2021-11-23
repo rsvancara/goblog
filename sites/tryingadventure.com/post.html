@@ -2,9 +2,18 @@
 
 {% block title  %}{{ post.Title }}{% endblock %}
 
-{% block headertitle %}<h1>{{ post.Title }}</h1>{% endblock %}
+{% block headertitle %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="/?page={{ page }}">Home</a></li>
+      <li class="breadcrumb-item active" aria-current="page">{{ post.Title }}</li>
+    </ol>
+</nav>
+<h1>{{ post.Title }}</h1>
+{% endblock %}
  
 {% block body %}
+
 
     {{ content |safe }}
 

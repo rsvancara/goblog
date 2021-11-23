@@ -38,8 +38,6 @@ func (ctx *HTTPHandlerContext) HomeHandler(w http.ResponseWriter, r *http.Reques
 		page = 1
 	}
 
-	log.Info().Msgf("page=%d", page)
-
 	sess := util.GetSession(r)
 
 	var postDAO postsdao.PostsDAO
@@ -49,7 +47,7 @@ func (ctx *HTTPHandlerContext) HomeHandler(w http.ResponseWriter, r *http.Reques
 	}
 
 	// Get List
-	posts, pageCount, hasNextPage, hasPrevPage, err := postDAO.AllPostsSortedByDatePaginated(int64(page))
+	posts, pageCount, hasNextPage, hasPrevPage, err := postDAO.AllPostsSortedByDatePaginated(int64(page), 10)
 	//posts, err := postDAO.AllPostsSortedByDate()
 	if err != nil {
 		fmt.Println(err)
@@ -69,6 +67,7 @@ func (ctx *HTTPHandlerContext) HomeHandler(w http.ResponseWriter, r *http.Reques
 		"title":       "Index",
 		"posts":       posts,
 		"pagecount":   pageCount,
+		"currentpage": page,
 		"nextpage":    page + 1,
 		"prevpage":    page - 1,
 		"hasnextpage": hasNextPage,
@@ -91,6 +90,19 @@ func (ctx *HTTPHandlerContext) HomeHandler(w http.ResponseWriter, r *http.Reques
 // PostViewHandler View individual post
 func (ctx *HTTPHandlerContext) PostViewHandler(w http.ResponseWriter, r *http.Request) {
 
+	page := 1
+	var err error
+
+	// HTTP URL Parameters
+	page, err = strconv.Atoi(r.URL.Query().Get("page"))
+	if err != nil {
+		log.Info().Msg("Page is not available")
+	}
+
+	if page == 0 {
+		page = 1
+	}
+
 	sess := util.GetSession(r)
 
 	// HTTP URL Parameters
@@ -102,7 +114,7 @@ func (ctx *HTTPHandlerContext) PostViewHandler(w http.ResponseWriter, r *http.Re
 	}
 
 	var postDAO postsdao.PostsDAO
-	err := postDAO.Initialize(ctx.dbClient, ctx.hConfig)
+	err = postDAO.Initialize(ctx.dbClient, ctx.hConfig)
 	if err != nil {
 		log.Error().Err(err).Str("service", "postdao").Msg("Error initialzing post data access object ")
 	}
@@ -128,7 +140,7 @@ func (ctx *HTTPHandlerContext) PostViewHandler(w http.ResponseWriter, r *http.Re
 
 	err = gm.Convert(md, &buf)
 	if err != nil {
-		fmt.Printf("Error rendering markdown: %s", err)
+		log.Error().Err(err).Msgf("Error rendering markdown: %s", err)
 	}
 
 	template, err := util.SiteTemplate("/post.html")
@@ -144,6 +156,7 @@ func (ctx *HTTPHandlerContext) PostViewHandler(w http.ResponseWriter, r *http.Re
 		"content": buf.String(),
 		"user":    sess.User,
 		"pagekey": util.GetPageID(r),
+		"page":    page,
 		"token":   sess.SessionToken,
 	})
 

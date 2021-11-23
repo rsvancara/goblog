@@ -227,9 +227,8 @@ func (p *PostsDAO) AllPostsSortedByDate() ([]models.PostModel, error) {
 	return postModels, nil
 }
 
-func (p *PostsDAO) AllPostsSortedByDatePaginated(page int64) ([]models.PostModel, int64, bool, bool, error) {
+func (p *PostsDAO) AllPostsSortedByDatePaginated(page int64, pageSize int64) ([]models.PostModel, int64, bool, bool, error) {
 
-	var pageSize int64 = 5
 	var skips int64 = 0
 
 	var postModels []models.PostModel
