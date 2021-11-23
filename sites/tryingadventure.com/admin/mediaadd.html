@@ -193,7 +193,7 @@ $(document).ready(function() {
                                 $('#file-list-status').append('<div class="alert alert-success" role="alert">Uploaded file:' + response['file'] + '</div>');
                             }
                         }
-                        
+
                         $('#status').html('<span>' + uploadCount + ' - files uploaded </span>')
                     }else{
                         console.log('file could not be uploaded'); 
@@ -222,7 +222,5 @@ $(document).ready(function() {
         };
     }
 }); 
-
-
 </script>
 {% endblock %}
