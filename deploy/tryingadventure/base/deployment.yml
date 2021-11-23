@@ -136,10 +136,10 @@ spec:
           timeoutSeconds: 1
         resources: 
           requests:
-            memory: "256Mi"
+            memory: "750Mi"
             cpu: "500m"
           limits:
-            memory: "256Mi"
+            memory: "750Mi"
             cpu: "500m"
         securityContext: {}
         terminationMessagePath: /dev/termination-log
