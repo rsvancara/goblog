@@ -166,8 +166,8 @@ $(document).ready(function() {
                 processData: false, 
                 dataType: 'json',
                 timeout: 120000,
-                error: function(error) {
-                    $('#file-list-status').append('<div class="alert alert-error" role="alert">File upload failed with error: ' + error + '</div>');
+                error: function(request, status, error) {
+                    $('#file-list-status').append('<div class="alert alert-danger" role="alert">File upload failed with error: ' + status + '</div>');
                 },
                 success: function(response){ 
                     if(response != 0){ 
@@ -176,7 +176,7 @@ $(document).ready(function() {
                             console.log(response)
                             uploadCount = uploadCount + 1
                             if(response['status'] == 'error') {
-                                $('#file-list-status').append('<div class="alert alert-error" role="alert">File upload for:' + response['file'] + ' failed with error: ' + response['error'] + '</div>');
+                                $('#file-list-status').append('<div class="alert alert-danger" role="alert">File upload for:' + response['file'] + ' failed with error: ' + response['error'] + '</div>');
                             }
                             else {
                                 $('#file-list-status').append('<div class="alert alert-success" role="alert">Uploaded file:' + response['file'] + '</div>');
