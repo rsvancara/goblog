@@ -11,10 +11,11 @@ import (
 )
 
 var (
-	dflBuckets = []float64{0.3, 1.0, 2.5, 5.0}
+	dflBuckets = []float64{0.1, 0.2, 0.4, 0.6, 0.8, 1.0, 2.5, 5.0}
 )
 
 const (
+	statusCode  = "http_request_status_total"
 	requestName = "http_requests_total"
 	latencyName = "http_request_duration_seconds"
 )
@@ -27,7 +28,8 @@ type Opts struct {
 
 // PrometheusMiddleware specifies the metrics that is going to be generated
 type PrometheusMiddleware struct {
-	request *prometheus.CounterVec
+	//request *prometheus.CounterVec
+	status  *prometheus.CounterVec
 	latency *prometheus.HistogramVec
 }
 
@@ -35,16 +37,27 @@ type PrometheusMiddleware struct {
 func NewPrometheusMiddleware(opts Opts) *PrometheusMiddleware {
 	var prometheusMiddleware PrometheusMiddleware
 
-	prometheusMiddleware.request = prometheus.NewCounterVec(
-		prometheus.CounterOpts{
-			Name: requestName,
-			Help: "How many HTTP requests processed, partitioned by status code, method and HTTP path.",
-		},
-		[]string{"code", "method", "path"},
-	)
+	// prometheusMiddleware.request = prometheus.NewCounterVec(
+	// 	prometheus.CounterOpts{
+	// 		Name: requestName,
+	// 		Help: "How many HTTP requests processed, partitioned by status code, method and HTTP path.",
+	// 	},
+	// 	[]string{"code", "method", "path"},
+	// )
 
-	if err := prometheus.Register(prometheusMiddleware.request); err != nil {
-		log.Println("prometheusMiddleware.request was not registered:", err)
+	// if err := prometheus.Register(prometheusMiddleware.request); err != nil {
+	// 	log.Println("prometheusMiddleware.request was not registered:", err)
+	// }
+
+	prometheusMiddleware.status = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: statusCode,
+			Help: "How many HTTP requests processed, partitioned by status code",
+		},
+		[]string{"code"},
+	)
+	if err := prometheus.Register(prometheusMiddleware.status); err != nil {
+		log.Println("prometheusMiddleware.status was not registered:", err)
 	}
 
 	buckets := opts.Buckets
@@ -57,7 +70,7 @@ func NewPrometheusMiddleware(opts Opts) *PrometheusMiddleware {
 		Help:    "How long it took to process the request, partitioned by status code, method and HTTP path.",
 		Buckets: buckets,
 	},
-		[]string{"code", "method", "path"},
+		[]string{"code", "method"},
 	)
 
 	if err := prometheus.Register(prometheusMiddleware.latency); err != nil {
@@ -82,17 +95,26 @@ func (p *PrometheusMiddleware) InstrumentHandlerDuration(next http.Handler) http
 		code := sanitizeCode(delegate.status)
 		method := sanitizeMethod(r.Method)
 
-		go p.request.WithLabelValues(
+		go p.status.WithLabelValues(
 			code,
-			method,
-			r.URL.Path,
 		).Inc()
 
+		// go p.request.WithLabelValues(
+		// 	code,
+		// 	method,
+		// 	r.URL.Path,
+		// ).Inc()
+
+		// go p.latency.WithLabelValues(
+		// 	code,
+		// 	method,
+		// 	r.URL.Path,
+		// ).Observe(float64(time.Since(begin)) / float64(time.Second))
 		go p.latency.WithLabelValues(
 			code,
 			method,
-			r.URL.Path,
-		).Observe(float64(time.Since(begin)) / float64(time.Second))
+		).Observe(time.Since(begin).Seconds())
+
 	})
 }
 
@@ -109,17 +131,27 @@ func (p *PrometheusMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Request,
 
 	code := sanitizeCode(delegate.status)
 	method := sanitizeMethod(r.Method)
-	go p.request.WithLabelValues(
+
+	go p.status.WithLabelValues(
 		code,
-		method,
-		r.URL.Path,
 	).Inc()
+
+	// go p.request.WithLabelValues(
+	// 	code,
+	// 	method,
+	// 	r.URL.Path,
+	// ).Inc()
+
+	// go p.latency.WithLabelValues(
+	// 	code,
+	// 	method,
+	// 	r.URL.Path,
+	// ).Observe(float64(time.Since(begin)) / float64(time.Second))
 
 	go p.latency.WithLabelValues(
 		code,
 		method,
-		r.URL.Path,
-	).Observe(float64(time.Since(begin)) / float64(time.Second))
+	).Observe(time.Since(begin).Seconds())
 }
 
 type responseWriterDelegator struct {

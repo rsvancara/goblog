@@ -5,12 +5,13 @@ import (
 	"context"
 	"time"
 
+	"goblog/internal/config"
+	"goblog/internal/models"
+
 	"github.com/rs/zerolog/log"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"goblog/internal/config"
-	"goblog/internal/models"
 	"gopkg.in/mgo.v2/bson"
 )
 
@@ -29,7 +30,7 @@ func (r *RequestViewDAO) Initialize(mclient *mongo.Client, config *config.AppCon
 		log.Error().Err(err).Msg("Error connecting to mongodb")
 	}
 
-	log.Info().Msg("RequestViewDao connected successfully to mongodb")
+	//log.Info().Msg("RequestViewDao connected successfully to mongodb")
 
 	r.DBClient = mclient
 	r.Config = config
@@ -73,7 +74,7 @@ func (r *RequestViewDAO) UpdateRequestView(rv *models.RequestView) error {
 
 	defer cancel()
 
-	log.Info().Msgf("Updating requestview for ptag %s", rv.PTag)
+	//log.Info().Msgf("Updating requestview for ptag %s", rv.PTag)
 
 	filter := bson.M{
 		"ptag": bson.M{

@@ -8,12 +8,13 @@ import (
 
 	"goblog/internal/models"
 
+	"goblog/internal/config"
+
 	"github.com/rs/zerolog/log"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"goblog/internal/config"
 )
 
 //MediaTagsDAO stores media data access object information
@@ -31,7 +32,7 @@ func (m *MediaTagsDAO) Initialize(mclient *mongo.Client, config *config.AppConfi
 		log.Error().Err(err).Msg("Error connecting to mongodb")
 	}
 
-	log.Info().Msg("MediaTagsDAO connected successfully to mongodb")
+	//log.Info().Msg("MediaTagsDAO connected successfully to mongodb")
 
 	m.DBClient = mclient
 	m.Config = config
@@ -281,7 +282,7 @@ func (m *MediaTagsDAO) AddTagsSearchIndex(media models.MediaModel) error {
 		//var mtm models.MediaTagsModel
 		count, err := m.Exists(v.Keyword)
 		if err != nil {
-			return fmt.Errorf("Error attempting to get record count for keyword %s with error %s", v.Keyword, err)
+			return fmt.Errorf("error attempting to get record count for keyword %s with error %s", v.Keyword, err)
 		}
 
 		log.Info().Msgf("Found %d media tag records for keyworkd %s", count, v.Keyword)
@@ -298,7 +299,7 @@ func (m *MediaTagsDAO) AddTagsSearchIndex(media models.MediaModel) error {
 			log.Info().Msgf("Inserting new tag %s into database", v.Keyword)
 			err = m.InsertMediaTags(&newMTM)
 			if err != nil {
-				return fmt.Errorf("Error inserting new media tag for keyword %s with error %s", v.Keyword, err)
+				return fmt.Errorf("error inserting new media tag for keyword %s with error %s", v.Keyword, err)
 			}
 			log.Info().Msgf("Tag %s inserted successfully", v.Keyword)
 			// If not, then we add to existing documents
@@ -306,7 +307,7 @@ func (m *MediaTagsDAO) AddTagsSearchIndex(media models.MediaModel) error {
 
 			mtm, err := m.GetMediaTagByName(v.Keyword)
 			if err != nil {
-				return fmt.Errorf("Error getting current instance of mediatag for keyword %s with error %s", v.Keyword, err)
+				return fmt.Errorf("error getting current instance of mediatag for keyword %s with error %s", v.Keyword, err)
 			}
 			log.Info().Msgf("Found existing mediatag record for %s", mtm.Name)
 			//fmt.Println(mtm.Documents)

@@ -33,7 +33,7 @@ func (p *PostsDAO) Initialize(mclient *mongo.Client, config *config.AppConfig) e
 		log.Error().Err(err).Msg("Error connecting to mongodb")
 	}
 
-	log.Info().Msg("PostsDAO connected successfully to mongodb")
+	//log.Info().Msg("PostsDAO connected successfully to mongodb")
 
 	p.DBClient = mclient
 	p.Config = config
@@ -270,7 +270,7 @@ func (p *PostsDAO) AllPostsSortedByDatePaginated(page int64, pageSize int64) ([]
 		skips = pageSize * (page - 1)
 	}
 
-	log.Info().Msgf("page size=%d skips=%d total pages=%d nextpage=%d previouspage=%d", pageSize, skips, totalPages, page+1, page-1)
+	//log.Info().Msgf("page size=%d skips=%d total pages=%d nextpage=%d previouspage=%d", pageSize, skips, totalPages, page+1, page-1)
 
 	//if page > totalPages {
 	//	return postModels, 0, nil

@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"os"
 	"strings"
+	"time"
 
 	mediadao "goblog/internal/dao/media"
 	mediatags "goblog/internal/dao/mediatags"
@@ -22,6 +23,17 @@ import (
 	"github.com/flosch/pongo2"
 	"github.com/gorilla/mux"
 	"github.com/rs/zerolog/log"
+
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
+)
+
+var (
+	eventImageRequestLatency = promauto.NewSummary(prometheus.SummaryOpts{
+		Name:       "app_imagesearch_latency_seconds",
+		Help:       "Upstream  image retrieval in seconds.",
+		Objectives: map[float64]float64{0.5: 0.05, 0.9: 0.01, 0.99: 0.001},
+	})
 )
 
 // MediaHandler HTTP Handler for View full list of media sorted by date in admin view
@@ -741,7 +753,9 @@ func (ctx *HTTPHandlerContext) GetMediaAPI(w http.ResponseWriter, r *http.Reques
 // ServerImageHandler proxy image requests through a handler to obfuscate
 // the s3 bucket location
 func (ctx *HTTPHandlerContext) ServerImageHandler(wr http.ResponseWriter, req *http.Request) {
-	//log.Println(req.RemoteAddr, " ", req.Method, " ", req.URL)
+
+	// Start time for request
+	start := time.Now()
 
 	var mediaDAO mediadao.MediaDAO
 
@@ -760,19 +774,19 @@ func (ctx *HTTPHandlerContext) ServerImageHandler(wr http.ResponseWriter, req *h
 	if val, ok := vars["slug"]; ok {
 		slug = vars["slug"]
 	} else {
-		fmt.Printf("Error getting url variable, slug: %s\n", val)
+		log.Error().Msgf("Error getting url variable, slug: %s\n", val)
 	}
 
 	// HTTP URL Parameters
 	if val, ok := vars["type"]; ok {
 		mediaType = vars["type"]
 	} else {
-		fmt.Printf("Error getting url variable, type: %s\n", val)
+		log.Error().Msgf("Error getting url variable, type: %s\n", val)
 	}
 
 	media, err := mediaDAO.GetMediaBySlug(slug)
 	if err != nil {
-		fmt.Printf("error getting media by slug: %s", err)
+		log.Error().Msgf("error getting media by slug: %s", err)
 	}
 
 	s3Path := ""
@@ -793,12 +807,12 @@ func (ctx *HTTPHandlerContext) ServerImageHandler(wr http.ResponseWriter, req *h
 	var mediaRequest http.Request
 	mediaURL, err := url.Parse("https://" + cfg.GetS3Bucket() + ".s3-us-west-2.amazonaws.com" + s3Path)
 	if err != nil {
-		log.Printf("ServeHTTP: %s", err)
+		log.Error().Err(err).Msgf("ServeHTTP: %s", err)
 	}
 
 	mediaRequest.URL = mediaURL
 
-	fmt.Printf("proxy for media slug id %s for image type %s using url %s\n", slug, mediaType, mediaURL)
+	//fmt.Printf("proxy for media slug id %s for image type %s using url %s\n", slug, mediaType, mediaURL)
 
 	// Create client
 	client := &http.Client{}
@@ -822,7 +836,7 @@ func (ctx *HTTPHandlerContext) ServerImageHandler(wr http.ResponseWriter, req *h
 
 	defer resp.Body.Close()
 
-	log.Info().Msgf("%s %s", req.RemoteAddr, resp.Status)
+	//log.Info().Msgf("%s %s", req.RemoteAddr, resp.Status)
 
 	delHopHeaders(resp.Header)
 
@@ -830,6 +844,9 @@ func (ctx *HTTPHandlerContext) ServerImageHandler(wr http.ResponseWriter, req *h
 	wr.WriteHeader(resp.StatusCode)
 	wr.Header().Set("Content-Type", "image/jpeg") // <-- set the content-type header
 	io.Copy(wr, resp.Body)
+
+	eventImageRequestLatency.Observe(time.Since(start).Seconds())
+
 }
 
 // ViewCategoryHandler View the media

@@ -2,7 +2,6 @@ package affiliatesdao
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"goblog/internal/config"
@@ -31,7 +30,7 @@ func (a *AffiliatesDAO) Initialize(mclient *mongo.Client, config *config.AppConf
 		log.Error().Err(err).Msg("Error connecting to mongodb")
 	}
 
-	log.Info().Msg("MediaDAO connected successfully to mongodb")
+	//log.Info().Msg("MediaDAO connected successfully to mongodb")
 
 	a.DBClient = mclient
 	a.Config = config
@@ -121,7 +120,7 @@ func (a *AffiliatesDAO) EditAffiliate(affiliate *models.Affiliate) error {
 		return err
 	}
 
-	fmt.Printf("updated %v record for affiliate id  %s \n", result.ModifiedCount, affiliate.AffiliateID)
+	log.Info().Msgf("updated %v record for affiliate id  %s \n", result.ModifiedCount, affiliate.AffiliateID)
 
 	return nil
 }

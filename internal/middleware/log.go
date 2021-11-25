@@ -26,7 +26,7 @@ func (mw *MiddleWareContext) MLog(next http.Handler) http.Handler {
 		method := sanitizeMethod(r.Method)
 
 		// Throw into a go routine so it does not block, but probably is alreayd in a go routine...have to check
-		go log.Info().Str("uri", r.RequestURI).Str("method", method).Str("response_time", time.Since(begin).String()).Str("status", code).Msg("")
+		go log.Info().Str("uri", r.RequestURI).Str("type", "request").Str("method", method).Str("response_time", time.Since(begin).String()).Str("status", code).Msg("")
 	})
 }
 
@@ -41,7 +41,7 @@ func (mw *MiddleWareContext) ServeHTTP(w http.ResponseWriter, r *http.Request, n
 	code := sanitizeCode(delegate.status)
 	method := sanitizeMethod(r.Method)
 
-	go log.Info().Str("uri", r.RequestURI).Str("method", method).Str("response_time", time.Since(begin).String()).Str("status", code).Msg("")
+	go log.Info().Str("uri", r.RequestURI).Str("type", "request").Str("method", method).Str("response_time", time.Since(begin).String()).Str("status", code).Msg("")
 }
 
 type responseWriterDelegator struct {

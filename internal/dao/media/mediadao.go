@@ -7,14 +7,15 @@ import (
 	"strings"
 	"time"
 
+	"goblog/internal/config"
+	"goblog/internal/models"
+
 	"github.com/gosimple/slug"
 	"github.com/rs/zerolog/log"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"goblog/internal/config"
-	"goblog/internal/models"
 )
 
 //MediaDAO stores media data access object information
@@ -37,7 +38,7 @@ func (m *MediaDAO) Initialize(mclient *mongo.Client, config *config.AppConfig) e
 		log.Error().Err(err).Msg("Error connecting to mongodb")
 	}
 
-	log.Info().Msg("MediaDAO connected successfully to mongodb")
+	//log.Info().Msg("MediaDAO connected successfully to mongodb")
 
 	m.DBClient = mclient
 	m.Config = config
@@ -110,7 +111,7 @@ func (m *MediaDAO) UpdateMedia(media models.MediaModel) error {
 		return err
 	}
 
-	fmt.Printf("updated %v record for media id  %s \n", result.ModifiedCount, media.MediaID)
+	log.Info().Msgf("updated %v record for media id  %s \n", result.ModifiedCount, media.MediaID)
 
 	return nil
 }
