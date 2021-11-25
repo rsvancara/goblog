@@ -163,7 +163,7 @@ func (ctx *HTTPHandlerContext) PutMediaAPIV2(w http.ResponseWriter, r *http.Requ
 	data["sitekey"] = "tryingadventure"
 
 	//err = r.ParseForm()
-	err := r.ParseMultipartForm(128 << 20)
+	err := r.ParseMultipartForm(90 << 20)
 	if err != nil {
 		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json")

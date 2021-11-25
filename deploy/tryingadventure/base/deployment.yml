@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: tryingadventure
-  namespace: default
+  namespace: tryingadventure
 spec:
   progressDeadlineSeconds: 600
   replicas: 2
@@ -136,10 +136,10 @@ spec:
           timeoutSeconds: 1
         resources: 
           requests:
-            memory: "750Mi"
+            memory: "1024Mi"
             cpu: "500m"
           limits:
-            memory: "750Mi"
+            memory: "1024Mi"
             cpu: "500m"
         securityContext: {}
         terminationMessagePath: /dev/termination-log
