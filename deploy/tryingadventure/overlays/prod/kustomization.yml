@@ -16,4 +16,4 @@ patchesStrategicMerge:
 images:
 - name: artifact.tryingadventure.com/goblog
   newName: artifact.tryingadventure.com/goblog
-  newTag: funkymonkey
+  newTag: 4183798c 
