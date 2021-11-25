@@ -11,7 +11,7 @@ spec:
   endpoints:
   - interval: 15s
     path: metrics
-    port: http-internal
+    port: http
   selector:
     matchLabels:
-      app: tryingadventure-internal
+      app: tryingadventure

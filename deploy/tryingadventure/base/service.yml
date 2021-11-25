@@ -3,6 +3,8 @@ kind: Service
 metadata:
   name: tryingadventure
   namespace: tryingadventure
+  labels:
+    app: tryingadventure
 spec:
   externalTrafficPolicy: Cluster
   ipFamilies:
