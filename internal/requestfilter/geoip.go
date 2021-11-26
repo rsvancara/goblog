@@ -85,6 +85,13 @@ func (g *GeoIP) GeoIPSearch(ipaddress string, config config.AppConfig) error {
 		g.IsPrivate = true
 		g.IPAddress = net.IPv6loopback
 		g.City = "Boise"
+		go eventGeoCountryCityCounter.WithLabelValues(
+			g.CountryName,
+			g.City,
+		).Inc()
+
+		go eventGeoGetLatency.Observe(time.Since(start).Seconds())
+
 		return nil
 	}
 
@@ -95,6 +102,12 @@ func (g *GeoIP) GeoIPSearch(ipaddress string, config config.AppConfig) error {
 		g.IsPrivate = true
 		g.IPAddress = net.ParseIP("127.0.0.1")
 		g.City = "Boise"
+		go eventGeoCountryCityCounter.WithLabelValues(
+			g.CountryName,
+			g.City,
+		).Inc()
+
+		go eventGeoGetLatency.Observe(time.Since(start).Seconds())
 		return nil
 	}
 
