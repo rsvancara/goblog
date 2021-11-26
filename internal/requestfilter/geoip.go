@@ -12,7 +12,27 @@ import (
 
 	"goblog/internal/config"
 
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/rs/zerolog/log"
+)
+
+var (
+	eventGeoGetLatency = promauto.NewSummary(
+		prometheus.SummaryOpts{
+			Name:       "app_geolookup_latency_seconds",
+			Help:       "GeoIP Lookup",
+			Objectives: map[float64]float64{0.5: 0.05, 0.9: 0.01, 0.99: 0.001},
+		},
+	)
+
+	eventGeoCountryCityCounter = promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "app_country_city_total",
+			Help: "requests partitioned by country city",
+		},
+		[]string{"country", "city"},
+	)
 )
 
 // GeoIP Object
@@ -93,14 +113,14 @@ func (g *GeoIP) GeoIPSearch(ipaddress string, config config.AppConfig) error {
 	if err != nil {
 		g.IsFound = false
 		log.Error().Err(err).Str("service", "GeoService").Msgf("Error querying [%s]", geoServiceURI)
-		return fmt.Errorf("Error querying [%s] with error %s", geoServiceURI, err)
+		return fmt.Errorf("error querying [%s] with error %s", geoServiceURI, err)
 	}
 
 	responseData, err := ioutil.ReadAll(response.Body)
 	if err != nil {
 		g.IsFound = false
 		log.Error().Err(err).Str("service", "GeoService").Msgf("Error getting response data from geoservice  for URI [%s]", geoServiceURI)
-		return fmt.Errorf("Error getting response data from geoservice for uri [%s] with error %s", geoServiceURI, err)
+		return fmt.Errorf("error getting response data from geoservice for uri [%s] with error %s", geoServiceURI, err)
 	}
 
 	var geoipMessage GeoIPMessage
@@ -108,36 +128,18 @@ func (g *GeoIP) GeoIPSearch(ipaddress string, config config.AppConfig) error {
 	if err != nil {
 		g.IsFound = false
 		log.Error().Err(err).Str("service", "GeoService").Msgf("Error unmarshalling responsed data for URI [%s]", geoServiceURI)
-		return fmt.Errorf("Error unmarshalling responsed data for uri [%s] with error %s", geoServiceURI, err)
+		return fmt.Errorf("error unmarshalling responsed data for uri [%s] with error %s", geoServiceURI, err)
 	}
 
-	fmt.Println(geoipMessage)
+	//fmt.Println(geoipMessage)
 
-	if geoipMessage.IsError == true {
+	if geoipMessage.IsError {
 		g.IsFound = false
 		log.Error().Err(fmt.Errorf(geoipMessage.Message)).Str("service", "GeoService").Msg("The geocode service experienced an error")
-		return fmt.Errorf("The geocode service experienced an error %s", geoipMessage.Message)
+		return fmt.Errorf("the geocode service experienced an error %s", geoipMessage.Message)
 	}
 
 	geoLoc := geoipMessage.GeoLocation
-
-	//if _, err := os.Stat("db/GeoIP2-City.mmdb"); os.IsNotExist(err) {
-	//	g.IsFound = false
-	//	return fmt.Errorf("error opening city geodatabase")
-	//}
-
-	//db, err := geoip2.Open("db/GeoIP2-City.mmdb")
-	//if err != nil {
-	//	g.IsFound = false
-	//	return fmt.Errorf("error opening city geodatabase")
-	//}
-	//defer db.Close()
-
-	//record, err := db.City(ip)
-	//if err != nil {
-	//	g.IsFound = false
-	//	return fmt.Errorf("error getting database record: %s", err)
-	//}
 
 	// Each language is represented in a map
 	g.City = geoLoc.City
@@ -159,8 +161,12 @@ func (g *GeoIP) GeoIPSearch(ipaddress string, config config.AppConfig) error {
 
 	g.ASN = strconv.Itoa(geoLoc.ASN)
 
-	elapsed := time.Since(start)
-	log.Printf("geoipa took %s \n", elapsed)
+	go eventGeoCountryCityCounter.WithLabelValues(
+		g.CountryName,
+		g.City,
+	).Inc()
+
+	go eventGeoGetLatency.Observe(time.Since(start).Seconds())
 
 	return nil
 

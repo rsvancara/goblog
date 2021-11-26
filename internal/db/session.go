@@ -59,7 +59,7 @@ func GetMongoClient(config *config.AppConfig) (*mongo.Client, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	//options := options.Client().ApplyURI(mongoURI).SetTLSConfig(tlsConfig).SetMaxPoolSize(50)
-	options := options.Client().ApplyURI(mongoURI).SetMaxPoolSize(50)
+	options := options.Client().ApplyURI(mongoURI).SetMaxPoolSize(10)
 	client, err := mongo.Connect(ctx, options)
 	if err != nil {
 		return nil, err
