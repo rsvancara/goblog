@@ -382,6 +382,8 @@ func GetRoutes(hctx *bloghandlers.HTTPHandlerContext, mwctx *mw.MiddleWareContex
 
 	ServeStatic(r, "./"+staticAssets)
 
+	r.NotFoundHandler = http.HandlerFunc(hctx.NotFoundHandler)
+
 	http.Handle("/", r)
 
 	return r

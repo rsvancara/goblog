@@ -16,8 +16,51 @@ import (
 	"goblog/internal/util"
 
 	"github.com/flosch/pongo2"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/rs/zerolog/log"
 )
+
+var (
+	event404Counter = promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "app_404_total",
+			Help: "404 requests partitioned by uri",
+		},
+		[]string{"uri"},
+	)
+)
+
+func (ctx *HTTPHandlerContext) NotFoundHandler(w http.ResponseWriter, r *http.Request) {
+
+	sess := util.GetSession(r)
+
+	template, err := util.SiteTemplate("/notfound.html")
+	if err != nil {
+		log.Error().Err(err)
+	}
+	//template := "templates/signin.html"
+	tmpl := pongo2.Must(pongo2.FromFile(template))
+
+	out, err := tmpl.Execute(pongo2.Context{
+		"title":   "Not Found",
+		"user":    sess.User,
+		"pagekey": util.GetPageID(r),
+		"token":   sess.SessionToken,
+	})
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		fmt.Printf("error loading template with error: %s\n", err)
+	}
+
+	go event404Counter.WithLabelValues(
+		r.RequestURI,
+	).Inc()
+
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprint(w, out)
+
+}
 
 // SignInHandler Sign into the application
 func (ctx *HTTPHandlerContext) SignInHandler(w http.ResponseWriter, r *http.Request) {
