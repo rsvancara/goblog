@@ -93,7 +93,7 @@ func main() {
 	r.Handle("/metrics", promhttp.Handler())
 	r.Use(middleware.InstrumentHandlerDuration)
 
-	flog.Info().Msg("Now happily serving requests")
+	log.Info().Msg("Now happily serving requests")
 
 	srv := &http.Server{
 		Handler: r,
