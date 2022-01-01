@@ -2,6 +2,7 @@
 package handlers
 
 import (
+	"goblog/internal/cache"
 	"goblog/internal/config"
 
 	"go.mongodb.org/mongo-driver/mongo"
@@ -18,13 +19,14 @@ type PongoTemplate struct {
 //
 // SEE: https://drstearns.github.io/tutorials/gohandlerctx/
 type HTTPHandlerContext struct {
-	hConfig  *config.AppConfig
-	dbClient *mongo.Client
+	hConfig   *config.AppConfig
+	dbClient  *mongo.Client
+	cachePool *cache.CachePool
 }
 
 //CTXHandlerContext constructs a new HandlerContext,
 //ensuring that the dependencies are valid values
-func CTXHandlerContext(config *config.AppConfig, dbclient *mongo.Client) *HTTPHandlerContext {
+func CTXHandlerContext(config *config.AppConfig, dbclient *mongo.Client, cachepool *cache.CachePool) *HTTPHandlerContext {
 
-	return &HTTPHandlerContext{config, dbclient}
+	return &HTTPHandlerContext{config, dbclient, cachepool}
 }
