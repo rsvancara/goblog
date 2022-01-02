@@ -24,7 +24,7 @@ func (ctx *HTTPHandlerContext) SearchIndexListHandler(w http.ResponseWriter, r *
 	sess := util.GetSession(r)
 
 	var sessions []session.Session
-	sessions, err := session.GetAllSessions(*ctx.cachePool, *ctx.hConfig)
+	sessions, err := session.GetAllSessions()
 	if err != nil {
 		log.Error().Err(err)
 	}
@@ -75,7 +75,7 @@ func (ctx *HTTPHandlerContext) SearchIndexBuildTagsHandler(w http.ResponseWriter
 	sess := util.GetSession(r)
 
 	var sessions []session.Session
-	sessions, err := session.GetAllSessions(*ctx.cachePool, *ctx.hConfig)
+	sessions, err := session.GetAllSessions()
 	if err != nil {
 		log.Error().Err(err)
 	}

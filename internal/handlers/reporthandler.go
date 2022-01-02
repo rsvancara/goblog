@@ -20,7 +20,7 @@ func (ctx *HTTPHandlerContext) SessionReportHandler(w http.ResponseWriter, r *ht
 	sess := util.GetSession(r)
 
 	var sessions []session.Session
-	sessions, err := session.GetAllSessions(*ctx.cachePool, *ctx.hConfig)
+	sessions, err := session.GetAllSessions()
 	if err != nil {
 		log.Error().Err(err)
 	}
@@ -114,7 +114,7 @@ func (ctx *HTTPHandlerContext) SessionDeleteHandler(w http.ResponseWriter, r *ht
 		return
 	}
 
-	err := session.DeleteSession(vars["id"], *ctx.cachePool, *ctx.hConfig)
+	err := session.DeleteSession(vars["id"])
 	if err != nil {
 		fmt.Printf("error deleting session %s\n", err)
 	}

@@ -12,9 +12,6 @@ func (mw *MiddleWareContext) AuthHandlerMiddleware(h http.Handler) http.Handler 
 
 		var sess session.Session
 
-		// Initialize session
-		sess.Init(*mw.hConfig, mw.cachePool)
-
 		err := sess.Session(r, w)
 
 		if err != nil {

@@ -19,8 +19,6 @@ import (
 
 	"goblog/internal/metrics"
 
-	"goblog/internal/cache"
-
 	"goblog/internal/middleware"
 
 	"goblog/internal/routes"
@@ -84,15 +82,9 @@ func main() {
 	fmt.Printf("Database URI: %s\n", cfg.Dburi)
 	fmt.Printf("Cache URI: %s\n", cfg.Cacheuri)
 
-	var cpool cache.CachePool
-	err = cpool.Init()
-	if err != nil {
-		log.Fatal().Err(err).Msg("Error getting redis cache client")
-	}
-
 	log.Info().Str("service", "main").Msgf("Populating configuration and mongo client into context")
-	hctx := handlers.CTXHandlerContext(&cfg, dbclient, &cpool)
-	mwctx := middleware.CTXMiddlewareContext(&cfg, dbclient, &cpool)
+	hctx := handlers.CTXHandlerContext(&cfg, dbclient)
+	mwctx := middleware.CTXMiddlewareContext(&cfg, dbclient)
 
 	middleware := metrics.NewPrometheusMiddleware(metrics.Opts{})
 

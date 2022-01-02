@@ -16,6 +16,11 @@ import (
 	uuid "github.com/satori/go.uuid"
 )
 
+var users = map[string]string{
+	"user1": "password1",
+	"user2": "password2",
+}
+
 // Credentials Create a struct that models the structure of a user, both in the request body, and in the DB
 type Credentials struct {
 	Password string `json:"password"`
@@ -51,7 +56,7 @@ func (u *User) setItem(key string, value string) {
 			break
 		}
 	}
-	if found {
+	if found == false {
 		u.Items = append(u.Items, Item{key, value})
 	}
 }
@@ -71,36 +76,20 @@ type Session struct {
 	IsAuth       bool
 	User         User
 	TTL          int
-	cachepool    *cache.CachePool
-	cfg          config.AppConfig
-}
-
-// Initialize session struct
-func (s *Session) Init(cfg config.AppConfig, cachepool *cache.CachePool) {
-	s.cfg = cfg
-	s.cachepool = cachepool
 }
 
 // Get Get the session key value for provided key
 func (s *Session) Get(key string) error {
-
-	cache := s.cachepool.Pool.Get()
-	_, err := cache.Do("SELECT", s.cfg.RedisDB)
+	cache, err := cache.GetRedisConn()
 	if err != nil {
-		return fmt.Errorf("error connecting to redis: %s", err)
+		return fmt.Errorf("error connecting to redis during session creation: %s", err)
 	}
 	defer cache.Close()
-
-	//cache, err := cache.GetRedisConn()
-	//if err != nil {
-	//	return fmt.Errorf("error connecting to redis during session creation: %s", err)
-	//}
-	//defer cache.Close()
 
 	// We then get the name of the user from our cache, where we set the session token
 	response, err := redis.String(cache.Do("GET", key))
 	if err != nil {
-		return fmt.Errorf("error retrieving user object from redis: %s", err)
+		return fmt.Errorf("Error retrieving user object from redis: %s", err)
 	}
 
 	user := &User{}
@@ -126,6 +115,11 @@ func (s *Session) Get(key string) error {
 // Authenticate Authenticate a user
 func (s *Session) Authenticate(creds Credentials, r *http.Request, w http.ResponseWriter) (bool, error) {
 
+	cfg, err := config.GetConfig()
+	if err != nil {
+		fmt.Printf("error getting configuration: %s", err)
+	}
+
 	// Get the existing cookie
 	c, err := r.Cookie("session_token")
 	if err != nil {
@@ -142,13 +136,22 @@ func (s *Session) Authenticate(creds Credentials, r *http.Request, w http.Respon
 	//	return false, nil
 	//}
 
-	if creds.Username != s.cfg.GetAdminUser() || creds.Password != s.cfg.GetAdminPassword() {
+	if creds.Username != cfg.GetAdminUser() || creds.Password != cfg.GetAdminPassword() {
 		return false, nil
 	}
 
-	cache := s.cachepool.Pool.Get()
-	cache.Do("SELECT", s.cfg.RedisDB)
+	// Connect to Redis and get our user object
+	cache, err := cache.GetRedisConn()
 	defer cache.Close()
+	if err != nil {
+		// Expire the cookie
+		return false, fmt.Errorf("error getting cache object for session %s with error  %s", c.Value, err)
+	}
+
+	// We should get a cache object, the above code should ensure this
+	if cache == nil {
+		return false, fmt.Errorf("Error getting cache object, empty object returned")
+	}
 
 	// get the name of the user from cache, where the session token exists
 	response, err := redis.String(cache.Do("GET", s.SessionToken))
@@ -156,7 +159,7 @@ func (s *Session) Authenticate(creds Credentials, r *http.Request, w http.Respon
 		c.Expires = time.Now().Add(-1)
 		http.SetCookie(w, c)
 		// If there is an error fetching from cache, return an internal server error status
-		return false, fmt.Errorf("error? No Response from Cache: %s", err)
+		return false, fmt.Errorf("Error? No Response from Cache: %s", err)
 	}
 
 	// Unmarshal the user object from Redis
@@ -164,7 +167,7 @@ func (s *Session) Authenticate(creds Credentials, r *http.Request, w http.Respon
 	err = json.Unmarshal([]byte(response), user)
 	if err != nil {
 		// If there is an error fetching from cache, return an internal server error status
-		return false, fmt.Errorf("error decoding json object: %s", err)
+		return false, fmt.Errorf("Error decoding json object: %s", err)
 	}
 
 	// Update the user object
@@ -177,7 +180,8 @@ func (s *Session) Authenticate(creds Credentials, r *http.Request, w http.Respon
 	//var geoIP requestfilter.GeoIP
 	// CtxKey Context Key
 	type contextKey string
-	var ctxKey contextKey = "geoip"
+	var ctxKey contextKey
+	ctxKey = "geoip"
 
 	if result := r.Context().Value(ctxKey); result != nil {
 
@@ -207,14 +211,14 @@ func (s *Session) Authenticate(creds Credentials, r *http.Request, w http.Respon
 	// Remove existing session
 	_, err = cache.Do("DEL", s.SessionToken)
 	if err != nil {
-		return false, fmt.Errorf("error removing session in redis: %s", err)
+		return false, fmt.Errorf("Error removing session in redis: %s", err)
 	}
 
 	// Set/Replace the token in the cache, along with t he user whom it represents
 	// The token has an expiry time of 120 seconds
-	_, err = cache.Do("SETEX", s.SessionToken, s.cfg.GetIntegerSessionTimeout(), string(byteResult))
+	_, err = cache.Do("SETEX", s.SessionToken, cfg.GetIntegerSessionTimeout(), string(byteResult))
 	if err != nil {
-		return false, fmt.Errorf("error saving session to redis: %s", err)
+		return false, fmt.Errorf("Error saving session to redis: %s", err)
 	}
 
 	// Update the cookie with the same exipiration so they are synchronized
@@ -222,7 +226,7 @@ func (s *Session) Authenticate(creds Credentials, r *http.Request, w http.Respon
 		Name:    "session_token",
 		Value:   c.Value,
 		Path:    "/",
-		Expires: time.Now().Add(s.cfg.GetDurationTimeout()),
+		Expires: time.Now().Add(cfg.GetDurationTimeout()),
 	})
 
 	return true, nil
@@ -231,40 +235,46 @@ func (s *Session) Authenticate(creds Credentials, r *http.Request, w http.Respon
 // SetValue get the session value for provided key
 func (s *Session) SetValue(key string, value string) error {
 	if s.SessionToken == "" {
-		return fmt.Errorf("please use Session.Session() method to instantiate the session object")
+		return fmt.Errorf("Please use Session.Session() method to instantiate the session object")
 	}
 
-	cache := s.cachepool.Pool.Get()
-	_, err := cache.Do("SELECT", s.cfg.RedisDB)
+	cache, err := cache.GetRedisConn()
 	if err != nil {
-		return fmt.Errorf("error connecting to redis: %s", err)
+		return fmt.Errorf("Error connecting to redis while trying to set value for key %s with error %s", key, err)
 	}
+
 	defer cache.Close()
+
+	if err != nil {
+		return fmt.Errorf("Error connecting to redis: %s", err)
+	}
+
+	if cache == nil {
+
+		return fmt.Errorf("Error connecting to redis, empty connection object returned")
+	}
 
 	// We then get the name of the user from our cache, where we set the session token
 	response, err := redis.String(cache.Do("GET", s.SessionToken))
 
 	if err != nil {
-		return fmt.Errorf("error retrieving user object from redis: %s", err)
+		return fmt.Errorf("Error retrieving user object from redis: %s", err)
 	}
 
 	user := &User{}
 
 	err = json.Unmarshal([]byte(response), user)
-	if err != nil {
-		return fmt.Errorf("error unmarshalling json result in session response: %s", err)
-	}
 
 	user.setItem(key, value)
 
 	byteUser, err := json.Marshal(user)
 	if err != nil {
-		return fmt.Errorf("error marshing user object to byte array json: %s", err)
+		return fmt.Errorf("Error marshing user object to byte array json: %s", err)
 	}
 
-	_, err = redis.String(cache.Do("SET", s.SessionToken, string(byteUser)))
+	response, err = redis.String(cache.Do("SET", s.SessionToken, string(byteUser)))
 	if err != nil {
-		return fmt.Errorf("error storing object in redis: %s", err)
+		return fmt.Errorf("Error storing object in redis: %s", err)
 	}
 
 	return nil
@@ -273,27 +283,30 @@ func (s *Session) SetValue(key string, value string) error {
 // GetValue get the session value for provided key
 func (s *Session) GetValue(key string) (string, error) {
 	if s.SessionToken == "" {
-		return "", fmt.Errorf("please use Session.Session() method to instantiate the session object")
+		return "", fmt.Errorf("Please use Session.Session() method to instantiate the session object")
 	}
 
-	cache := s.cachepool.Pool.Get()
-	_, err := cache.Do("SELECT", s.cfg.RedisDB)
-	if err != nil {
-		return "", fmt.Errorf("error connecting to redis: %s", err)
-	}
+	cache, err := cache.GetRedisConn()
 	defer cache.Close()
+	if err != nil {
+		return "", fmt.Errorf("Error connecting to redis while trying to get value for key %s with error %s", key, err)
+	}
+
+	if cache == nil {
+		return "", fmt.Errorf("Error connecting to redis, empty connection object returned")
+	}
 
 	// We then get the name of the user from our cache, where we set the session token
 	response, err := redis.String(cache.Do("GET", s.SessionToken))
 	if err != nil {
-		return "", fmt.Errorf("error retrieving user object from redis: %s", err)
+		return "", fmt.Errorf("Error retrieving user object from redis: %s", err)
 	}
 
 	user := &User{}
 
 	err = json.Unmarshal([]byte(response), user)
 	if err != nil {
-		return "", fmt.Errorf("error reading json object from redis: %s", err)
+		return "", fmt.Errorf("Error reading json object from redis: %s", err)
 	}
 
 	val := user.getItem(key)
@@ -303,6 +316,12 @@ func (s *Session) GetValue(key string) (string, error) {
 
 // Session Session Test if user isauthenticated
 func (s *Session) Session(r *http.Request, w http.ResponseWriter) error {
+
+	cfg, err := config.GetConfig()
+	if err != nil {
+		fmt.Printf("error getting configuration: %s", err)
+		return err
+	}
 
 	// We can obtain the session token from the requests cookies, which come with every request
 	// This code ensures a session token is always created
@@ -317,14 +336,17 @@ func (s *Session) Session(r *http.Request, w http.ResponseWriter) error {
 	newCookie.Name = "session_token"
 	newCookie.Value = s.SessionToken
 	newCookie.Path = "/"
-	newCookie.Expires = time.Now().Add(s.cfg.GetDurationTimeout())
+	newCookie.Expires = time.Now().Add(cfg.GetDurationTimeout())
 
-	cache := s.cachepool.Pool.Get()
-	_, err := cache.Do("SELECT", s.cfg.RedisDB)
+	cache, err := cache.GetRedisConn()
 	if err != nil {
-		return fmt.Errorf("error connecting to redis: %s", err)
+		return fmt.Errorf("error creating a redis session object for %s with error: %s", s.SessionToken, err)
 	}
 	defer cache.Close()
+
+	if cache == nil {
+		return fmt.Errorf("redis connection is nil for session token %s", s.SessionToken)
+	}
 
 	// Default there is no cookie error
 
@@ -350,7 +372,8 @@ func (s *Session) Session(r *http.Request, w http.ResponseWriter) error {
 			// where this can be pulled from the context, but most likely you can not.  Maybe
 			// we do not use the context route, since sessions come first...
 			type contextKey string
-			var ctxKey contextKey = "geoip"
+			var ctxKey contextKey
+			ctxKey = "geoip"
 
 			if result := r.Context().Value(ctxKey); result != nil {
 				geoIP, ok := result.(requestfilter.GeoIP)
@@ -367,7 +390,7 @@ func (s *Session) Session(r *http.Request, w http.ResponseWriter) error {
 			} else {
 				fmt.Printf("Could not find ctxkey geoip during session %s, performing manual lookup\n", s.SessionToken)
 				ipaddress, _ := requestfilter.GetIPAddress(r)
-				err := geoIP.GeoIPSearch(ipaddress, s.cfg)
+				err := geoIP.GeoIPSearch(ipaddress, cfg)
 				if err != nil {
 					log.Error().Err(err).Msgf("GeoIP Address search error: %s", ipaddress)
 
@@ -387,7 +410,7 @@ func (s *Session) Session(r *http.Request, w http.ResponseWriter) error {
 			//fmt.Println(s)
 
 			// Set the new cookie
-			//fmt.Printf("Setting Cookie with id: %s\n", newCookie.Value)
+			fmt.Printf("Setting Cookie with id: %s\n", newCookie.Value)
 			http.SetCookie(w, &newCookie)
 
 			// Create the Redis Object which holds the session variables
@@ -397,7 +420,7 @@ func (s *Session) Session(r *http.Request, w http.ResponseWriter) error {
 			// Convert object to JSON
 			byteResult, err := json.Marshal(s.User)
 			if err != nil {
-				log.Info().Msgf("error marshaling json object %s\n", err)
+				fmt.Printf("Error marshaling json object %s\n", err)
 				return err
 			}
 
@@ -405,9 +428,9 @@ func (s *Session) Session(r *http.Request, w http.ResponseWriter) error {
 			//fmt.Printf("Session Timeout %s is now %d\n", cfg.SessionTimeout, cfg.GetIntegerSessionTimeout())
 			// Set the token in the cache, along with the user whom it represents
 			// The token has an expiry time of 120 seconds
-			_, err = cache.Do("SETEX", s.SessionToken, s.cfg.GetIntegerSessionTimeout(), string(byteResult))
+			_, err = cache.Do("SETEX", s.SessionToken, cfg.GetIntegerSessionTimeout(), string(byteResult))
 			if err != nil {
-				return fmt.Errorf("error saving session to redis: %s", err)
+				return fmt.Errorf("Error saving session to redis: %s", err)
 			}
 
 			// Since we have an error We need to flag the creation of a new cookie
@@ -417,7 +440,7 @@ func (s *Session) Session(r *http.Request, w http.ResponseWriter) error {
 	}
 
 	// Create the new cookie because of the error above
-	if isCookieError {
+	if isCookieError == true {
 		c = &newCookie
 	}
 
@@ -428,7 +451,7 @@ func (s *Session) Session(r *http.Request, w http.ResponseWriter) error {
 	response, err := redis.String(cache.Do("GET", s.SessionToken))
 	if err != nil {
 		// If there is an error fetching from cache, return an internal server error status
-		return fmt.Errorf("error? No Response from Cache: %s", err)
+		return fmt.Errorf("Error? No Response from Cache: %s", err)
 	}
 
 	// Unmarshal the user object from Redis
@@ -436,7 +459,7 @@ func (s *Session) Session(r *http.Request, w http.ResponseWriter) error {
 	err = json.Unmarshal([]byte(response), user)
 	if err != nil {
 		// If there is an error fetching from cache, return an internal server error status
-		return fmt.Errorf("error decoding json object: %s", err)
+		return fmt.Errorf("Error decoding json object: %s", err)
 	}
 
 	//fmt.Printf("got user object from session %s\n", user.Username)
@@ -449,11 +472,11 @@ func (s *Session) Session(r *http.Request, w http.ResponseWriter) error {
 }
 
 // GetAllSessions get all the sessions stored in Redis
-func GetAllSessions(cache cache.CachePool, cfg config.AppConfig) ([]Session, error) {
+func GetAllSessions() ([]Session, error) {
 
 	var sessions []Session
 
-	keys, err := getKeys("*", cache, cfg)
+	keys, err := getKeys("*")
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -474,15 +497,14 @@ func GetAllSessions(cache cache.CachePool, cfg config.AppConfig) ([]Session, err
 }
 
 // getKey internal method for getting keys for a supplied pattern, like "*"
-func getKeys(pattern string, cachepool cache.CachePool, cfg config.AppConfig) ([]string, error) {
+func getKeys(pattern string) ([]string, error) {
 
-	cache := cachepool.Pool.Get()
-	_, err := cache.Do("SELECT", cfg.RedisDB)
-	if err != nil {
-		log.Error().Err(err).Msgf("error connecting to redis: %s", err)
-		return nil, err
-	}
+	// Connect to Redis and get our user object
+	cache, err := cache.GetRedisConn()
 	defer cache.Close()
+	if err != nil {
+		return nil, fmt.Errorf("Error getting cache object, empty object returned: %s", err)
+	}
 
 	iter := 0
 	keys := []string{}
@@ -506,18 +528,14 @@ func getKeys(pattern string, cachepool cache.CachePool, cfg config.AppConfig) ([
 }
 
 // DeleteSession deletes a redis session
-func DeleteSession(id string, cachepool cache.CachePool, cfg config.AppConfig) error {
+func DeleteSession(id string) error {
 
-	cache := cachepool.Pool.Get()
-	_, err := cache.Do("SELECT", cfg.RedisDB)
-	if err != nil {
-		return fmt.Errorf("error connecting to redis: %s", err)
-	}
-	defer cache.Close()
+	cache, err := cache.GetRedisConn()
+	fmt.Printf("deleting redis key %s\n", id)
 
 	_, err = cache.Do("DEL", id)
 	if err != nil {
-		return fmt.Errorf("error deleting session key %s in redis: %s", id, err)
+		return fmt.Errorf("Error deleting session key %s in redis: %s", id, err)
 	}
 
 	return nil
