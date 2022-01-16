@@ -35,8 +35,7 @@ func GetRoutes(hctx *bloghandlers.HTTPHandlerContext, mwctx *mw.MiddleWareContex
 	// Health check page
 	r.Handle(
 		"/healthcheck957873",
-		mwctx.MLog(
-			http.HandlerFunc(hctx.HealthCheckHandler))).Methods("GET")
+		http.HandlerFunc(hctx.HealthCheckHandler)).Methods("GET")
 
 	// Sitemap used by search engines
 	r.Handle(
