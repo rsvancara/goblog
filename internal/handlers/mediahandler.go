@@ -17,7 +17,7 @@ import (
 	"goblog/internal/models"
 	"goblog/internal/requestfilter"
 	simplestorageservice "goblog/internal/s3"
-	"goblog/internal/session"
+	"goblog/internal/sessionmanager"
 	"goblog/internal/util"
 
 	"github.com/flosch/pongo2"
@@ -136,8 +136,8 @@ func (ctx *HTTPHandlerContext) ViewMediaHandler(w http.ResponseWriter, r *http.R
 
 // MediaAddHandler HTTP Handler to view admin add media page
 func (ctx *HTTPHandlerContext) MediaAddHandler(w http.ResponseWriter, r *http.Request) {
-	var sess session.Session
-	err := sess.Session(r, w)
+	var sess sessionmanager.Session
+	err := sess.Session(*ctx.cache, ctx.hConfig.RedisDB, r, w)
 	if err != nil {
 		log.Printf("Session not available %s", err)
 	}

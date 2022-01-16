@@ -11,6 +11,7 @@ import (
 	"os/signal"
 	"time"
 
+	"goblog/internal/cache"
 	"goblog/internal/config"
 
 	"goblog/internal/db"
@@ -60,6 +61,14 @@ func main() {
 	log.Info().Msgf("ADMIN_USER:%s", cfg.GetAdminUser())
 	log.Info().Msgf("S3_BUCKET:%s", cfg.GetS3Bucket())
 
+	log.Info().Str("service", "main").Msg("Loading Redis Cache")
+	var cache cache.Cache
+
+	err = cache.InitPool(cfg)
+	if err != nil {
+		log.Error().Err(err).Msg("Error initializing pool")
+	}
+
 	log.Info().Str("service", "main").Msgf("Loading mongo client")
 	dbclient, err := db.GetMongoClient(&cfg)
 	if err != nil {
@@ -83,8 +92,8 @@ func main() {
 	fmt.Printf("Cache URI: %s\n", cfg.Cacheuri)
 
 	log.Info().Str("service", "main").Msgf("Populating configuration and mongo client into context")
-	hctx := handlers.CTXHandlerContext(&cfg, dbclient)
-	mwctx := middleware.CTXMiddlewareContext(&cfg, dbclient)
+	hctx := handlers.CTXHandlerContext(&cfg, dbclient, &cache)
+	mwctx := middleware.CTXMiddlewareContext(&cfg, dbclient, &cache)
 
 	middleware := metrics.NewPrometheusMiddleware(metrics.Opts{})
 

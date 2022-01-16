@@ -9,7 +9,7 @@ import (
 	mediadao "goblog/internal/dao/media"
 	mediatagsdao "goblog/internal/dao/mediatags"
 	"goblog/internal/models"
-	"goblog/internal/session"
+	"goblog/internal/sessionmanager"
 	"goblog/internal/util"
 
 	"github.com/rs/zerolog/log"
@@ -23,8 +23,8 @@ func (ctx *HTTPHandlerContext) SearchIndexListHandler(w http.ResponseWriter, r *
 
 	sess := util.GetSession(r)
 
-	var sessions []session.Session
-	sessions, err := session.GetAllSessions()
+	var sessions []sessionmanager.Session
+	sessions, err := sessionmanager.GetAllSessions(*ctx.cache, ctx.hConfig.RedisDB, "*")
 	if err != nil {
 		log.Error().Err(err)
 	}
@@ -74,8 +74,8 @@ func (ctx *HTTPHandlerContext) SearchIndexBuildTagsHandler(w http.ResponseWriter
 
 	sess := util.GetSession(r)
 
-	var sessions []session.Session
-	sessions, err := session.GetAllSessions()
+	var sessions []sessionmanager.Session
+	sessions, err := sessionmanager.GetAllSessions(*ctx.cache, ctx.hConfig.RedisDB, "*")
 	if err != nil {
 		log.Error().Err(err)
 	}

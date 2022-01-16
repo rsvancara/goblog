@@ -4,16 +4,17 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/rs/zerolog/log"
-	"goblog/internal/session"
+	"goblog/internal/sessionmanager"
 	"goblog/internal/util"
+
+	"github.com/rs/zerolog/log"
 )
 
 // SessionMiddleware manage session objects
 func (mw *MiddleWareContext) SessionMiddleware(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		var sess session.Session
-		err := sess.Session(r, w)
+		var sess sessionmanager.Session
+		err := sess.Session(*mw.cache, mw.hConfig.RedisDB, r, w)
 		if err != nil {
 			log.Error().Err(err).Str("service", "session").Msg("Error creating session in session middleware")
 		}

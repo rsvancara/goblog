@@ -5,7 +5,8 @@ import (
 	"net/http"
 
 	requestviewdao "goblog/internal/dao/requestview"
-	"goblog/internal/session"
+	"goblog/internal/sessionmanager"
+
 	"goblog/internal/util"
 
 	"github.com/rs/zerolog/log"
@@ -19,8 +20,8 @@ func (ctx *HTTPHandlerContext) SessionReportHandler(w http.ResponseWriter, r *ht
 
 	sess := util.GetSession(r)
 
-	var sessions []session.Session
-	sessions, err := session.GetAllSessions()
+	var sessions []sessionmanager.Session
+	sessions, err := sessionmanager.GetAllSessions(*ctx.cache, ctx.hConfig.RedisDB, "*")
 	if err != nil {
 		log.Error().Err(err)
 	}
@@ -114,7 +115,7 @@ func (ctx *HTTPHandlerContext) SessionDeleteHandler(w http.ResponseWriter, r *ht
 		return
 	}
 
-	err := session.DeleteSession(vars["id"])
+	err := sessionmanager.DeleteSession(*ctx.cache, ctx.hConfig.RedisDB, vars["id"])
 	if err != nil {
 		fmt.Printf("error deleting session %s\n", err)
 	}

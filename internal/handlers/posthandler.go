@@ -9,7 +9,7 @@ import (
 	mediadao "goblog/internal/dao/media"
 	postsdao "goblog/internal/dao/posts"
 	"goblog/internal/models"
-	"goblog/internal/session"
+	"goblog/internal/sessionmanager"
 	"goblog/internal/util"
 
 	"github.com/rs/zerolog/log"
@@ -378,8 +378,8 @@ func (ctx *HTTPHandlerContext) PostEditHandler(w http.ResponseWriter, r *http.Re
 func (ctx *HTTPHandlerContext) PostAdminViewHandler(w http.ResponseWriter, r *http.Request) {
 
 	//http Session
-	var sess session.Session
-	err := sess.Session(r, w)
+	var sess sessionmanager.Session
+	err := sess.Session(*ctx.cache, ctx.hConfig.RedisDB, r, w)
 	if err != nil {
 		log.Error().Err(err).Str("service", "session").Msg("Session not available")
 	}
@@ -468,8 +468,8 @@ func (ctx *HTTPHandlerContext) PostAddHandler(w http.ResponseWriter, r *http.Req
 	postKeywordsMessageError := false
 
 	// HTTP Session
-	var sess session.Session
-	err := sess.Session(r, w)
+	var sess sessionmanager.Session
+	err := sess.Session(*ctx.cache, ctx.hConfig.RedisDB, r, w)
 	if err != nil {
 		log.Error().Err(err).Str("service", "session").Msg("Session not available")
 	}

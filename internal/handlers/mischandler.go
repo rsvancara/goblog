@@ -12,7 +12,7 @@ import (
 	postsdao "goblog/internal/dao/posts"
 	requestviewdao "goblog/internal/dao/requestview"
 	"goblog/internal/models"
-	"goblog/internal/session"
+	"goblog/internal/sessionmanager"
 	"goblog/internal/util"
 
 	"github.com/flosch/pongo2"
@@ -34,7 +34,7 @@ var (
 func (ctx *HTTPHandlerContext) NotFoundHandler(w http.ResponseWriter, r *http.Request) {
 
 	sess := util.GetSession(r)
-
+	//fmt.Println("Could not find page")
 	template, err := util.SiteTemplate("/notfound.html")
 	if err != nil {
 		log.Error().Err(err)
@@ -75,7 +75,7 @@ func (ctx *HTTPHandlerContext) SignInHandler(w http.ResponseWriter, r *http.Requ
 			return
 		}
 
-		var creds session.Credentials
+		var creds sessionmanager.Credentials
 		creds.Username = r.FormValue("username")
 		creds.Password = r.FormValue("password")
 
@@ -85,7 +85,7 @@ func (ctx *HTTPHandlerContext) SignInHandler(w http.ResponseWriter, r *http.Requ
 			return
 		}
 
-		isAuth, err := sess.Authenticate(creds, r, w)
+		isAuth, err := sess.Authenticate(*ctx.cache, ctx.hConfig.RedisDB, creds, r, w)
 		if err != nil {
 			//http.Error(w, err.Error(), http.StatusInternalServerError)
 			log.Error().Err(err).Str("service", "authentication").Msgf("Error authenticating user %s", creds.Username)
@@ -130,10 +130,10 @@ func (ctx *HTTPHandlerContext) AdminHomeHandler(w http.ResponseWriter, r *http.R
 
 	sess := util.GetSession(r)
 
-	geoIP, err := util.GeoIPContext(r)
-	if err != nil {
-		fmt.Printf("error obtaining geoip context: %s", err)
-	}
+	//geoIP, err := util.GeoIPContext(r)
+	//if err != nil {
+	//	fmt.Printf("error obtaining geoip context: %s", err)
+	//}
 
 	template, err := util.SiteTemplate("/admin/admin.html")
 	if err != nil {
@@ -147,8 +147,8 @@ func (ctx *HTTPHandlerContext) AdminHomeHandler(w http.ResponseWriter, r *http.R
 		"title":    "Index",
 		"greating": "Hello",
 		"user":     sess.User,
-		"pagekey":  geoIP.PageID,
-		"token":    sess.SessionToken,
+		//"pagekey":  geoIP.PageID,
+		"token": sess.SessionToken,
 	})
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -194,8 +194,8 @@ func (ctx *HTTPHandlerContext) HealthCheckHandler(w http.ResponseWriter, r *http
 
 // ContactHandler defines a healthcheck
 func (ctx *HTTPHandlerContext) ContactHandler(w http.ResponseWriter, r *http.Request) {
-	var sess session.Session
-	err := sess.Session(r, w)
+	var sess sessionmanager.Session
+	err := sess.Session(*ctx.cache, ctx.hConfig.RedisDB, r, w)
 	if err != nil {
 		fmt.Printf("Session not available %s", err)
 	}

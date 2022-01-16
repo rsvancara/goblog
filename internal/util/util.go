@@ -3,14 +3,16 @@ package util
 import (
 	"bytes"
 	"fmt"
+	"goblog/internal/config"
+	"goblog/internal/requestfilter"
+	"goblog/internal/sessionmanager"
+	"io"
+	"mime/multipart"
 	"net/http"
 	"os"
 	"path/filepath"
-        "io"
-        "mime/multipart"        
-	"goblog/internal/config"
-	"goblog/internal/requestfilter"
-	"goblog/internal/session"
+
+	"github.com/rs/zerolog/log"
 )
 
 // CtxKey Context Key
@@ -73,23 +75,22 @@ func GeoIPContext(r *http.Request) (requestfilter.GeoIP, error) {
 		// Type Assertion....
 		geoIP, ok := result.(requestfilter.GeoIP)
 		if !ok {
-			return geoIP, fmt.Errorf("could not perform type assertion on result to GeoIP type for ctxKey %s", ctxKey)
+			return geoIP, fmt.Errorf("could not perform type assertion on result to GeoIP type for ctxKey %s on page %s", ctxKey, r.RequestURI)
 		}
 
 		return geoIP, nil
 
 	}
 
-	return geoIP, fmt.Errorf("unable to find context for geoip %s", ctxKey)
+	return geoIP, fmt.Errorf("unable to find context for geoip %s on page %s", ctxKey, r.RequestURI)
 }
 
 //SessionContext get the session object
-func SessionContext(r *http.Request) (session.Session, error) {
+func SessionContext(r *http.Request) (sessionmanager.Session, error) {
 
-	var sess session.Session
+	var sess sessionmanager.Session
 
 	// Attempt to extract additional information from a context
-	//var geoIP requestfilter.GeoIP
 	var ctxKey CtxKey
 	ctxKey = "session"
 
@@ -98,7 +99,7 @@ func SessionContext(r *http.Request) (session.Session, error) {
 		//fmt.Println("Found context")
 		//fmt.Println(result)
 		// Type Assertion....
-		sess, ok := result.(session.Session)
+		sess, ok := result.(sessionmanager.Session)
 		if !ok {
 			return sess, fmt.Errorf("could not perform type assertion on result to session.Session type for ctxKey %s", ctxKey)
 		}
@@ -107,21 +108,22 @@ func SessionContext(r *http.Request) (session.Session, error) {
 
 	}
 
-	return sess, fmt.Errorf("unable to find context for session  %s on page %s", ctxKey, r.RequestURI)
+	return sess, fmt.Errorf("unable to find context for session %s on page %s", ctxKey, r.RequestURI)
 }
 
 // util.GetPageID get the page ID for a request
 func GetPageID(r *http.Request) string {
 	geoIP, err := GeoIPContext(r)
 	if err != nil {
-		fmt.Printf("error obtaining geoip context: %s\n", err)
+		log.Error().Err(err).Msgf("error obtaining geoip context")
+		return ""
 	}
 
 	return geoIP.PageID
 }
 
 // GetSession get session object for a request
-func GetSession(r *http.Request) session.Session {
+func GetSession(r *http.Request) sessionmanager.Session {
 	sess, err := SessionContext(r)
 	if err != nil {
 		fmt.Printf("error obtaining session context: %s\n", err)

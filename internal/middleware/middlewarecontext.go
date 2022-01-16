@@ -2,8 +2,10 @@
 package middleware
 
 import (
-	"go.mongodb.org/mongo-driver/mongo"
+	"goblog/internal/cache"
 	"goblog/internal/config"
+
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 // HTTPHandlerContext provides context for passing global values to handlers
@@ -13,11 +15,12 @@ import (
 type MiddleWareContext struct {
 	hConfig  *config.AppConfig
 	dbClient *mongo.Client
+	cache    *cache.Cache
 }
 
 //CTXHandlerContext constructs a new HandlerContext,
 //ensuring that the dependencies are valid values
-func CTXMiddlewareContext(config *config.AppConfig, dbclient *mongo.Client) *MiddleWareContext {
+func CTXMiddlewareContext(config *config.AppConfig, dbclient *mongo.Client, cache *cache.Cache) *MiddleWareContext {
 
-	return &MiddleWareContext{config, dbclient}
+	return &MiddleWareContext{config, dbclient, cache}
 }
