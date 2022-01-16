@@ -1,4 +1,4 @@
-FROM  golang:1.16.7-alpine3.14 as builder
+FROM  golang:1.17.6-alpine3.15 as builder
 
 #ENV GOPATH /usr/local/go
 #ENV PATH $GOPATH/bin:$PATH
