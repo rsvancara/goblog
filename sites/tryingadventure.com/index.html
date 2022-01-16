@@ -3,8 +3,9 @@
 {% block headertitle %}{% endblock %}
 {% block stylesheet %}
 {% endblock %}
+
 {% block header %}
-<div>{{ currentpage }}</div>
+
 {% if currentpage == 1 %}
         <!-- Full Page Image Header with Vertically Centered Content -->
         <header class="masthead">
@@ -19,6 +20,7 @@
         </header>
 {% endif %}
 {% endblock %}
+
 {% block body %}
 {% for p in posts %}
 <div class="card border-0 shadow my-5">

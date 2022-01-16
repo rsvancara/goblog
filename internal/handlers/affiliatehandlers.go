@@ -112,7 +112,7 @@ func (ctx *HTTPHandlerContext) AffiliateAddHandler(w http.ResponseWriter, r *htt
 			// Create Record
 			err = affiliatesDAO.InsertAffiliate(&af)
 			if err != nil {
-				fmt.Printf("error inserting post: %s\n", err)
+				log.Error().Err(err).Msg("error inserting post")
 			}
 
 			// Redirect on success otherwise fall through the form
@@ -144,7 +144,7 @@ func (ctx *HTTPHandlerContext) AffiliateAddHandler(w http.ResponseWriter, r *htt
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		fmt.Println(err)
+		log.Error().Err(err)
 	}
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprint(w, out)
@@ -216,7 +216,7 @@ func (ctx *HTTPHandlerContext) AffiliateEditHandler(w http.ResponseWriter, r *ht
 			// Create Record
 			err = affiliatesDAO.EditAffiliate(&af)
 			if err != nil {
-				fmt.Printf("error inserting post: %s\n", err)
+				log.Error().Err(err).Msg("error inserting post")
 			}
 
 			// Redirect on success otherwise fall through the form
@@ -279,7 +279,7 @@ func (ctx *HTTPHandlerContext) AffiliateDeleteHandler(w http.ResponseWriter, r *
 	// Load Model
 	af, err = affiliatesDAO.GetAffiliate(vars["id"])
 	if err != nil {
-		fmt.Printf("Error getting affiliate by id %s with error %s\n", vars["id"], err)
+		log.Error().Err(err).Msgf("Error getting affiliate by id %s", vars["id"])
 		return
 	}
 
