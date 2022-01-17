@@ -45,10 +45,8 @@ func (ctx *HTTPHandlerContext) SearchIndexListHandler(w http.ResponseWriter, r *
 	count, err = mtm.GetMediaTagsCount()
 	if err != nil {
 		count = 0
-		fmt.Printf("error retrieving media tags count with error %s\n", err)
+		log.Error().Err(err).Msg("error retrieving media tags count ")
 	}
-
-	//fmt.Println(count)
 
 	out, err := tmpl.Execute(pongo2.Context{
 		"title":     "Search Inex",
@@ -150,23 +148,31 @@ func (ctx *HTTPHandlerContext) SearchIndexMediaTagsAPI(w http.ResponseWriter, r 
 
 				err := m.GetMedia(d)
 				if err != nil {
-					w.WriteHeader(http.StatusOK)
-					w.Header().Set("Content-Type", "application/json")
-					fmt.Fprintf(w, errorMessage, err, "could not get media object from database")
+					//w.WriteHeader(http.StatusOK)
+					//w.Header().Set("Content-Type", "application/json")
+					//fmt.Fprintf(w, errorMessage, err, "could not get media object from database")
+					log.Error().Err(err).Msgf("error getting media for id %s", d)
+				} else {
+					var doc document
+					doc.DocumentID = d
+					doc.SmallImageURL = fmt.Sprintf("image/%s/thumb", m.Slug)
+					doc.Title = m.Title
+					docs = append(docs, doc)
 				}
-				var doc document
-				doc.DocumentID = d
-				doc.SmallImageURL = fmt.Sprintf("image/%s/thumb", m.Slug)
-				doc.Title = m.Title
-				docs = append(docs, doc)
 			}
 		}
 	}
 
 	b, err := json.Marshal(docs)
 	if err != nil {
+		w.WriteHeader(http.StatusOK)
+		w.Header().Set("Content-Type", "application/json")
+		fmt.Fprintf(w, errorMessage, err, "could not get mediatag object from database")
 		log.Error().Err(err)
+		return
 	}
+
+	fmt.Printf("{\"status\":\"success\", \"message\": \"mediatag found\",\"tags\":%s}\n", string(b))
 
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")

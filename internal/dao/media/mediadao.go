@@ -335,7 +335,7 @@ func (m *MediaDAO) MediaSearch(mediasearch MediaSearch) ([]models.MediaModel, er
 
 	var filter bson.M
 
-	if IsFilter == true {
+	if IsFilter {
 		filter = bson.M{
 			"$text": bson.M{
 				"$search": mediasearch.SearchString,

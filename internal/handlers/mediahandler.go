@@ -72,7 +72,7 @@ func (ctx *HTTPHandlerContext) MediaHandler(w http.ResponseWriter, r *http.Reque
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		fmt.Println(err)
+		log.Error().Err(err).Str("service", "mediahandler").Msg("Error retrieving objects from media database ")
 	}
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprint(w, out)
@@ -91,14 +91,14 @@ func (ctx *HTTPHandlerContext) ViewMediaHandler(w http.ResponseWriter, r *http.R
 
 	} else {
 
-		log.Error().Msgf("Error getting url variable, id: %s", val)
+		log.Error().Msgf("error getting url variable, id: %s", val)
 	}
 
 	var mediaDAO mediadao.MediaDAO
 
 	err := mediaDAO.Initialize(ctx.dbClient, ctx.hConfig)
 	if err != nil {
-		log.Error().Err(err).Str("service", "mediadao").Msg("Error initialzing media data access object ")
+		log.Error().Err(err).Str("service", "mediadao").Msg("error initialzing media data access object ")
 	}
 
 	media, err = mediaDAO.GetMedia(vars["id"])
@@ -128,7 +128,7 @@ func (ctx *HTTPHandlerContext) ViewMediaHandler(w http.ResponseWriter, r *http.R
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		fmt.Println(err)
+		log.Error().Err(err).Str("service", "mediahandler").Msg("error generating pongo template")
 	}
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprint(w, out)
@@ -139,12 +139,15 @@ func (ctx *HTTPHandlerContext) MediaAddHandler(w http.ResponseWriter, r *http.Re
 	var sess sessionmanager.Session
 	err := sess.Session(*ctx.cache, ctx.hConfig.RedisDB, r, w)
 	if err != nil {
-		log.Printf("Session not available %s", err)
+		log.Error().Err(err).Str("service", "mediahandler").Msg("session not available")
 	}
 
 	template, err := util.SiteTemplate("/admin/mediaadd.html")
 	if err != nil {
-		log.Error().Err(err)
+		log.Error().Err(err).Str("service", "mediahandler").Msg("error getting template")
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprint(w, "error generating template")
+
 	}
 
 	//template := "templates/admin/mediaadd.html"
@@ -153,7 +156,7 @@ func (ctx *HTTPHandlerContext) MediaAddHandler(w http.ResponseWriter, r *http.Re
 	out, err := tmpl.Execute(pongo2.Context{"title": "Index", "greating": "Hello", "user": sess.User})
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		log.Printf("Error loading template %s", err)
+		log.Error().Err(err).Str("service", "mediahandler").Msg("error generating pongo template")
 	}
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprint(w, out)
@@ -378,15 +381,6 @@ func (ctx *HTTPHandlerContext) MediaSearchAPIHandler(w http.ResponseWriter, r *h
 
 	log.Info().Msgf("Searching for %s", search.Search)
 
-	//bodyString := "{}"
-	//bodyBytes, err := ioutil.ReadAll(r.Body)
-	//if err != nil {
-	//	w.Header().Set("Content-Type", "application/json")
-	//	fmt.Fprintf(w, "{\"status\":\"error\", \"message\": \"Error: %s\", \"session\":\"%s\",\"results\":nil}\n", err, sess.SessionToken)
-	//	return
-	//}
-	//bodyString = string(bodyBytes)
-
 	var mediaDAO mediadao.MediaDAO
 
 	err = mediaDAO.Initialize(ctx.dbClient, ctx.hConfig)
@@ -427,7 +421,9 @@ func (ctx *HTTPHandlerContext) MediaListViewHandler(w http.ResponseWriter, r *ht
 
 	template, err := util.SiteTemplate("/admin/medialist.html")
 	if err != nil {
-		log.Error().Err(err)
+		log.Error().Err(err).Str("service", "mediahandler").Msg("error rendering template")
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprint(w, "error generating template")
 	}
 
 	tmpl := pongo2.Must(pongo2.FromFile(template))
@@ -442,8 +438,9 @@ func (ctx *HTTPHandlerContext) MediaListViewHandler(w http.ResponseWriter, r *ht
 	})
 
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		fmt.Println(err)
+		log.Error().Err(err).Str("service", "mediahandler").Msg("error rendering template")
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprint(w, "error generating template")
 	}
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprint(w, out)
@@ -475,13 +472,14 @@ func (ctx *HTTPHandlerContext) MediaEditHandler(w http.ResponseWriter, r *http.R
 	if val, ok := vars["id"]; ok {
 
 	} else {
-		fmt.Printf("Error getting url variable, id: %s", val)
+		log.Info().Msgf("Error getting url variable, id: %s", val)
 	}
 
 	// Load Media
 	err := media.GetMedia(vars["id"])
 	if err != nil {
-		fmt.Println(err)
+		log.Error().Err(err).Str("service", "mediadao").Msgf("error getting media object with id %s", vars["id"])
+
 		return
 	}
 
@@ -489,6 +487,7 @@ func (ctx *HTTPHandlerContext) MediaEditHandler(w http.ResponseWriter, r *http.R
 	if r.Method == http.MethodPost {
 		if err := r.ParseForm(); err != nil {
 			fmt.Fprintf(w, "ParseForm() err: %v", err)
+			log.Error().Err(err).Str("service", "mediadao").Msgf("error parsing form %s", vars["id"])
 			return
 		}
 
@@ -531,20 +530,20 @@ func (ctx *HTTPHandlerContext) MediaEditHandler(w http.ResponseWriter, r *http.R
 			formLocationError = true
 		}
 
-		fmt.Println(validate)
+		log.Info().Str("service", "mediadao").Msgf("form is validated %s", validate)
 		if validate {
 
 			var mediaDAO mediadao.MediaDAO
 
 			err = mediaDAO.Initialize(ctx.dbClient, ctx.hConfig)
 			if err != nil {
-				log.Error().Err(err).Str("service", "mediadao").Msg("Error initialzing media data access object ")
+				log.Error().Err(err).Str("service", "mediadao").Msg("error initialzing media data access object ")
 			}
 
 			// Update Record
 			err = mediaDAO.UpdateMedia(media)
 			if err != nil {
-				fmt.Println(err)
+				log.Error().Err(err).Str("service", "mediadao").Msg("error updating media")
 			}
 
 			var mediatagsDAO mediatags.MediaTagsDAO
@@ -557,7 +556,7 @@ func (ctx *HTTPHandlerContext) MediaEditHandler(w http.ResponseWriter, r *http.R
 			// Update Tags
 			err = mediatagsDAO.AddTagsSearchIndex(media)
 			if err != nil {
-				fmt.Println(err)
+				log.Error().Err(err).Str("service", "mediadao").Msg("error adding tags for media")
 			}
 
 			// Redirect on success otherwise fall through the form
@@ -570,7 +569,9 @@ func (ctx *HTTPHandlerContext) MediaEditHandler(w http.ResponseWriter, r *http.R
 	// HTTP Template
 	template, err := util.SiteTemplate("/admin/mediaedit.html")
 	if err != nil {
-		log.Error().Err(err)
+		log.Error().Err(err).Str("service", "mediahandler").Msg("error getting template")
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprint(w, "error getting template")
 	}
 
 	//template := "templates/admin/mediaedit.html"
@@ -595,8 +596,9 @@ func (ctx *HTTPHandlerContext) MediaEditHandler(w http.ResponseWriter, r *http.R
 	})
 
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		fmt.Println(err)
+		log.Error().Err(err).Str("service", "mediahandler").Msg("error rendering template")
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprint(w, "error generating template")
 	}
 
 	w.WriteHeader(http.StatusOK)
@@ -623,7 +625,7 @@ func (ctx *HTTPHandlerContext) MediaDeleteHandler(w http.ResponseWriter, r *http
 	if val, ok := vars["id"]; ok {
 
 	} else {
-		fmt.Printf("Error getting url variable, id: %s", val)
+		log.Error().Str("service", "mediadao").Msgf("error getting variable id %s", val)
 	}
 
 	var mediaDAO mediadao.MediaDAO
@@ -651,7 +653,7 @@ func (ctx *HTTPHandlerContext) MediaDeleteHandler(w http.ResponseWriter, r *http
 
 	err = mediaDAO.DeleteMedia(media)
 	if err != nil {
-		fmt.Println(err)
+		log.Error().Err(err).Str("service", "mediadao").Msgf("error deleting media with id %s", vars["id"])
 	}
 
 	http.Redirect(w, r, "/admin/medialist", http.StatusSeeOther)
@@ -666,26 +668,27 @@ func (ctx *HTTPHandlerContext) PhotoViewHandler(w http.ResponseWriter, r *http.R
 	if val, ok := vars["id"]; ok {
 
 	} else {
-		fmt.Printf("Error getting url variable, id: %s", val)
+		log.Error().Msgf("error getting url variable, id: %s", val)
 	}
 
 	var mediaDAO mediadao.MediaDAO
 
 	err := mediaDAO.Initialize(ctx.dbClient, ctx.hConfig)
 	if err != nil {
-		log.Error().Err(err).Str("service", "mediadao").Msg("Error initialzing media data access object ")
+		log.Error().Err(err).Str("service", "mediadao").Msg("error initialzing media data access object ")
 	}
 
 	// Load Media
 	media, err := mediaDAO.GetMediaBySlug(vars["id"])
 	if err != nil {
-		fmt.Println(err)
-		return
+		log.Error().Err(err).Str("service", "mediadao").Msgf("error getting media by slug for id %s", vars["id"])
 	}
 
 	template, err := util.SiteTemplate("/mediaview.html")
 	if err != nil {
-		log.Error().Err(err)
+		log.Error().Err(err).Str("service", "mediahandler").Msg("error getting template")
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprint(w, "error getting template")
 	}
 
 	tmpl := pongo2.Must(pongo2.FromFile(template))
@@ -703,8 +706,9 @@ func (ctx *HTTPHandlerContext) PhotoViewHandler(w http.ResponseWriter, r *http.R
 	})
 
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		fmt.Println(err)
+		log.Error().Err(err).Str("service", "mediahandler").Msg("error rendering template")
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprint(w, "error generating template")
 	}
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprint(w, out)
@@ -731,11 +735,15 @@ func (ctx *HTTPHandlerContext) GetMediaAPI(w http.ResponseWriter, r *http.Reques
 	err := mediaDAO.Initialize(ctx.dbClient, ctx.hConfig)
 	if err != nil {
 		log.Error().Err(err).Str("service", "mediadao").Msg("Error initialzing media data access object ")
+		w.WriteHeader(http.StatusOK)
+		w.Header().Set("Content-Type", "application/json")
+		fmt.Fprintf(w, errorMessage, "Error find ID", "ID was not available inthe URL or could not be parsed")
+		return
 	}
 
 	media, err := mediaDAO.GetMedia(vars["id"])
 	if err != nil {
-		fmt.Println(err)
+		log.Error().Err(err).Str("", "").Msg("error getting media object from the database")
 		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json")
 		fmt.Fprintf(w, errorMessage, err, "could not get media object from database")
@@ -812,8 +820,6 @@ func (ctx *HTTPHandlerContext) ServerImageHandler(wr http.ResponseWriter, req *h
 
 	mediaRequest.URL = mediaURL
 
-	//fmt.Printf("proxy for media slug id %s for image type %s using url %s\n", slug, mediaType, mediaURL)
-
 	// Create client
 	client := &http.Client{}
 
@@ -821,7 +827,7 @@ func (ctx *HTTPHandlerContext) ServerImageHandler(wr http.ResponseWriter, req *h
 
 	clientIP, err := requestfilter.GetIPAddress(req)
 	if err != nil {
-		fmt.Printf("error getting ip address in proxy to send to s3 bucke with error %s", err)
+		log.Error().Err(err).Msg("error getting ip address in proxy to send to s3 bucket")
 	}
 
 	appendHostToXForwardHeader(req.Header, clientIP)
@@ -877,7 +883,9 @@ func (ctx *HTTPHandlerContext) ViewCategoryHandler(w http.ResponseWriter, r *htt
 
 	template, err := util.SiteTemplate("/category.html")
 	if err != nil {
-		log.Error().Err(err)
+		log.Error().Err(err).Str("service", "mediahandler").Msg("error getting template")
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprint(w, "error getting template")
 	}
 
 	//template := "templates/admin/mediaview.html"
@@ -894,8 +902,9 @@ func (ctx *HTTPHandlerContext) ViewCategoryHandler(w http.ResponseWriter, r *htt
 		"token":     sess.SessionToken,
 	})
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		fmt.Println(err)
+		log.Error().Err(err).Str("service", "mediahandler").Msg("error rendering template")
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprint(w, "error generating template")
 	}
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprint(w, out)
@@ -920,10 +929,11 @@ func (ctx *HTTPHandlerContext) ViewCategoriesHandler(w http.ResponseWriter, r *h
 
 	template, err := util.SiteTemplate("/categories.html")
 	if err != nil {
-		log.Error().Err(err)
+		log.Error().Err(err).Str("service", "mediahandler").Msg("error getting template")
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprint(w, "error getting template")
 	}
 
-	//template := "templates/admin/mediaview.html"
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
 	out, err := tmpl.Execute(pongo2.Context{
@@ -937,8 +947,9 @@ func (ctx *HTTPHandlerContext) ViewCategoriesHandler(w http.ResponseWriter, r *h
 		"token":     sess.SessionToken,
 	})
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		fmt.Println(err)
+		log.Error().Err(err).Str("service", "mediahandler").Msg("error rendering template")
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprint(w, "error generating template")
 	}
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprint(w, out)
