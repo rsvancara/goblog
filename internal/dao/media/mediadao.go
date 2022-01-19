@@ -366,7 +366,7 @@ func (m *MediaDAO) MediaSearch(mediasearch MediaSearch) ([]models.MediaModel, er
 
 	log.Info().Msgf("Looking for [%s] and filter value is %t", mediasearch.SearchString, IsFilter)
 
-	if IsFilter == true {
+	if IsFilter {
 		cur, err = c.Find(context.TODO(), filter, options)
 		if err != nil {
 			return nil, err
