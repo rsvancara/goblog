@@ -22,7 +22,7 @@ sonarqube-check:
     paths:
       - .sonar/cache
   script: 
-    - sonar-scanner
+    - /opt/sonar-scanner-current/bin/sonar-scanner
   allow_failure: true
   only:
     - master # or the name of your main branch
