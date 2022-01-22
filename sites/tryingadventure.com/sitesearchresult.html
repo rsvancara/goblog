@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title  %}Site Search Result{% endblock %}
+
+{% block headertitle %}<h2>Site Search Result</h2>{% endblock %}
+{% block stylesheet %}
+{% endblock %}
+{% block body %} 
+
+{% for s in searchresults %}
+<div class="row">
+  <div class="col-lg-12">
+    {{ s.Title }}
+  </div>
+</div>
+{% endfor %}
+
+{% endblock %}
+
+{% block script %}
+
+{% endblock %}
+
