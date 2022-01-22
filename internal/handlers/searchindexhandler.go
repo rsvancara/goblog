@@ -79,6 +79,7 @@ func (ctx *HTTPHandlerContext) SiteSearchHandler(w http.ResponseWriter, r *http.
 	template, err := util.SiteTemplate("/sitesearchresult.html")
 	if err != nil {
 		log.Error().Err(err)
+		return
 	}
 
 	var siteSearchTagsDAO sitetagsdao.SiteSearchTagsDAO
