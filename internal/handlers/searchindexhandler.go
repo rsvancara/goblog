@@ -10,8 +10,8 @@ import (
 	mediatagsdao "goblog/internal/dao/mediatags"
 	postdao "goblog/internal/dao/posts"
 	"goblog/internal/dao/sitesearchtags"
+	sitetagsdao "goblog/internal/dao/sitesearchtags"
 	"goblog/internal/models"
-	"goblog/internal/sessionmanager"
 	"goblog/internal/util"
 
 	"github.com/rs/zerolog/log"
@@ -25,11 +25,11 @@ func (ctx *HTTPHandlerContext) SearchIndexListHandler(w http.ResponseWriter, r *
 
 	sess := util.GetSession(r)
 
-	var sessions []sessionmanager.Session
-	sessions, err := sessionmanager.GetAllSessions(*ctx.cache, ctx.hConfig.RedisDB, "*")
-	if err != nil {
-		log.Error().Err(err)
-	}
+	//var sessions []sessionmanager.Session
+	//sessions, err := sessionmanager.GetAllSessions(*ctx.cache, ctx.hConfig.RedisDB, "*")
+	//if err != nil {
+	//	log.Error().Err(err)
+	//}
 
 	template, err := util.SiteTemplate("/admin/searchindex.html")
 	if err != nil {
@@ -39,24 +39,36 @@ func (ctx *HTTPHandlerContext) SearchIndexListHandler(w http.ResponseWriter, r *
 	//template := "templates/admin/media.html"
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
-	// Check if the document exists
-	var mtm models.MediaTagsModel
+	var sm sitetagsdao.SiteSearchTagsDAO
+	var mm mediatagsdao.MediaTagsDAO
 
-	var count int64
-
-	count, err = mtm.GetMediaTagsCount()
+	err = mm.Initialize(ctx.dbClient, ctx.hConfig)
 	if err != nil {
-		count = 0
+		log.Error().Err(err)
+	}
+
+	mediacount, err := mm.GetMediaTagsCount()
+	if err != nil {
 		log.Error().Err(err).Msg("error retrieving media tags count ")
+	}
+
+	//var sitecount int64
+	err = sm.Initialize(ctx.dbClient, ctx.hConfig)
+	if err != nil {
+		log.Error().Err(err)
+	}
+	sitecount, err := sm.GetSiteSearchTagsCount()
+	if err != nil {
+		log.Error().Err(err)
 	}
 
 	out, err := tmpl.Execute(pongo2.Context{
 		"title":     "Search Inex",
-		"sessions":  sessions,
 		"user":      sess.User,
 		"bodyclass": "",
 		"hidetitle": true,
-		"mediatags": count,
+		"mediatags": mediacount,
+		"sitetags":  sitecount,
 		"pagekey":   util.GetPageID(r),
 		"token":     sess.SessionToken,
 	})
