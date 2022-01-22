@@ -76,23 +76,28 @@ func (ctx *HTTPHandlerContext) SiteSearchTagsHandler(w http.ResponseWriter, r *h
 
 func (ctx *HTTPHandlerContext) SiteSearchIndexBuildTagsHandler(w http.ResponseWriter, r *http.Request) {
 
+	log.Info().Msg("Initializing site search dao")
 	var siteSearchTagsDAO sitesearchtags.SiteSearchTagsDAO
 	err := siteSearchTagsDAO.Initialize(ctx.dbClient, ctx.hConfig)
 	if err != nil {
 		log.Error().Err(err).Str("service", "siteSearchTagsDAO").Msg("error initialzing siteSearchTagsDAO data access object ")
 	}
 
+	log.Info().Msg("Initializing mediadao")
 	var mediaDAO mediadao.MediaDAO
 	err = mediaDAO.Initialize(ctx.dbClient, ctx.hConfig)
 	if err != nil {
 		log.Error().Err(err).Str("service", "mediadao").Msg("error initialzing media data access object ")
 	}
 
+	log.Info().Msg("Initializing postdao")
 	var postdao postdao.PostsDAO
 	err = postdao.Initialize(ctx.dbClient, ctx.hConfig)
 	if err != nil {
 		log.Error().Err(err).Str("service", "postdao").Msg("error initialzing media data access object ")
 	}
+
+	log.Info().Msg("Clearing out all the tags")
 
 	// Clear the Index
 	err = siteSearchTagsDAO.DeleteAllTags()
@@ -100,6 +105,7 @@ func (ctx *HTTPHandlerContext) SiteSearchIndexBuildTagsHandler(w http.ResponseWr
 		log.Error().Err(err).Str("service", "siteSearchTagsDAO").Msg("Error deleting siteSearchTagsDAO while trying to build index")
 	}
 
+	log.Info().Msg("Gettng a list of all media")
 	// Get a list of media
 	media, err := mediaDAO.AllMediaSortedByDate()
 	if err != nil {
@@ -172,6 +178,8 @@ func (ctx *HTTPHandlerContext) SiteSearchIndexBuildTagsHandler(w http.ResponseWr
 			}
 		}
 	}
+
+	log.Info().Msg("Gettng a list of all posts")
 
 	// Get a list of media
 	posts, err := postdao.AllPostsSortedByDate()
@@ -246,6 +254,7 @@ func (ctx *HTTPHandlerContext) SiteSearchIndexBuildTagsHandler(w http.ResponseWr
 		}
 	}
 
+	// Redirect back to the search page
 	http.Redirect(w, r, "/admin/searchindex", http.StatusSeeOther)
 }
 
