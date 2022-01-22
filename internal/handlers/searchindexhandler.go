@@ -51,7 +51,6 @@ func (ctx *HTTPHandlerContext) SearchIndexListHandler(w http.ResponseWriter, r *
 		log.Error().Err(err).Msg("error retrieving media tags count ")
 	}
 
-	//var sitecount int64
 	err = sm.Initialize(ctx.dbClient, ctx.hConfig)
 	if err != nil {
 		log.Error().Err(err)
@@ -67,7 +66,7 @@ func (ctx *HTTPHandlerContext) SearchIndexListHandler(w http.ResponseWriter, r *
 		"bodyclass": "",
 		"hidetitle": true,
 		"mediatags": mediacount,
-		"sitetags":  sitecount,
+		"sitecount": sitecount,
 		"pagekey":   util.GetPageID(r),
 		"token":     sess.SessionToken,
 	})
