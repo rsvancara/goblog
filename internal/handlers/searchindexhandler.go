@@ -8,6 +8,8 @@ import (
 
 	mediadao "goblog/internal/dao/media"
 	mediatagsdao "goblog/internal/dao/mediatags"
+	postdao "goblog/internal/dao/posts"
+	"goblog/internal/dao/sitesearchtags"
 	"goblog/internal/models"
 	"goblog/internal/sessionmanager"
 	"goblog/internal/util"
@@ -67,13 +69,184 @@ func (ctx *HTTPHandlerContext) SearchIndexListHandler(w http.ResponseWriter, r *
 	fmt.Fprint(w, out)
 }
 
-// Site Search Handler
+// Site Search Handler - Display site search results
 func (ctx *HTTPHandlerContext) SiteSearchTagsHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
 func (ctx *HTTPHandlerContext) SiteSearchIndexBuildTagsHandler(w http.ResponseWriter, r *http.Request) {
 
+	var siteSearchTagsDAO sitesearchtags.SiteSearchTagsDAO
+	err := siteSearchTagsDAO.Initialize(ctx.dbClient, ctx.hConfig)
+	if err != nil {
+		log.Error().Err(err).Str("service", "siteSearchTagsDAO").Msg("error initialzing siteSearchTagsDAO data access object ")
+	}
+
+	var mediaDAO mediadao.MediaDAO
+	err = mediaDAO.Initialize(ctx.dbClient, ctx.hConfig)
+	if err != nil {
+		log.Error().Err(err).Str("service", "mediadao").Msg("error initialzing media data access object ")
+	}
+
+	var postdao postdao.PostsDAO
+	err = postdao.Initialize(ctx.dbClient, ctx.hConfig)
+	if err != nil {
+		log.Error().Err(err).Str("service", "postdao").Msg("error initialzing media data access object ")
+	}
+
+	// Clear the Index
+	err = siteSearchTagsDAO.DeleteAllTags()
+	if err != nil {
+		log.Error().Err(err).Str("service", "siteSearchTagsDAO").Msg("Error deleting siteSearchTagsDAO while trying to build index")
+	}
+
+	// Get a list of media
+	media, err := mediaDAO.AllMediaSortedByDate()
+	if err != nil {
+		log.Error().Err(err).Str("service", "mediaDAO").Msg("Error getting all media in database")
+	}
+
+	// Iterate through the media and update the index
+	for _, v := range media {
+
+		for _, t := range v.Tags {
+			// Check to see if the key word exists and if it does not, add it
+			// If it does then update the keyword with the list of new documents
+			fmt.Printf("Looking at tag %s\n", t)
+			// Check if the document exists
+			var stm models.SiteSearchTagsModel
+
+			count, err := siteSearchTagsDAO.Exists(t.Keyword)
+			if err != nil {
+				log.Error().Err(err).Str("service", "siteSearchTagsDAO").Msgf("Error attempting to get record count for keyword %s", t.Keyword)
+			}
+			if count == 0 {
+				fmt.Printf("Adding new tag %s\n", t.Keyword)
+				stm.Name = t.Keyword
+				stm.TagsID = models.GenUUID()
+				var docs []models.Documents
+				var doc models.Documents
+				doc.DocType = "media"
+				doc.DocumentID = v.MediaID
+				docs = append(docs, doc)
+				stm.Documents = docs
+				err = siteSearchTagsDAO.InsertSiteSearchTags(&stm)
+				if err != nil {
+					log.Error().Err(err).Str("service", "siteSearchTagsDAO").Msgf("Error inserting record for keyword %s", t.Keyword)
+				}
+			} else {
+
+				stm, err := siteSearchTagsDAO.GetSiteSearchTagByName(t.Keyword)
+				if err != nil {
+
+					log.Error().Err(err).Str("service", "siteSearchTagsDAO").Msgf("Error getting record for keyword %s", t.Keyword)
+				}
+
+				fmt.Printf("found existing tag %s\n", stm.Name)
+
+				// Get the list of documents
+				docs := stm.Documents
+
+				// For the list of documents, find the document ID we are looking for
+				// If not found, then we update the document list with the document ID
+				f := false
+				for _, d := range docs {
+					if d.DocumentID == v.MediaID {
+						f = true
+					}
+				}
+				// If not found then update
+				if !f {
+					fmt.Printf("Updating tag, %s with document id %s\n", t.Keyword, v.MediaID)
+					var doc models.Documents
+					doc.DocType = "media"
+					doc.DocumentID = v.MediaID
+
+					docs = append(docs, doc)
+					stm.Documents = docs
+					err = siteSearchTagsDAO.UpdateSiteSearchTags(&stm)
+					if err != nil {
+						log.Error().Err(err).Str("service", "mediatagsDAO").Msgf("Error updating record for keyword %s", t.Keyword)
+					}
+				}
+			}
+		}
+	}
+
+	// Get a list of media
+	posts, err := postdao.AllPostsSortedByDate()
+	if err != nil {
+		log.Error().Err(err).Str("service", "postDAO").Msg("error getting all posts in database")
+	}
+
+	// Iterate through the media and update the index
+	for _, p := range posts {
+
+		for _, t := range p.Tags {
+			// Check to see if the key word exists and if it does not, add it
+			// If it does then update the keyword with the list of new documents
+			fmt.Printf("Looking at tag %s\n", t)
+			// Check if the document exists
+			var stm models.SiteSearchTagsModel
+
+			count, err := siteSearchTagsDAO.Exists(t.Keyword)
+			if err != nil {
+				log.Error().Err(err).Str("service", "siteSearchTagsDAO").Msgf("Error attempting to get record count for keyword %s", t.Keyword)
+			}
+			if count == 0 {
+				fmt.Printf("Adding new tag %s\n", t.Keyword)
+				stm.Name = t.Keyword
+				stm.TagsID = models.GenUUID()
+				var docs []models.Documents
+				var doc models.Documents
+				doc.DocType = "post"
+				doc.DocumentID = p.PostID
+				docs = append(docs, doc)
+				stm.Documents = docs
+				err = siteSearchTagsDAO.InsertSiteSearchTags(&stm)
+				if err != nil {
+					log.Error().Err(err).Str("service", "siteSearchTagsDAO").Msgf("Error inserting record for keyword %s", t.Keyword)
+				}
+			} else {
+
+				stm, err := siteSearchTagsDAO.GetSiteSearchTagByName(t.Keyword)
+				if err != nil {
+
+					log.Error().Err(err).Str("service", "siteSearchTagsDAO").Msgf("Error getting record for keyword %s", t.Keyword)
+				}
+
+				fmt.Printf("found existing tag %s\n", stm.Name)
+
+				// Get the list of documents
+				docs := stm.Documents
+
+				// For the list of documents, find the document ID we are looking for
+				// If not found, then we update the document list with the document ID
+				f := false
+				for _, d := range docs {
+					if d.DocumentID == p.PostID {
+						f = true
+					}
+				}
+				// If not found then update
+				if !f {
+					fmt.Printf("Updating tag, %s with document id %s\n", t.Keyword, p.PostID)
+					var doc models.Documents
+					doc.DocType = "post"
+					doc.DocumentID = p.PostID
+
+					docs = append(docs, doc)
+					stm.Documents = docs
+					err = siteSearchTagsDAO.UpdateSiteSearchTags(&stm)
+					if err != nil {
+						log.Error().Err(err).Str("service", "mediatagsDAO").Msgf("Error updating record for keyword %s", t.Keyword)
+					}
+				}
+			}
+		}
+	}
+
+	http.Redirect(w, r, "/admin/searchindex", http.StatusSeeOther)
 }
 
 // SearchIndexBuildTagsHandler Build tags search index.
@@ -81,11 +254,11 @@ func (ctx *HTTPHandlerContext) SearchIndexBuildTagsHandler(w http.ResponseWriter
 
 	sess := util.GetSession(r)
 
-	var sessions []sessionmanager.Session
-	sessions, err := sessionmanager.GetAllSessions(*ctx.cache, ctx.hConfig.RedisDB, "*")
-	if err != nil {
-		log.Error().Err(err)
-	}
+	//var sessions []sessionmanager.Session
+	//sessions, err := sessionmanager.GetAllSessions(*ctx.cache, ctx.hConfig.RedisDB, "*")
+	//if err != nil {
+	//	log.Error().Err(err)
+	//}
 
 	template, err := util.SiteTemplate("/admin/buildsearchindex.html")
 	if err != nil {
@@ -96,8 +269,8 @@ func (ctx *HTTPHandlerContext) SearchIndexBuildTagsHandler(w http.ResponseWriter
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
 	out, err := tmpl.Execute(pongo2.Context{
-		"title":     "Search Inex",
-		"sessions":  sessions,
+		"title": "Search Inex",
+		//"sessions":  sessions,
 		"user":      sess.User,
 		"bodyclass": "",
 		"hidetitle": true,

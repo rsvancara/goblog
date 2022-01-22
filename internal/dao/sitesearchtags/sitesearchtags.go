@@ -293,8 +293,12 @@ func (s *SiteSearchTagsDAO) AddTagsSearchIndex(docID string, doctype string, tag
 			var newSTM models.SiteSearchTagsModel
 			newSTM.Name = v
 			newSTM.TagsID = models.GenUUID()
-			var docs []string
-			docs = append(docs, docID)
+			var doc models.Documents
+			var docs []models.Documents
+			doc.DocType = doctype
+			doc.DocumentID = docID
+			docs = append(docs, doc)
+
 			newSTM.Documents = docs
 			log.Info().Msgf("Inserting new tag %s into database", v)
 			err = s.InsertSiteSearchTags(&newSTM)
@@ -319,14 +323,17 @@ func (s *SiteSearchTagsDAO) AddTagsSearchIndex(docID string, doctype string, tag
 			// If not found, then we update the document list with the document ID
 			found := false
 			for _, d := range docs {
-				if d == v {
+				if d.DocumentID == v {
 					found = true
 				}
 			}
 
 			if found {
 				log.Info().Msgf("Updating tag, %s with document id %s", v, docID)
-				docs = append(docs, docID)
+				var doc models.Documents
+				doc.DocType = doctype
+				doc.DocumentID = docID
+				docs = append(docs, doc)
 				stm.Documents = docs
 				//fmt.Println(mtm)
 				err = s.UpdateSiteSearchTags(&stm)
