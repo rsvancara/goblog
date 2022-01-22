@@ -366,6 +366,14 @@ func GetRoutes(hctx *bloghandlers.HTTPHandlerContext, mwctx *mw.MiddleWareContex
 						http.HandlerFunc(hctx.SearchIndexBuilderMediaHandler)))))).Methods("GET", "POST")
 
 	r.Handle(
+		"/admin/buildsitesearchindex",
+		mwctx.MLog(
+			mwctx.SessionMiddleware(
+				mwctx.GeoFilterMiddleware(
+					mwctx.AuthHandlerMiddleware(
+						http.HandlerFunc(hctx.SiteSearchIndexBuildTagsHandler)))))).Methods("GET", "POST")
+
+	r.Handle(
 		"/admin/api/search-media-tags-by-name/{name}",
 		mwctx.MLog(
 			mwctx.SessionMiddleware(
