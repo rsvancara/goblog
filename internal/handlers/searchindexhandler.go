@@ -9,7 +9,6 @@ import (
 	mediadao "goblog/internal/dao/media"
 	mediatagsdao "goblog/internal/dao/mediatags"
 	postdao "goblog/internal/dao/posts"
-	"goblog/internal/dao/sitesearchtags"
 	sitetagsdao "goblog/internal/dao/sitesearchtags"
 	"goblog/internal/models"
 	"goblog/internal/util"
@@ -89,7 +88,7 @@ func (ctx *HTTPHandlerContext) SiteSearchTagsHandler(w http.ResponseWriter, r *h
 func (ctx *HTTPHandlerContext) SiteSearchIndexBuildTagsHandler(w http.ResponseWriter, r *http.Request) {
 
 	log.Info().Msg("Initializing site search dao")
-	var siteSearchTagsDAO sitesearchtags.SiteSearchTagsDAO
+	var siteSearchTagsDAO sitetagsdao.SiteSearchTagsDAO
 	err := siteSearchTagsDAO.Initialize(ctx.dbClient, ctx.hConfig)
 	if err != nil {
 		log.Error().Err(err).Str("service", "siteSearchTagsDAO").Msg("error initialzing siteSearchTagsDAO data access object ")
