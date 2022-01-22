@@ -24,12 +24,6 @@ func (ctx *HTTPHandlerContext) SearchIndexListHandler(w http.ResponseWriter, r *
 
 	sess := util.GetSession(r)
 
-	//var sessions []sessionmanager.Session
-	//sessions, err := sessionmanager.GetAllSessions(*ctx.cache, ctx.hConfig.RedisDB, "*")
-	//if err != nil {
-	//	log.Error().Err(err)
-	//}
-
 	template, err := util.SiteTemplate("/admin/searchindex.html")
 	if err != nil {
 		log.Error().Err(err)
@@ -80,8 +74,108 @@ func (ctx *HTTPHandlerContext) SearchIndexListHandler(w http.ResponseWriter, r *
 }
 
 // Site Search Handler - Display site search results
-func (ctx *HTTPHandlerContext) SiteSearchTagsHandler(w http.ResponseWriter, r *http.Request) {
+func (ctx *HTTPHandlerContext) SiteSearchHandler(w http.ResponseWriter, r *http.Request) {
 
+	template, err := util.SiteTemplate("/sitesearchresult.html")
+	if err != nil {
+		log.Error().Err(err)
+	}
+
+	var siteSearchTagsDAO sitetagsdao.SiteSearchTagsDAO
+	err = siteSearchTagsDAO.Initialize(ctx.dbClient, ctx.hConfig)
+	if err != nil {
+		log.Error().Err(err).Str("service", "siteSearchTagsDAO").Msg("error initialzing siteSearchTagsDAO data access object ")
+	}
+
+	var md mediadao.MediaDAO
+	err = md.Initialize(ctx.dbClient, ctx.hConfig)
+	if err != nil {
+		log.Error().Err(err).Str("service", "MediaDAO").Msg("error initialzing siteSearchTagsDAO data access object ")
+	}
+
+	var pd postdao.PostsDAO
+	err = pd.Initialize(ctx.dbClient, ctx.hConfig)
+	if err != nil {
+		log.Error().Err(err).Str("service", "MediaDAO").Msg("error initialzing siteSearchTagsDAO data access object ")
+	}
+
+	type SearchResult struct {
+		Title       string
+		DocType     string
+		Slug        string
+		KeyWords    string
+		Description string
+	}
+
+	var searchResults []SearchResult
+
+	ssmTags, err := siteSearchTagsDAO.SearchMediaTagsByName("landscape")
+	if err != nil {
+		log.Error().Err(err).Str("service", "siteSearchTagsDAO").Msg("error initialzing siteSearchTagsDAO data access object ")
+	}
+
+	for _, v := range ssmTags {
+		for _, k := range v.Documents {
+
+			// Query the media database
+			if k.DocType == "media" {
+				var sr SearchResult
+
+				media, err := md.GetMedia(k.DocumentID)
+				if err != nil {
+					log.Error().Err(err)
+				}
+
+				sr.Description = media.Description
+				sr.DocType = "media"
+				sr.Slug = media.Slug
+				sr.KeyWords = media.Keywords
+				sr.Title = media.Title
+
+				searchResults = append(searchResults, sr)
+
+			}
+
+			// Query the post database
+			if k.DocType == "post" {
+
+				var sr SearchResult
+
+				post, err := pd.GetPost(k.DocumentID)
+				if err != nil {
+					log.Error().Err(err)
+				}
+
+				sr.Description = post.PostTeaser
+				sr.DocType = "post"
+				sr.Slug = post.Slug
+				sr.KeyWords = post.Keywords
+				sr.Title = post.Title
+
+				searchResults = append(searchResults, sr)
+
+			}
+
+		}
+	}
+
+	//template := "templates/admin/media.html"
+	tmpl := pongo2.Must(pongo2.FromFile(template))
+
+	out, err := tmpl.Execute(pongo2.Context{
+		"title":         "Search Inex",
+		"bodyclass":     "",
+		"hidetitle":     true,
+		"pagekey":       util.GetPageID(r),
+		"searchresults": searchResults,
+	})
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		fmt.Println(err)
+	}
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprint(w, out)
 }
 
 func (ctx *HTTPHandlerContext) SiteSearchIndexBuildTagsHandler(w http.ResponseWriter, r *http.Request) {
