@@ -7,11 +7,11 @@ import (
 
 // Field The search terms you want to look for
 type Field struct {
-	Name      string `json:"name" bson:"name,omitempty"`         // Name name of the field to match on
-	Operator  string `json:"operator" bson:"operator,omitempty"` // Operator or, and, nand
-	Value     string `json:"value" bson:"value,omitempty"`       // Value to match on
-	Order     uint   `json:"order" bson:"order,omitempty"`       // Order of evaluation
-	FieldType string `json:"order" bson:"order,omitempty"`       // Field type, city, country, ip address are the current types
+	Name      string `json:"name" bson:"name,omitempty"`           // Name name of the field to match on
+	Operator  string `json:"operator" bson:"operator,omitempty"`   // Operator or, and, nand
+	Value     string `json:"value" bson:"value,omitempty"`         // Value to match on
+	Order     uint   `json:"order" bson:"order,omitempty"`         // Order of evaluation
+	FieldType string `json:"fieldtype" bson:"fieldtype,omitempty"` // Field type, city, country, ip address are the current types
 }
 
 // Filter A type that represents a filter object

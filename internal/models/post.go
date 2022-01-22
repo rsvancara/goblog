@@ -38,6 +38,9 @@ func (p *PostModel) GetPost(id string) error {
 	var db db.Session
 
 	err := db.NewSession()
+	if err != nil {
+		return err
+	}
 
 	c := db.Client.Database(getPostDB()).Collection("posts")
 
@@ -56,6 +59,9 @@ func (p *PostModel) GetPostBySlug(id string) error {
 	var db db.Session
 
 	err := db.NewSession()
+	if err != nil {
+		return err
+	}
 
 	c := db.Client.Database(getPostDB()).Collection("posts")
 

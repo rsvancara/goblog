@@ -123,6 +123,9 @@ func (r *RequestView) GetRequestViewByPTAG(id string) error {
 	var db db.Session
 
 	err := db.NewSession()
+	if err != nil {
+		return err
+	}
 
 	c := db.Client.Database(getRequestViewDB()).Collection("requestview")
 

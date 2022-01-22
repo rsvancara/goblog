@@ -33,6 +33,9 @@ func (a *Affiliate) GetAffiliate(id string) error {
 
 	//config.DBUri = "mongodb://host.docker.internal:27017"
 	err := db.NewSession()
+	if err != nil {
+		return err
+	}
 
 	c := db.Client.Database(getAffiliateDB()).Collection("affiliate")
 

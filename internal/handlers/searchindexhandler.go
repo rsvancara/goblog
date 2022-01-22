@@ -67,6 +67,15 @@ func (ctx *HTTPHandlerContext) SearchIndexListHandler(w http.ResponseWriter, r *
 	fmt.Fprint(w, out)
 }
 
+// Site Search Handler
+func (ctx *HTTPHandlerContext) SiteSearchTagsHandler(w http.ResponseWriter, r *http.Request) {
+
+}
+
+func (ctx *HTTPHandlerContext) SiteSearchIndexBuildTagsHandler(w http.ResponseWriter, r *http.Request) {
+
+}
+
 // SearchIndexBuildTagsHandler Build tags search index.
 func (ctx *HTTPHandlerContext) SearchIndexBuildTagsHandler(w http.ResponseWriter, r *http.Request) {
 

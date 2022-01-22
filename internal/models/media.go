@@ -216,6 +216,9 @@ func (m *MediaModel) GetMedia(id string) error {
 
 	//config.DBUri = "mongodb://host.docker.internal:27017"
 	err := db.NewSession()
+	if err != nil {
+		return err
+	}
 
 	c := db.Client.Database(getMediaDB()).Collection("media")
 
@@ -240,6 +243,9 @@ func (m *MediaModel) GetMediaBySlug(slug string) error {
 
 	//config.DBUri = "mongodb://host.docker.internal:27017"
 	err := db.NewSession()
+	if err != nil {
+		return err
+	}
 
 	c := db.Client.Database(getMediaDB()).Collection("media")
 
@@ -603,7 +609,7 @@ func MediaSearch(searchJSON string) ([]MediaModel, error) {
 	err := json.NewDecoder(r).Decode(&ms)
 	if err != nil {
 
-		return nil, fmt.Errorf("Error converting search string to JSON with error %s", err)
+		return nil, fmt.Errorf("error converting search string to JSON with error %s", err)
 	}
 
 	fmt.Println(ms)
@@ -652,7 +658,7 @@ func MediaSearch(searchJSON string) ([]MediaModel, error) {
 	// Sort by `_id` field descending
 	options.SetSort(map[string]int{"created_at": -1})
 
-	if isSearch == true {
+	if isSearch {
 		cur, err = db.Client.Database(getMediaDB()).Collection("media").Find(context.TODO(), filter, options)
 		if err != nil {
 			return nil, err

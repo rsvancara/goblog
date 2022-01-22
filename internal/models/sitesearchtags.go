@@ -7,21 +7,23 @@ import (
 	"goblog/internal/config"
 	"goblog/internal/db"
 
+	"github.com/rs/zerolog/log"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-// MediaTags tags associated with media
-type MediaTagsModel struct {
+// SiteSearchTags tags associated with sitesearch
+type SiteSearchTagsModel struct {
 	ID        primitive.ObjectID `json:"_id" bson:"_id,omitempty"`
 	TagsID    string             `json:"tags_id" bson:"tags_id,omitempty"`     // Unique identifier
 	Name      string             `json:"name" bson:"name,omitempty"`           // Tag Key word
 	Documents []string           `json:"documents" bson:"documents,omitempty"` // List of Document IDs
+	DocType   string             `json:"doctype" bson:"doctype,omitempty"`     // Document Type
 }
 
-//InsertMediaTags insert media
-func (m *MediaTagsModel) InsertMediaTags() error {
+//InsertSiteSearchtags insert sitesearch
+func (s *SiteSearchTagsModel) InsertSiteSearchTags() error {
 
 	var db db.Session
 
@@ -34,21 +36,21 @@ func (m *MediaTagsModel) InsertMediaTags() error {
 
 	// Manage the create and update time
 
-	c := db.Client.Database(getMediaTagsDB()).Collection("mediatags")
+	c := db.Client.Database(getSiteSearchTagsDB()).Collection("sitesearchtags")
 
-	insertResult, err := c.InsertOne(context.TODO(), m)
+	insertResult, err := c.InsertOne(context.TODO(), s)
 	if err != nil {
 		return err
 	}
 
 	// Convert to object ID
-	m.ID = insertResult.InsertedID.(primitive.ObjectID)
+	s.ID = insertResult.InsertedID.(primitive.ObjectID)
 
 	return nil
 }
 
-//UpdateMediaTags Update the title, keywords and description for media
-func (m *MediaTagsModel) UpdateMediaTags() error {
+//UpdateSearchTags Update the title, keywords and description for sitesearch
+func (s *SiteSearchTagsModel) UpdateSiteSearchTags() error {
 
 	var db db.Session
 
@@ -59,11 +61,11 @@ func (m *MediaTagsModel) UpdateMediaTags() error {
 
 	defer db.Close()
 
-	c := db.Client.Database(getMediaTagsDB()).Collection("mediatags")
+	c := db.Client.Database(getSiteSearchTagsDB()).Collection("sitesearchtags")
 
 	filter := bson.M{
 		"tags_id": bson.M{
-			"$eq": m.TagsID, // check if bool field has value of 'false'
+			"$eq": s.TagsID, // check if bool field has value of 'false'
 		},
 	}
 
@@ -72,8 +74,8 @@ func (m *MediaTagsModel) UpdateMediaTags() error {
 
 	update := bson.M{
 		"$set": bson.M{
-			"name":      m.Name,
-			"documents": m.Documents,
+			"name":      s.Name,
+			"documents": s.Documents,
 		},
 	}
 
@@ -82,13 +84,13 @@ func (m *MediaTagsModel) UpdateMediaTags() error {
 		return err
 	}
 
-	fmt.Printf("updated %v record for media tag id  %s \n", result.ModifiedCount, m.TagsID)
+	log.Info().Msgf("updated %v record for sitesearch tag id  %s \n", result.ModifiedCount, s.TagsID)
 
 	return nil
 }
 
-// GetMediaTag populate the media object based on ID
-func (m *MediaTagsModel) GetMediaTag(id string) error {
+// GetSiteSearchTag populate the sitesearch object based on ID
+func (s *SiteSearchTagsModel) GetSiteSearchTag(id string) error {
 
 	var db db.Session
 
@@ -97,9 +99,9 @@ func (m *MediaTagsModel) GetMediaTag(id string) error {
 		return err
 	}
 
-	c := db.Client.Database(getMediaTagsDB()).Collection("mediatags")
+	c := db.Client.Database(getSiteSearchTagsDB()).Collection("sitesearchtags")
 
-	err = c.FindOne(context.TODO(), bson.M{"tags_id": id}).Decode(m)
+	err = c.FindOne(context.TODO(), bson.M{"tags_id": id}).Decode(s)
 	if err != nil {
 		return err
 	}
@@ -109,17 +111,17 @@ func (m *MediaTagsModel) GetMediaTag(id string) error {
 }
 
 // Exists Check to see if record exists and if it does return it
-func (m *MediaTagsModel) Exists(name string) (int64, error) {
+func (s *SiteSearchTagsModel) Exists(name string) (int64, error) {
 	var db db.Session
 
 	err := db.NewSession()
 	if err != nil {
-		return 0, nil
+		return 0.0, err
 	}
 
 	var count int64
 
-	c := db.Client.Database(getMediaTagsDB()).Collection("mediatags")
+	c := db.Client.Database(getSiteSearchTagsDB()).Collection("sitesearchtags")
 
 	count, err = c.CountDocuments(context.TODO(), bson.M{"name": name})
 	if err != nil {
@@ -131,15 +133,15 @@ func (m *MediaTagsModel) Exists(name string) (int64, error) {
 
 }
 
-// GetMediaTagsCount get the total number of media tags
-func (m *MediaTagsModel) GetMediaTagsCount() (int64, error) {
+// GetSiteSearchTagsCount get the total number of Sitesearch tags
+func (s *SiteSearchTagsModel) GetSiteSearchTagsCount() (int64, error) {
 	var db db.Session
 
 	err := db.NewSession()
 	if err != nil {
 		return 0, err
 	}
-	c := db.Client.Database(getMediaTagsDB()).Collection("mediatags")
+	c := db.Client.Database(getSiteSearchTagsDB()).Collection("sitesearchtags")
 
 	count, err := c.CountDocuments(context.TODO(), bson.M{})
 	if err != nil {
@@ -148,8 +150,8 @@ func (m *MediaTagsModel) GetMediaTagsCount() (int64, error) {
 	return count, nil
 }
 
-// GetMediaTagByName populate the media object based on ID
-func (m *MediaTagsModel) GetMediaTagByName(name string) error {
+// GetSitesearchTagByName populate the Sitesearch object based on ID
+func (s *SiteSearchTagsModel) GetSiteSearchTagsByName(name string) error {
 
 	var db db.Session
 
@@ -158,9 +160,9 @@ func (m *MediaTagsModel) GetMediaTagByName(name string) error {
 		return err
 	}
 
-	c := db.Client.Database(getMediaTagsDB()).Collection("mediatags")
+	c := db.Client.Database(getSiteSearchTagsDB()).Collection("sitesearchtags")
 
-	err = c.FindOne(context.TODO(), bson.M{"name": name}).Decode(m)
+	err = c.FindOne(context.TODO(), bson.M{"name": name}).Decode(s)
 	if err != nil {
 		return err
 	}
@@ -169,13 +171,13 @@ func (m *MediaTagsModel) GetMediaTagByName(name string) error {
 	return nil
 }
 
-// SearchMediaTagsByName Text search for MediaTags
-func SearchMediaTagsByName(name string) ([]MediaTagsModel, error) {
+// Search SiteSearchTagsByName Text search for Site Search Tags
+func SearchSiteSearchTagsByName(name string) ([]SiteSearchTagsModel, error) {
 
 	//var config db.Config
 	var db db.Session
 
-	var mediaTagsModels []MediaTagsModel
+	var siteSearchTagsModel []SiteSearchTagsModel
 
 	err := db.NewSession()
 	if err != nil {
@@ -194,7 +196,7 @@ func SearchMediaTagsByName(name string) ([]MediaTagsModel, error) {
 	// Sort by `_id` field descending
 	options.SetSort(map[string]int{"name": 1})
 
-	cur, err := db.Client.Database(getMediaTagsDB()).Collection("mediatags").Find(context.TODO(), filter, options)
+	cur, err := db.Client.Database(getSiteSearchTagsDB()).Collection("sitesearchtags").Find(context.TODO(), filter, options)
 	if err != nil {
 		return nil, err
 	}
@@ -202,26 +204,26 @@ func SearchMediaTagsByName(name string) ([]MediaTagsModel, error) {
 	defer cur.Close(context.TODO())
 
 	for cur.Next(context.TODO()) {
-		var m MediaTagsModel
+		var s SiteSearchTagsModel
 		// To decode into a struct, use cursor.Decode()
-		err := cur.Decode(&m)
+		err := cur.Decode(&s)
 		if err != nil {
 			return nil, err
 		}
 
-		mediaTagsModels = append(mediaTagsModels, m)
+		siteSearchTagsModel = append(siteSearchTagsModel, s)
 
 	}
 	if err := cur.Err(); err != nil {
 		return nil, err
 	}
 
-	return mediaTagsModels, nil
+	return siteSearchTagsModel, nil
 
 }
 
 //DeleteAllTags Delete all tags, used when index needs to be rebuilt
-func DeleteAllTags() error {
+func DeleteAllSiteSearchTags() error {
 	//var config db.Config
 	var db db.Session
 	err := db.NewSession()
@@ -230,7 +232,7 @@ func DeleteAllTags() error {
 	}
 	defer db.Close()
 
-	result, err := db.Client.Database(getMediaTagsDB()).Collection("mediatags").DeleteMany(context.TODO(), bson.M{})
+	result, err := db.Client.Database(getSiteSearchTagsDB()).Collection("sitesearchtags").DeleteMany(context.TODO(), bson.M{})
 	if err != nil {
 		return err
 	}
@@ -240,13 +242,13 @@ func DeleteAllTags() error {
 	return nil
 }
 
-//AllMediaTags retrieve all media tags
-func AllMediaTags() ([]MediaTagsModel, error) {
+//All SiteSearchTags retrieve all sitesearch tags
+func AllSiteSearchTags() ([]SiteSearchTagsModel, error) {
 
 	//var config db.Config
 	var db db.Session
 
-	var mediaTagsModels []MediaTagsModel
+	var siteSearchTagsModel []SiteSearchTagsModel
 
 	err := db.NewSession()
 	if err != nil {
@@ -261,7 +263,7 @@ func AllMediaTags() ([]MediaTagsModel, error) {
 	// Sort by `_id` field descending
 	options.SetSort(map[string]int{"name": 1})
 
-	cur, err := db.Client.Database(getMediaTagsDB()).Collection("mediatags").Find(context.TODO(), filter, options)
+	cur, err := db.Client.Database(getSiteSearchTagsDB()).Collection("sitesearchtags").Find(context.TODO(), filter, options)
 	if err != nil {
 		return nil, err
 	}
@@ -269,24 +271,24 @@ func AllMediaTags() ([]MediaTagsModel, error) {
 	defer cur.Close(context.TODO())
 
 	for cur.Next(context.TODO()) {
-		var m MediaTagsModel
+		var s SiteSearchTagsModel
 		// To decode into a struct, use cursor.Decode()
-		err := cur.Decode(&m)
+		err := cur.Decode(&s)
 		if err != nil {
 			return nil, err
 		}
 
-		mediaTagsModels = append(mediaTagsModels, m)
+		siteSearchTagsModel = append(siteSearchTagsModel, s)
 
 	}
 	if err := cur.Err(); err != nil {
 		return nil, err
 	}
 
-	return mediaTagsModels, nil
+	return siteSearchTagsModel, nil
 }
 
-func getMediaTagsDB() string {
+func getSiteSearchTagsDB() string {
 	cfg, err := config.GetConfig()
 	if err != nil {
 		fmt.Printf("error getting configuration: %s", err)
