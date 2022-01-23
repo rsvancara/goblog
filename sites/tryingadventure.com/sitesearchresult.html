@@ -1,19 +1,56 @@
 {% extends "base.html" %}
 
-{% block title  %}Site Search Result{% endblock %}
+{% block title  %}Search Result{% endblock %}
 
-{% block headertitle %}<h2>Site Search Result</h2>{% endblock %}
+{% block headertitle %}<h2>Search Result</h2>{% endblock %}
 {% block stylesheet %}
 {% endblock %}
 {% block body %} 
 
+{% if searchlength > 0 %}
+
 {% for s in searchresults %}
 <div class="row">
   <div class="col-lg-12">
-    {{ s.Title }}
+    {% if s.DocType == "media" %}
+    <div class="blog-item-title-title">
+    <span class="icon-h4"><img src="/images/camera.svg"></span>
+    <a style="text-decoration: none; font-weight: bold; font-size: 1.2em;" href="/photo/{{ s.Slug }}">{{ s.Title }}</a>
+    </div>
+    {% endif %}
+
+    {% if s.DocType == "post" %}
+    <span class="icon-h4"><img src="/images/blog.svg"></span>
+    <a style="text-decoration: none; font-weight: bold; font-size: 1.2em;" href="/stories/{{ s.Slug }}">{{ s.Title }}</a>
+    {% endif %}
   </div>
 </div>
+<div style="height: 10px;"></div>
+<div class="row">
+  <div class="col-lg-12">
+  {{ s.Description }}
+  </div>
+</div>
+<div class="row">
+  <div class="col-lg-12">
+    <div class="tagview">
+      {% for tag in s.Tags %}
+          <div class="tag">{{ tag.Keyword }}</div>
+      {% endfor %}
+  </div>
+  </div>
+  <div style="height: 20px;"></div>
+</div>
 {% endfor %}
+{% else %}
+<div class="row">
+  <div class="col-lg-12">
+    No results found for [{{ searchterm }}]
+  </div>
+</div>
+
+
+{% endif %}
 
 {% endblock %}
 

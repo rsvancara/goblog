@@ -76,14 +76,24 @@ func (ctx *HTTPHandlerContext) SearchIndexListHandler(w http.ResponseWriter, r *
 // Site Search Handler - Display site search results
 func (ctx *HTTPHandlerContext) SiteSearchHandler(w http.ResponseWriter, r *http.Request) {
 
-	template, err := util.SiteTemplate("/sitesearchresult.html")
-	if err != nil {
-		log.Error().Err(err)
-		return
+	var searchString string
+
+	// Test if we are a POST to capture form submission
+	if r.Method == http.MethodPost {
+		if err := r.ParseForm(); err != nil {
+			fmt.Fprintf(w, "ParseForm() err: %v", err)
+			return
+		}
+
+		searchString = r.FormValue("search")
+		log.Info().Msgf("found search string [%s]", searchString)
+
 	}
 
+	log.Info().Msgf("found search string [%s]", searchString)
+
 	var siteSearchTagsDAO sitetagsdao.SiteSearchTagsDAO
-	err = siteSearchTagsDAO.Initialize(ctx.dbClient, ctx.hConfig)
+	err := siteSearchTagsDAO.Initialize(ctx.dbClient, ctx.hConfig)
 	if err != nil {
 		log.Error().Err(err).Str("service", "siteSearchTagsDAO").Msg("error initialzing siteSearchTagsDAO data access object ")
 	}
@@ -106,11 +116,13 @@ func (ctx *HTTPHandlerContext) SiteSearchHandler(w http.ResponseWriter, r *http.
 		Slug        string
 		KeyWords    string
 		Description string
+		Tags        []models.Tag
 	}
 
 	var searchResults []SearchResult
+	results := make(map[string]SearchResult)
 
-	ssmTags, err := siteSearchTagsDAO.SearchMediaTagsByName("landscape")
+	ssmTags, err := siteSearchTagsDAO.SearchMediaTagsByName(searchString)
 	if err != nil {
 		log.Error().Err(err).Str("service", "siteSearchTagsDAO").Msg("error initialzing siteSearchTagsDAO data access object ")
 	}
@@ -132,8 +144,9 @@ func (ctx *HTTPHandlerContext) SiteSearchHandler(w http.ResponseWriter, r *http.
 				sr.Slug = media.Slug
 				sr.KeyWords = media.Keywords
 				sr.Title = media.Title
+				sr.Tags = media.Tags
 
-				searchResults = append(searchResults, sr)
+				results[k.DocumentID] = sr
 
 			}
 
@@ -152,12 +165,23 @@ func (ctx *HTTPHandlerContext) SiteSearchHandler(w http.ResponseWriter, r *http.
 				sr.Slug = post.Slug
 				sr.KeyWords = post.Keywords
 				sr.Title = post.Title
+				sr.Tags = post.Tags
 
-				searchResults = append(searchResults, sr)
+				results[k.DocumentID] = sr
 
 			}
-
 		}
+	}
+
+	// Convert to a pongo2 digestable array
+	for _, v := range results {
+		searchResults = append(searchResults, v)
+	}
+
+	template, err := util.SiteTemplate("/sitesearchresult.html")
+	if err != nil {
+		log.Error().Err(err)
+		return
 	}
 
 	//template := "templates/admin/media.html"
@@ -169,6 +193,8 @@ func (ctx *HTTPHandlerContext) SiteSearchHandler(w http.ResponseWriter, r *http.
 		"hidetitle":     true,
 		"pagekey":       util.GetPageID(r),
 		"searchresults": searchResults,
+		"searchlength":  len(searchResults),
+		"searchterm":    searchString,
 	})
 
 	if err != nil {
