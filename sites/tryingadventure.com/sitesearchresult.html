@@ -14,13 +14,13 @@
   <div class="col-lg-12">
     {% if s.DocType == "media" %}
     <div class="blog-item-title-title">
-    <span class="icon-h4"><img src="/images/camera.svg"></span>
+    <span class="icon-h4"><img src="/images/camera.svg" alt="camera-icon"></span>
     <a style="text-decoration: none; font-weight: bold; font-size: 1.2em;" href="/photo/{{ s.Slug }}">{{ s.Title }}</a>
     </div>
     {% endif %}
 
     {% if s.DocType == "post" %}
-    <span class="icon-h4"><img src="/images/blog.svg"></span>
+    <span class="icon-h4"><img src="/images/blog.svg" alt="blog-icon"></span>
     <a style="text-decoration: none; font-weight: bold; font-size: 1.2em;" href="/stories/{{ s.Slug }}">{{ s.Title }}</a>
     {% endif %}
   </div>

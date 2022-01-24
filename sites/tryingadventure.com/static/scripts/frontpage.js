@@ -79,6 +79,8 @@ function startSite() {
 		castParallax();
 	}
 
+	return;
+
 }
 
 document.body.onload = startSite();
