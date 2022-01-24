@@ -1,7 +1,7 @@
 html {
 	background-color:#badddd;
 	color: #FFFFFF;
-	font-family: 'Verlag A', 'Verlag B', "Verlag", "sans-serif";
+	/*font-family: 'Verlag A', 'Verlag B', "Verlag", "sans-serif";*/
 	font-weight: 300;
 	font-style: normal;
 	font-size: 20px;
@@ -22,91 +22,6 @@ h1, h2, h3, h4 {
 div.blog-item-title-title > h2 > a {
 	text-decoration: none;
 	
-}
-
-
-/* PARALLAX */
-
-.keyart, .keyart_layer {
-	height: 1000px;
-}
-
-#parallax {
-	display: none;
-}
-#nonparallax {
-	display: block;
-}
-
-#nonparallax {
-	background-image: url('/images/parallax/keyart-mobile.svg');
-	background-position: center;
-	background-repeat: no-repeat;
-	background-size: auto 100%;
-}
-
-.keyart {
-	position: relative;
-	z-index: 10;
-}
-
-.keyart_layer {
-	background-position: bottom center;
-	background-size: auto 1038px;
-	background-repeat: repeat-x;
-	width: 100%;
-	position: absolute;
-}
-.keyart_layer.parallax {
-	position: fixed;
-}
-
-#keyart-3 {
-		background-image: url('/images/parallax/parallax3.svg');
-}
-#keyart-4 {
-		background-image: url('/images/parallax/parallax4.svg');
-}
-#keyart-5 {
-		background-image: url('/images/parallax/parallax5.svg');
-}
-#keyart-6 {
-		background-image: url('/images/parallax/parallax6.svg');
-}
-#keyart-7 {
-		background-image: url('/images/parallax/parallax7.svg');
-}
-#keyart-8 {
-		background-image: url('/images/parallax/parallax8.svg');
-}
-#keyart-scrim {
-		background-color: #ffaf00;
-		opacity: 0;
-}
-
-@media (-webkit-min-device-pixel-ratio: 1.5), (min-resolution: 144dpi){ 
-   	#keyart-0 {
-		background-image: url('/images/parallax/parallax0.svg');
-		background-color: #ffaf1b;
-	}
-	#keyart-3 {
-		background-image: url('/images/parallax/parallax3.svg');
-	}
-	#keyart-4 {
-		background-image: url('/images/parallax/parallax4.svg');
-	}
-	#keyart-5 {
-		background-image: url('/images/parallax/parallax5.svg');
-	}
-	#keyart-6 {
-		background-image: url('/images/parallax/parallax6.svg');
-	}
-	#keyart-7 {
-		background-image: url('/images/parallax/parallax7.svg');
-	}
-	#keyart-8 {
-		background-image: url('/images/parallax/parallax8.svg');
-	}
 }
 
 /* MAIN STRUCTURE */
