@@ -167,7 +167,7 @@ var BrowserByFunction = function() {
 
 $( document ).ready(function() {
 
-  bdata = {
+  var bdata = {
       'sessionid': stag,
       'functionalbrowser': BrowserByFunction(),
       'osversion': OSVersion() + "",
