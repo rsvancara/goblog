@@ -68,7 +68,7 @@ func (cache *Cache) GetTTL(key string) (int, error) {
 	// Connect to Redis using connection pool
 	conn, err := cache.getConn()
 	if err != nil {
-		return 0, fmt.Errorf("redis is not available or does not respond to ping: %s", err)
+		return 0, fmt.Errorf("in GetTTL redis is not available or does not respond to ping: %s", err)
 	}
 	defer cache.cleanup(conn)
 
@@ -85,14 +85,14 @@ func (cache *Cache) Ping() error {
 	// Connect to Redis using connection pool
 	conn, err := cache.getConn()
 	if err != nil {
-		return fmt.Errorf("redis is not available or does not respond to ping: %s", err)
+		return fmt.Errorf("could not get connection to redis from pool: %s", err)
 	}
 	defer cache.cleanup(conn)
 
 	// Ping cache to ensure pool is working
 	err = cache.Ping()
 	if err != nil {
-		return fmt.Errorf("redis is not available or does not respond to ping: %s", err)
+		return fmt.Errorf("in Ping, redis is not available or does not respond to ping: %s", err)
 	}
 
 	return nil
@@ -103,7 +103,7 @@ func (cache *Cache) GetKey(key string) (string, error) {
 	// Connect to Redis using connection pool
 	conn, err := cache.getConn()
 	if err != nil {
-		return "", fmt.Errorf("redis is not available or does not respond to ping: %s", err)
+		return "", fmt.Errorf("in GetKey, redis is not available or does not respond to ping: %s", err)
 	}
 	defer cache.cleanup(conn)
 
@@ -121,7 +121,7 @@ func (cache *Cache) SetEx(key string, value string, timeout int64) error {
 	// Connect to Redis using connection pool
 	conn, err := cache.getConn()
 	if err != nil {
-		return fmt.Errorf("redis is not available or does not respond to ping: %s", err)
+		return fmt.Errorf("ing SetEx, redis is not available or does not respond to ping: %s", err)
 	}
 	defer cache.cleanup(conn)
 
@@ -138,7 +138,7 @@ func (cache *Cache) Set(key string, value string) error {
 	// Connect to Redis using connection pool
 	conn, err := cache.getConn()
 	if err != nil {
-		return fmt.Errorf("redis is not available or does not respond to ping: %s", err)
+		return fmt.Errorf("in Set, redis is not available or does not respond to ping: %s", err)
 	}
 	defer cache.cleanup(conn)
 
@@ -155,7 +155,7 @@ func (cache *Cache) GetAllVals(pattern string) (map[string]string, error) {
 	// Connect to Redis using connection pool
 	conn, err := cache.getConn()
 	if err != nil {
-		return nil, fmt.Errorf("redis is not available or does not respond to ping: %s", err)
+		return nil, fmt.Errorf("in GetAllVals, redis is not available or does not respond to ping: %s", err)
 	}
 	defer cache.cleanup(conn)
 
@@ -198,7 +198,7 @@ func (cache *Cache) Exists(key string) (bool, error) {
 	// Connect to Redis using connection pool
 	conn, err := cache.getConn()
 	if err != nil {
-		return false, fmt.Errorf("redis is not available or does not respond to ping: %s", err)
+		return false, fmt.Errorf("in Exists, redis is not available or does not respond to ping: %s", err)
 	}
 	defer cache.cleanup(conn)
 

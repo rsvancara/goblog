@@ -87,11 +87,9 @@ func (ctx *HTTPHandlerContext) ViewMediaHandler(w http.ResponseWriter, r *http.R
 
 	// HTTP URL Parameters
 	vars := mux.Vars(r)
-	if val, ok := vars["id"]; ok {
-
-	} else {
-
-		log.Error().Msgf("error getting url variable, id: %s", val)
+	val, ok := vars["id"]
+	if !ok {
+		log.Info().Msg("could not get id from url for media handler")
 	}
 
 	var mediaDAO mediadao.MediaDAO
@@ -101,7 +99,7 @@ func (ctx *HTTPHandlerContext) ViewMediaHandler(w http.ResponseWriter, r *http.R
 		log.Error().Err(err).Str("service", "mediadao").Msg("error initialzing media data access object ")
 	}
 
-	media, err = mediaDAO.GetMedia(vars["id"])
+	media, err = mediaDAO.GetMedia(val)
 	if err != nil {
 		log.Error().Err(err).Str("service", "mediadao").Msg("Error retrieving data from access object ")
 	}
@@ -469,16 +467,16 @@ func (ctx *HTTPHandlerContext) MediaEditHandler(w http.ResponseWriter, r *http.R
 
 	// HTTP URL Parameters
 	vars := mux.Vars(r)
-	if val, ok := vars["id"]; ok {
+	val, ok := vars["id"]
 
-	} else {
+	if !ok {
 		log.Info().Msgf("Error getting url variable, id: %s", val)
 	}
 
 	// Load Media
-	err := media.GetMedia(vars["id"])
+	err := media.GetMedia(val)
 	if err != nil {
-		log.Error().Err(err).Str("service", "mediadao").Msgf("error getting media object with id %s", vars["id"])
+		log.Error().Err(err).Str("service", "mediadao").Msgf("error getting media object with id %s", val)
 
 		return
 	}
@@ -487,7 +485,7 @@ func (ctx *HTTPHandlerContext) MediaEditHandler(w http.ResponseWriter, r *http.R
 	if r.Method == http.MethodPost {
 		if err := r.ParseForm(); err != nil {
 			fmt.Fprintf(w, "ParseForm() err: %v", err)
-			log.Error().Err(err).Str("service", "mediadao").Msgf("error parsing form %s", vars["id"])
+			log.Error().Err(err).Str("service", "mediadao").Msgf("error parsing form %s", val)
 			return
 		}
 
@@ -561,7 +559,7 @@ func (ctx *HTTPHandlerContext) MediaEditHandler(w http.ResponseWriter, r *http.R
 
 			// Redirect on success otherwise fall through the form
 			// and display any errors
-			http.Redirect(w, r, fmt.Sprintf("/admin/media/view/%s", vars["id"]), http.StatusSeeOther)
+			http.Redirect(w, r, fmt.Sprintf("/admin/media/view/%s", val), http.StatusSeeOther)
 			return
 		}
 	}
@@ -622,9 +620,9 @@ func (ctx *HTTPHandlerContext) MediaDeleteHandler(w http.ResponseWriter, r *http
 
 	// HTTP URL Parameters
 	vars := mux.Vars(r)
-	if val, ok := vars["id"]; ok {
+	val, ok := vars["id"]
 
-	} else {
+	if !ok {
 		log.Error().Str("service", "mediadao").Msgf("error getting variable id %s", val)
 	}
 
@@ -637,9 +635,9 @@ func (ctx *HTTPHandlerContext) MediaDeleteHandler(w http.ResponseWriter, r *http
 
 	//var media models.MediaModel
 
-	media, err := mediaDAO.GetMedia(vars["id"])
+	media, err := mediaDAO.GetMedia(val)
 	if err != nil {
-		log.Error().Err(err).Str("service", "mediadao").Msgf("Error getting media from database for id %s", vars["id"])
+		log.Error().Err(err).Str("service", "mediadao").Msgf("Error getting media from database for id %s", val)
 		return
 	}
 
@@ -653,7 +651,7 @@ func (ctx *HTTPHandlerContext) MediaDeleteHandler(w http.ResponseWriter, r *http
 
 	err = mediaDAO.DeleteMedia(media)
 	if err != nil {
-		log.Error().Err(err).Str("service", "mediadao").Msgf("error deleting media with id %s", vars["id"])
+		log.Error().Err(err).Str("service", "mediadao").Msgf("error deleting media with id %s", val)
 	}
 
 	http.Redirect(w, r, "/admin/medialist", http.StatusSeeOther)
@@ -665,9 +663,9 @@ func (ctx *HTTPHandlerContext) PhotoViewHandler(w http.ResponseWriter, r *http.R
 	sess := util.GetSession(r)
 
 	vars := mux.Vars(r)
-	if val, ok := vars["id"]; ok {
+	val, ok := vars["id"]
 
-	} else {
+	if !ok {
 		log.Error().Msgf("error getting url variable, id: %s", val)
 	}
 
@@ -679,9 +677,9 @@ func (ctx *HTTPHandlerContext) PhotoViewHandler(w http.ResponseWriter, r *http.R
 	}
 
 	// Load Media
-	media, err := mediaDAO.GetMediaBySlug(vars["id"])
+	media, err := mediaDAO.GetMediaBySlug(val)
 	if err != nil {
-		log.Error().Err(err).Str("service", "mediadao").Msgf("error getting media by slug for id %s", vars["id"])
+		log.Error().Err(err).Str("service", "mediadao").Msgf("error getting media by slug for id %s", val)
 	}
 
 	template, err := util.SiteTemplate("/mediaview.html")
@@ -721,9 +719,9 @@ func (ctx *HTTPHandlerContext) GetMediaAPI(w http.ResponseWriter, r *http.Reques
 
 	// HTTP URL Parameters
 	vars := mux.Vars(r)
-	if _, ok := vars["id"]; ok {
+	_, ok := vars["id"]
 
-	} else {
+	if !ok {
 		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json")
 		fmt.Fprintf(w, errorMessage, "Error find ID", "ID was not available inthe URL or could not be parsed")
