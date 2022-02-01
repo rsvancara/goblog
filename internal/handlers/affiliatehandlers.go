@@ -162,9 +162,19 @@ func (ctx *HTTPHandlerContext) AffiliateEditHandler(w http.ResponseWriter, r *ht
 		fmt.Println(val)
 	}
 
-	var af models.Affiliate
+	var afDAO affiliatesdao.AffiliatesDAO
+	err := afDAO.Initialize(ctx.dbClient, ctx.hConfig)
+	if err != nil {
+		fmt.Fprintf(w, "error connecting to mongodb: %v", err)
+		return
+	}
 
-	af.GetAffiliate(vars["id"])
+	//af.GetAffiliate(vars["id"])
+	af, err := afDAO.GetAffiliate(vars["id"])
+	if err != nil {
+		fmt.Fprintf(w, "Error getting affiliate ID: %v", err)
+		return
+	}
 
 	// Form Variables
 	titleMessage := ""
@@ -207,14 +217,13 @@ func (ctx *HTTPHandlerContext) AffiliateEditHandler(w http.ResponseWriter, r *ht
 
 		if validate {
 
-			var affiliatesDAO affiliatesdao.AffiliatesDAO
-			err := affiliatesDAO.Initialize(ctx.dbClient, ctx.hConfig)
+			err := afDAO.Initialize(ctx.dbClient, ctx.hConfig)
 			if err != nil {
 				log.Error().Err(err).Str("service", "postdao").Msg("Error initialzing post data access object ")
 			}
 
 			// Create Record
-			err = affiliatesDAO.EditAffiliate(&af)
+			err = afDAO.EditAffiliate(&af)
 			if err != nil {
 				log.Error().Err(err).Msg("error inserting post")
 			}

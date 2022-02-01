@@ -16,11 +16,14 @@ type Session struct {
 }
 
 // NewSession create new session
-func (s *Session) NewSession() error {
+func (s *Session) NewSession(cfg config.AppConfig) error {
 
 	var err error
 
-	cfg, err := config.GetConfig()
+	//cfg, err := config.GetConfig()
+	//if err != nil {
+	//	return err
+	//}
 
 	clientOptions := options.Client().ApplyURI(cfg.Dburi)
 	s.Client, err = mongo.Connect(context.TODO(), clientOptions)

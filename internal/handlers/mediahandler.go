@@ -449,7 +449,8 @@ func (ctx *HTTPHandlerContext) MediaListViewHandler(w http.ResponseWriter, r *ht
 func (ctx *HTTPHandlerContext) MediaEditHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Media Object populated from form object
-	var media models.MediaModel
+	var mediaDAO mediadao.MediaDAO
+	err := mediaDAO.Initialize(ctx.dbClient, ctx.hConfig)
 
 	// Form Management Variables
 	formTitle := ""
@@ -474,10 +475,9 @@ func (ctx *HTTPHandlerContext) MediaEditHandler(w http.ResponseWriter, r *http.R
 	}
 
 	// Load Media
-	err := media.GetMedia(val)
+	media, err := mediaDAO.GetMedia(val)
 	if err != nil {
 		log.Error().Err(err).Str("service", "mediadao").Msgf("error getting media object with id %s", val)
-
 		return
 	}
 
@@ -531,7 +531,7 @@ func (ctx *HTTPHandlerContext) MediaEditHandler(w http.ResponseWriter, r *http.R
 		log.Info().Str("service", "mediadao").Msgf("form is validated %s", validate)
 		if validate {
 
-			var mediaDAO mediadao.MediaDAO
+			//var mediaDAO mediadao.MediaDAO
 
 			err = mediaDAO.Initialize(ctx.dbClient, ctx.hConfig)
 			if err != nil {

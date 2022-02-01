@@ -254,7 +254,7 @@ func (ctx *HTTPHandlerContext) PostEditHandler(w http.ResponseWriter, r *http.Re
 	var teaserImageURL string
 	// Get image URL if teaser image is present
 	if pm.TeaserImage != "" {
-		var mm models.MediaModel
+
 		mm, err := mediaDAO.GetMedia(pm.TeaserImage)
 		if err != nil {
 			log.Error().Err(err).Str("service", "mediadao").Msgf("error getting image from database for id %s", pm.TeaserImage)
@@ -275,12 +275,6 @@ func (ctx *HTTPHandlerContext) PostEditHandler(w http.ResponseWriter, r *http.Re
 		pm.PostTeaser = r.FormValue("inputPostTeaser")
 		pm.Keywords = r.FormValue("inputKeywords")
 		pm.TeaserImage = r.FormValue("inputTeaserImage")
-
-		var mm models.MediaModel
-		if pm.TeaserImage != "" {
-			mm.GetMedia(pm.TeaserImage)
-			pm.TeaserImageSlug = mm.Slug
-		}
 
 		// Do validation here
 		validate := true

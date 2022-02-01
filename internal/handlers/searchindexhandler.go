@@ -440,8 +440,16 @@ func (ctx *HTTPHandlerContext) SearchIndexMediaTagsAPI(w http.ResponseWriter, r 
 		fmt.Fprintf(w, errorMessage, "Error find NAME", "NAME was not available in the URL or could not be parsed")
 		return
 	}
+	var mtmDAO mediatagsdao.MediaTagsDAO
+	err := mtmDAO.Initialize(ctx.dbClient, ctx.hConfig)
+	if err != nil {
+		w.WriteHeader(http.StatusOK)
+		w.Header().Set("Content-Type", "application/json")
+		fmt.Fprintf(w, errorMessage, err, "could not initialize mongodb session")
+		return
+	}
 
-	mtms, err := models.SearchMediaTagsByName(vars["name"])
+	mtms, err := mtmDAO.SearchMediaTagsByName(vars["name"])
 	if err != nil {
 		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json")
@@ -466,9 +474,19 @@ func (ctx *HTTPHandlerContext) SearchIndexMediaTagsAPI(w http.ResponseWriter, r 
 				}
 			}
 			if !f {
-				var m models.MediaModel
+				var mediaDAO mediadao.MediaDAO
 
-				err := m.GetMedia(d)
+				err := mediaDAO.Initialize(ctx.dbClient, ctx.hConfig)
+				if err != nil {
+					w.WriteHeader(http.StatusOK)
+					w.Header().Set("Content-Type", "application/json")
+					fmt.Fprintf(w, errorMessage, err, "error initializing mediaDAO")
+					log.Error().Err(err).Msgf("error initializing mediaDAO: %s", err)
+					return
+				}
+				//var m models.MediaModel
+
+				m, err := mediaDAO.GetMedia(d)
 				if err != nil {
 					//w.WriteHeader(http.StatusOK)
 					//w.Header().Set("Content-Type", "application/json")

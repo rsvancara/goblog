@@ -1,10 +1,7 @@
 package models
 
 import (
-	"context"
 	"time"
-
-	"goblog/internal/db"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -23,33 +20,4 @@ type FakeRequest struct {
 	Username      string             `json:"username" bson:"username,omitempty"`
 	Password      string             `json:"password" bson:"password,omitempty"`
 	SessionID     string             `json:"session_id" bson:"session_id,omitempty"`
-}
-
-//InsertFakeRequest insert FakeRequest
-func (f *FakeRequest) InsertFakeRequest() error {
-
-	var db db.Session
-
-	err := db.NewSession()
-	if err != nil {
-		return err
-	}
-
-	defer db.Close()
-
-	// Manage the create and update time
-	f.CreatedAt = time.Now()
-	f.FakeRequestID = GenUUID()
-
-	c := db.Client.Database(getPostDB()).Collection("fakerequests")
-
-	insertResult, err := c.InsertOne(context.TODO(), f)
-	if err != nil {
-		return err
-	}
-
-	// Convert to object ID
-	f.ID = insertResult.InsertedID.(primitive.ObjectID)
-
-	return nil
 }
