@@ -81,21 +81,22 @@ func (cache *Cache) GetTTL(key string) (int, error) {
 }
 
 // Ping the redis cach to see if the connection is alive
-func (cache *Cache) Ping() error {
+func (cache *Cache) Ping() (bool, error) {
 	// Connect to Redis using connection pool
 	conn, err := cache.getConn()
 	if err != nil {
-		return fmt.Errorf("could not get connection to redis from pool: %s", err)
+		return false, fmt.Errorf("could not get connection to redis from pool: %s", err)
 	}
 	defer cache.cleanup(conn)
 
 	// Ping cache to ensure pool is working
-	err = cache.Ping()
+	_, err = redis.String(conn.Do("PING"))
 	if err != nil {
-		return fmt.Errorf("in Ping, redis is not available or does not respond to ping: %s", err)
+		log.Error().Err(err).Msgf("fail ping check redis conn to cache uri %s", cache.cfg.Cacheuri)
+		return false, err
 	}
 
-	return nil
+	return true, nil
 }
 
 func (cache *Cache) GetKey(key string) (string, error) {
