@@ -20,11 +20,6 @@ func (s *Session) NewSession(cfg config.AppConfig) error {
 
 	var err error
 
-	//cfg, err := config.GetConfig()
-	//if err != nil {
-	//	return err
-	//}
-
 	clientOptions := options.Client().ApplyURI(cfg.Dburi)
 	s.Client, err = mongo.Connect(context.TODO(), clientOptions)
 	if err != nil {
