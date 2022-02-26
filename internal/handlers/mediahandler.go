@@ -702,6 +702,8 @@ func (ctx *HTTPHandlerContext) PhotoViewHandler(w http.ResponseWriter, r *http.R
 		w.WriteHeader(http.StatusNotFound)
 
 		fmt.Fprint(w, out)
+
+		return
 	}
 
 	template, err := util.SiteTemplate("/mediaview.html")
