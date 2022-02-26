@@ -684,6 +684,10 @@ func (ctx *HTTPHandlerContext) PhotoViewHandler(w http.ResponseWriter, r *http.R
 		template, err := util.SiteTemplate("/imagenotfound.html")
 		if err != nil {
 			log.Error().Err(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			fmt.Fprint(w, "Internal Error")
+			return
+
 		}
 		//template := "templates/signin.html"
 		tmpl := pongo2.Must(pongo2.FromFile(template))
@@ -697,12 +701,11 @@ func (ctx *HTTPHandlerContext) PhotoViewHandler(w http.ResponseWriter, r *http.R
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprint(w, "Internal Error")
+			return
 		}
 
 		w.WriteHeader(http.StatusNotFound)
-
 		fmt.Fprint(w, out)
-
 		return
 	}
 

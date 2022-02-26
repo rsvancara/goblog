@@ -126,6 +126,9 @@ func (ctx *HTTPHandlerContext) PostViewHandler(w http.ResponseWriter, r *http.Re
 		template, err := util.SiteTemplate("/postnotfound.html")
 		if err != nil {
 			log.Error().Err(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			fmt.Fprint(w, "Internal Error")
+			return
 		}
 		//template := "templates/signin.html"
 		tmpl := pongo2.Must(pongo2.FromFile(template))
@@ -139,6 +142,7 @@ func (ctx *HTTPHandlerContext) PostViewHandler(w http.ResponseWriter, r *http.Re
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprint(w, "Internal Error")
+			return
 		}
 
 		w.WriteHeader(http.StatusNotFound)
@@ -146,7 +150,6 @@ func (ctx *HTTPHandlerContext) PostViewHandler(w http.ResponseWriter, r *http.Re
 		fmt.Fprint(w, out)
 
 		return
-
 	}
 
 	md := []byte(pm.Post)
