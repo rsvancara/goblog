@@ -676,17 +676,39 @@ func (ctx *HTTPHandlerContext) PhotoViewHandler(w http.ResponseWriter, r *http.R
 		log.Error().Err(err).Str("service", "mediadao").Msg("error initialzing media data access object ")
 	}
 
-	// Load Media
+	// Load Media, if media not found display 404 page
 	media, err := mediaDAO.GetMediaBySlug(val)
 	if err != nil {
 		log.Error().Err(err).Str("service", "mediadao").Msgf("error getting media by slug for id %s", val)
+
+		template, err := util.SiteTemplate("/imagenotfound.html")
+		if err != nil {
+			log.Error().Err(err)
+		}
+		//template := "templates/signin.html"
+		tmpl := pongo2.Must(pongo2.FromFile(template))
+
+		out, err := tmpl.Execute(pongo2.Context{
+			"title":   fmt.Sprintf("Image Not Found for %s", val),
+			"user":    sess.User,
+			"pagekey": util.GetPageID(r),
+			"token":   sess.SessionToken,
+		})
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			fmt.Fprint(w, "Internal Error")
+		}
+
+		w.WriteHeader(http.StatusNotFound)
+
+		fmt.Fprint(w, out)
 	}
 
 	template, err := util.SiteTemplate("/mediaview.html")
 	if err != nil {
 		log.Error().Err(err).Str("service", "mediahandler").Msg("error getting template")
 		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprint(w, "error getting template")
+		fmt.Fprint(w, "Internal Error")
 	}
 
 	tmpl := pongo2.Must(pongo2.FromFile(template))
@@ -706,7 +728,7 @@ func (ctx *HTTPHandlerContext) PhotoViewHandler(w http.ResponseWriter, r *http.R
 	if err != nil {
 		log.Error().Err(err).Str("service", "mediahandler").Msg("error rendering template")
 		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprint(w, "error generating template")
+		fmt.Fprint(w, "Internal Error")
 	}
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprint(w, out)

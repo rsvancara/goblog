@@ -34,32 +34,33 @@ var (
 func (ctx *HTTPHandlerContext) NotFoundHandler(w http.ResponseWriter, r *http.Request) {
 
 	sess := util.GetSession(r)
-	//fmt.Println("Could not find page")
+
 	template, err := util.SiteTemplate("/notfound.html")
 	if err != nil {
 		log.Error().Err(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Print(w, "Internal Server Error")
 	}
 	//template := "templates/signin.html"
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
 	out, err := tmpl.Execute(pongo2.Context{
-		"title":   "Not Found",
+		"title":   "Page Not Found",
 		"user":    sess.User,
 		"pagekey": util.GetPageID(r),
 		"token":   sess.SessionToken,
 	})
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		fmt.Printf("error loading template with error: %s\n", err)
+		fmt.Print(w, "Internal Server Error")
 	}
 
 	go event404Counter.WithLabelValues(
 		r.RequestURI,
 	).Inc()
 
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(http.StatusNotFound)
 	fmt.Fprint(w, out)
-
 }
 
 // SignInHandler Sign into the application
