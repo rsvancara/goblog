@@ -122,6 +122,31 @@ func (ctx *HTTPHandlerContext) PostViewHandler(w http.ResponseWriter, r *http.Re
 	pm, err := postDAO.GetPostBySlug(vars["id"])
 	if err != nil {
 		log.Error().Err(err).Msgf("Error getting post object from database: %s", err)
+
+		template, err := util.SiteTemplate("/postnotfound.html")
+		if err != nil {
+			log.Error().Err(err)
+		}
+		//template := "templates/signin.html"
+		tmpl := pongo2.Must(pongo2.FromFile(template))
+
+		out, err := tmpl.Execute(pongo2.Context{
+			"title":   fmt.Sprintf("Post Not Found for %s", vars["id"]),
+			"user":    sess.User,
+			"pagekey": util.GetPageID(r),
+			"token":   sess.SessionToken,
+		})
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			fmt.Fprint(w, "Internal Error")
+		}
+
+		w.WriteHeader(http.StatusNotFound)
+
+		fmt.Fprint(w, out)
+
+		return
+
 	}
 
 	md := []byte(pm.Post)
