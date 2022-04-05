@@ -16,7 +16,7 @@
       <div class="col-lg-6 grid-sizer"></div>
 {% for m in medialist %}
         <div class="col-lg-6 grid-item">
-          <div class="img-container" id="{{ m.Slug }}">
+          <div class="img-container" id="{{ m.Slug }}" style="margin-right: 5px;">
           <a href="/photo/{{ m.Slug }}">
           <img class="img-fluid" data-src="/image/{{ m.Slug }}/large" src="/image/{{ m.Slug }}/large" alt="{{ m.Title }}"/></a>
           <div class="pinfo portfolio-mobile">
