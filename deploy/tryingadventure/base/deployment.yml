@@ -139,7 +139,7 @@ spec:
             memory: "256Mi"
             cpu: "100m"
           limits:
-            memory: "400Mi"
+            memory: "385Mi"
             cpu: "500m"
         securityContext: {}
         terminationMessagePath: /dev/termination-log

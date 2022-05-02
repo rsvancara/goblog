@@ -193,7 +193,7 @@ func (ctx *HTTPHandlerContext) HealthCheckHandler(w http.ResponseWriter, r *http
 	fmt.Fprintf(w, "healthy")
 }
 
-// ContactHandler defines a healthcheck
+// ContactHandler contact page handler
 func (ctx *HTTPHandlerContext) ContactHandler(w http.ResponseWriter, r *http.Request) {
 	var sess sessionmanager.Session
 	err := sess.Session(*ctx.cache, ctx.hConfig.RedisDB, r, w)
@@ -205,7 +205,7 @@ func (ctx *HTTPHandlerContext) ContactHandler(w http.ResponseWriter, r *http.Req
 	if err != nil {
 		log.Error().Err(err)
 	}
-	//template := "templates/about.html"
+
 	tmpl := pongo2.Must(pongo2.FromFile(template))
 
 	out, err := tmpl.Execute(pongo2.Context{
