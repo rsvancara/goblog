@@ -284,13 +284,13 @@ div.tag {
 }
 
 .readmore {
-	border: 1px solid #eeeeee;
-	border-radius: 5px;
-	background-color: #eeeeee;
 	display: inline-block;
-	padding: 5px;
-	text-decoration: none;
-	color: #0000;
+    text-decoration: none;
+    border-radius: 10px;
+    background-color: #0095ff;
+    margin: 10px;
+    padding: 10px;
+    color: #FFFFFF;
 
 }
 
