@@ -11,6 +11,7 @@ variables:
 
 
 sonarqube-check:
+  stage: sonarqube-check
   image: 
     name: sonarsource/sonar-scanner-cli:latest
     entrypoint: [""]
@@ -27,14 +28,17 @@ sonarqube-check:
   only:
     - master # or the name of your main branch
 test:
+  stage: test
   script:
     - /usr/local/go/bin/go build -o goblog cmd/goblog/main.go
 build:
+  stage: build
   needs: ["test"]
   script:
     - docker build .  --tag=artifact.tryingadventure.com/goblog:${CI_COMMIT_SHORT_SHA} --no-cache
     - docker push artifact.tryingadventure.com/goblog:${CI_COMMIT_SHORT_SHA}
 deploy:
+  stage: deploy
   needs: ["test","build"]
   script:
     - cd deploy/tryingadventure/overlays/prod
