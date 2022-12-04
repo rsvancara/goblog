@@ -288,6 +288,9 @@ div.tag {
 	border-radius: 5px;
 	background-color: #eeeeee;
 	display: inline-block;
+	padding: 5px;
+	text-decoration: none;
+	color: #0000;
 
 }
 
