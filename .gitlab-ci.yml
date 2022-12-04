@@ -29,11 +29,13 @@ sonarqube-check:
 test:
   script:
     - /usr/local/go/bin/go build -o goblog cmd/goblog/main.go
-build: 
+build:
+  needs: ["test"]
   script:
     - docker build .  --tag=artifact.tryingadventure.com/goblog:${CI_COMMIT_SHORT_SHA} --no-cache
     - docker push artifact.tryingadventure.com/goblog:${CI_COMMIT_SHORT_SHA}
 deploy:
+  needs: ["test","build"]
   script:
     - cd deploy/tryingadventure/overlays/prod
     - kustomize edit set image artifact.tryingadventure.com/goblog=artifact.tryingadventure.com/goblog:${CI_COMMIT_SHORT_SHA}  
