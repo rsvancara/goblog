@@ -1,6 +1,6 @@
 module goblog
 
-go 1.16
+go 1.19
 
 require (
 	github.com/aws/aws-sdk-go v1.44.157
