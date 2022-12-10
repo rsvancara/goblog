@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 	"net/http"
+	"sort"
 
 	requestviewdao "goblog/internal/dao/requestview"
 	"goblog/internal/sessionmanager"
@@ -25,6 +26,12 @@ func (ctx *HTTPHandlerContext) SessionReportHandler(w http.ResponseWriter, r *ht
 	if err != nil {
 		log.Error().Err(err)
 	}
+
+	//var sorted_sessions []sessionmanager.Session
+
+	sort.SliceStable(sessions, func(i, j int) bool {
+		return sessions[i].User.CreatedAt.Before(sessions[j].User.CreatedAt)
+	})
 
 	template, err := util.SiteTemplate("/admin/sessions.html")
 	if err != nil {

@@ -54,15 +54,9 @@ func (s *Session) Authenticate(cache cache.Cache, redisdb string, creds Credenti
 		return false, fmt.Errorf("error? No Response from Cache: %s", err)
 	}
 
-	// Update the user object
-	//var user User
 	s.User.Username = creds.Username
 	s.User.IsAuth = true
 	s.User.CreatedAt = time.Now()
-	//s.IsAuth = true
-
-	//fmt.Println("AUTHENTICATING")
-	//fmt.Println(s)
 
 	// Attempt to extract additional information from a context
 	//var geoIP requestfilter.GeoIP
@@ -83,6 +77,7 @@ func (s *Session) Authenticate(cache cache.Cache, redisdb string, creds Credenti
 		s.User.TimeZone = geoIP.TimeZone
 		s.User.Country = geoIP.CountryName
 		s.User.IPAddress = geoIP.IPAddress.String()
+
 	} else {
 		log.Info().Msg("Could not find ctxkey: geoip")
 	}
@@ -131,6 +126,7 @@ func (s *Session) Session(cache cache.Cache, redisdb string, r *http.Request, w 
 		var user User
 		user.Username = "anonymous"
 		user.IsAuth = false
+		user.CreatedAt = time.Now()
 
 		var geoIP requestfilter.GeoIP
 
@@ -180,11 +176,10 @@ func (s *Session) Session(cache cache.Cache, redisdb string, r *http.Request, w 
 		log.Info().Msgf("Setting Cookie with id: %s\n", newCookie.Value)
 		http.SetCookie(w, &newCookie)
 
-		s.Save(cache, cfg.RedisDB)
-
-		// Since we have an error We need to flag the creation of a new cookie
-		//isCookieError = true
-		//fmt.Printf("Creating new session %s\n", s.SessionToken)
+		err := s.Save(cache, cfg.RedisDB)
+		if err != nil {
+			log.Error().Err(err).Msg("error saving new session to the redis cache")
+		}
 
 		return nil
 
