@@ -33,6 +33,14 @@ func (ctx *HTTPHandlerContext) SessionReportHandler(w http.ResponseWriter, r *ht
 		return sessions[i].User.CreatedAt.Before(sessions[j].User.CreatedAt)
 	})
 
+	// Reverse the order
+	inputLen := len(sessions)
+	reversed_session := make([]sessionmanager.Session, inputLen)
+	for i, n := range sessions {
+		j := inputLen - i - 1
+		reversed_session[j] = n
+	}
+
 	template, err := util.SiteTemplate("/admin/sessions.html")
 	if err != nil {
 		log.Error().Err(err)
@@ -42,7 +50,7 @@ func (ctx *HTTPHandlerContext) SessionReportHandler(w http.ResponseWriter, r *ht
 
 	out, err := tmpl.Execute(pongo2.Context{
 		"title":     "Session Report",
-		"sessions":  sessions,
+		"sessions":  reversed_session,
 		"user":      sess.User,
 		"bodyclass": "",
 		"hidetitle": true,
