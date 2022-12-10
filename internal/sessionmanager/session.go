@@ -13,6 +13,14 @@ import (
 	uuid "github.com/satori/go.uuid"
 )
 
+// Session a user session object
+type Session struct {
+	SessionToken string `json:"sessiontoken"` // Session Token
+	//IsAuth       bool   `json:"isauth"`       // Is Authenticated, true/false
+	User User `json:"user"` // User Object
+	TTL  int  `json:"ttl"`  // Session Time To Live
+}
+
 // Authenticate Authenticate a user
 func (s *Session) Authenticate(cache cache.Cache, redisdb string, creds Credentials, r *http.Request, w http.ResponseWriter) (bool, error) {
 
@@ -29,6 +37,7 @@ func (s *Session) Authenticate(cache cache.Cache, redisdb string, creds Credenti
 
 	s.SessionToken = c.Value
 
+	// Authentication peformed here!!
 	if creds.Username != cfg.GetAdminUser() || creds.Password != cfg.GetAdminPassword() {
 		log.Info().Msgf("error authenticating user %s", creds.Username)
 		return false, nil
@@ -49,14 +58,18 @@ func (s *Session) Authenticate(cache cache.Cache, redisdb string, creds Credenti
 	//var user User
 	s.User.Username = creds.Username
 	s.User.IsAuth = true
-	s.IsAuth = true
+	s.User.CreatedAt = time.Now()
+	//s.IsAuth = true
+
+	//fmt.Println("AUTHENTICATING")
+	//fmt.Println(s)
 
 	// Attempt to extract additional information from a context
 	//var geoIP requestfilter.GeoIP
 	// CtxKey Context Key
 	type contextKey string
-	var ctxKey contextKey
-	ctxKey = "geoip"
+	var ctxKey contextKey = "geoip"
+	//ctxKey = "geoip"
 
 	if result := r.Context().Value(ctxKey); result != nil {
 
@@ -71,7 +84,7 @@ func (s *Session) Authenticate(cache cache.Cache, redisdb string, creds Credenti
 		s.User.Country = geoIP.CountryName
 		s.User.IPAddress = geoIP.IPAddress.String()
 	} else {
-		fmt.Println("Could not find ctxkey: geoip")
+		log.Info().Msg("Could not find ctxkey: geoip")
 	}
 
 	err = s.Save(cache, cfg.RedisDB)
@@ -126,13 +139,13 @@ func (s *Session) Session(cache cache.Cache, redisdb string, r *http.Request, w 
 		// where this can be pulled from the context, but most likely you can not.  Maybe
 		// we do not use the context route, since sessions come first...
 		type contextKey string
-		var ctxKey contextKey
-		ctxKey = "geoip"
+		var ctxKey contextKey = "geoip"
+		//ctxKey = "geoip"
 
 		if result := r.Context().Value(ctxKey); result != nil {
 			geoIP, ok := result.(requestfilter.GeoIP)
 			if !ok {
-				fmt.Println("Could not perform type assertion on result to GeoIP type")
+				log.Info().Msg("could not perform type assertion on result to GeoIP type")
 			}
 
 			user.City = geoIP.City
@@ -142,7 +155,7 @@ func (s *Session) Session(cache cache.Cache, redisdb string, r *http.Request, w 
 			user.Organization = geoIP.Organization
 			user.ASN = geoIP.ASN
 		} else {
-			fmt.Printf("Could not find ctxkey geoip during session %s, performing manual lookup\n", s.SessionToken)
+			log.Info().Msgf("could not find ctxkey geoip during session %s, performing manual lookup", s.SessionToken)
 			ipaddress, _ := requestfilter.GetIPAddress(r)
 			err := geoIP.GeoIPSearch(ipaddress, cfg)
 			if err != nil {
@@ -158,12 +171,10 @@ func (s *Session) Session(cache cache.Cache, redisdb string, r *http.Request, w 
 
 		}
 
-		//TODO: Set the user
+		// Set the user
 		s.User = user
-		s.IsAuth = false
+		//s.IsAuth = false
 		s.TTL = int(cfg.GetIntegerSessionTimeout())
-
-		//fmt.Println(s)
 
 		// Place the cookie into the response header
 		log.Info().Msgf("Setting Cookie with id: %s\n", newCookie.Value)
@@ -192,14 +203,6 @@ func (s *Session) Session(cache cache.Cache, redisdb string, r *http.Request, w 
 	}
 
 	return nil
-}
-
-// Session a user session object
-type Session struct {
-	SessionToken string `json:"sessiontoken"` // Session Token
-	IsAuth       bool   `json:"isauth"`       // Is Authenticated, true/false
-	User         User   `json:"user"`         // User Object
-	TTL          int    `json:"ttl"`          // Session Time To Live
 }
 
 // Does the key exist
@@ -250,7 +253,6 @@ func (s *Session) Get(cache cache.Cache, redisdb string, key string) error {
 	}
 
 	s.User = *user
-	s.IsAuth = user.IsAuth
 	s.SessionToken = key
 	s.TTL = ttl
 
@@ -328,10 +330,7 @@ func (s *Session) SetSessionItem(cache cache.Cache, redisdb string, key string, 
 	}
 
 	user.SetItem(itemkey, itemvalue)
-
 	s.User = *user
-
-	//fmt.Println(s)
 	err = s.Save(cache, redisdb)
 	if err != nil {
 		return fmt.Errorf("could not save session %s while attempting to set item %s with error %s", key, itemkey, err)
@@ -408,10 +407,7 @@ func (s *Session) DeleteSessionItem(cache cache.Cache, redisdb string, key strin
 	}
 
 	user.DeleteItem(itemkey)
-
 	s.User = *user
-
-	//fmt.Println(s)
 	err = s.Save(cache, redisdb)
 	if err != nil {
 		return fmt.Errorf("could not save session %s while attempting to set item %s with error %s", key, itemkey, err)
@@ -452,16 +448,7 @@ func GetAllSessions(cache cache.Cache, redisdb string, pattern string) ([]Sessio
 			return nil, fmt.Errorf("error unmarshaling session %s with error %s", key, err)
 		}
 
-		// This is too slow, need to find another way, maybe this all needs to be prepopulated
-
-		//ttl, err := cache.GetTTL(key)
-		//if err != nil {
-		//	return nil, fmt.Errorf("error unmarshaling session %s with error %s", key, err)
-		//}
-		//user.TTL = ttl
-
 		sess.User = *user
-		sess.IsAuth = user.IsAuth
 		sess.SessionToken = key
 		sess.TTL = user.TTL
 

@@ -9,6 +9,7 @@
 <table class="table">
     <tr>
         <th>ID</th>
+        <th>Created</th>
         <th>TTL</th>
         <th>Auth</th>
         <th>User</th>
@@ -22,6 +23,9 @@
     <tr>
         <td>
             {{ s.SessionToken }}
+        </td>
+        <td>
+            {{ s.User.CreatedAt }}
         </td>
         <td>
             {{ s.TTL }}

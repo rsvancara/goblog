@@ -1,6 +1,9 @@
 package sessionmanager
 
-import "fmt"
+import (
+	"fmt"
+	"time"
+)
 
 // Credentials Create a struct that models the structure of a user, both in the request body, and in the DB
 type Credentials struct {
@@ -16,17 +19,19 @@ type Item struct {
 
 // User stores user information for a session
 type User struct {
-	Username     string `json:"username"`
-	Items        []Item `json:"items"`
-	IsAuth       bool   `json:"isauth"`
-	IPAddress    string `json:"ipaddress"`
-	City         string `json:"city"`
-	TimeZone     string `json:"timezone"`
-	Country      string `json:"country"`
-	ASN          string `json:"asn"`
-	Organization string `json:"organization"`
-	SessionID    string `json:"sessionid"`
-	TTL          int    `json:"ttl"`
+	Username     string    `json:"username"`
+	Items        []Item    `json:"items"`
+	IsAuth       bool      `json:"isauth"`
+	IPAddress    string    `json:"ipaddress"`
+	City         string    `json:"city"`
+	TimeZone     string    `json:"timezone"`
+	Country      string    `json:"country"`
+	ASN          string    `json:"asn"`
+	Organization string    `json:"organization"`
+	SessionID    string    `json:"sessionid"`
+	TTL          int       `json:"ttl"`
+	CreatedAt    time.Time `json:"created_at" bson:"created_at"`
+	UpdatedAt    time.Time `json:"updated_at" bson:"updated_at"`
 }
 
 // Set Item

@@ -1,7 +1,6 @@
 package models
 
 import (
-	"fmt"
 	"time"
 )
 
@@ -25,40 +24,4 @@ type Filter struct {
 	Fields            []Field   `json:"fields" bson:"fields"`                                   // Matchers fields to match or not match on
 	Name              string    `json:"name" bson:"name"`                                       // Name of the rule
 	Description       string    `json:"description" bson:"description"`                         // Description of the rule
-}
-
-// GetFilterByID get a filter by id
-func (f *Filter) GetFilterByID(id string) (Filter, error) {
-
-	fmt.Println("Working")
-
-	var filter Filter
-
-	return filter, nil
-}
-
-// CreateFilter get a filter by id
-func (f *Filter) CreateFilter() (Filter, error) {
-
-	fmt.Println("Working")
-
-	var filter Filter
-
-	return filter, nil
-}
-
-// EditFilter update a filter
-func (f *Filter) EditFilter() (Filter, error) {
-
-	fmt.Println("Working")
-
-	var filter Filter
-
-	return filter, nil
-}
-
-// GetFiltersOrderByDate get a list of filters sorted by date
-func GetFiltersOrderByDate() ([]Filter, error) {
-
-	return nil, nil
 }
